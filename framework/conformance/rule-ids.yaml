@@ -139,3 +139,21 @@ rules:
     category: "INTAKE-001"
     severity: error
     description: "A depends_on entry references an unknown task_id."
+
+  # --- Handover (HANDOVER-001) ---
+  - id: "HANDOVER.SOURCE_MISSING"
+    category: "HANDOVER-001"
+    severity: error
+    description: "handover_control is missing source_iplan or ledger_ref."
+  - id: "HANDOVER.STATUS_INVALID"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is not one of completed, aborted."
+  - id: "HANDOVER.GATE_NOT_PASSED"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is completed but gate_status is not passed."
+  - id: "HANDOVER.NOT_RECONCILED"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is completed but reconciled is not true."

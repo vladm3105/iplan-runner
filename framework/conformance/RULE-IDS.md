@@ -46,6 +46,10 @@ conformance compares the rule-ID set + status across engines (D-0012).
 | `INTAKE.NO_TASKS` | INTAKE-001 | error | task_graph empty |
 | `INTAKE.TASK_FIELDS_MISSING` | INTAKE-001 | error | task missing id/title/acceptance |
 | `INTAKE.DEP_UNRESOLVED` | INTAKE-001 | error | depends_on references unknown task |
+| `HANDOVER.SOURCE_MISSING` | HANDOVER-001 | error | source_iplan or ledger_ref absent |
+| `HANDOVER.STATUS_INVALID` | HANDOVER-001 | error | result.status not completed/aborted |
+| `HANDOVER.GATE_NOT_PASSED` | HANDOVER-001 | error | completed but gate not passed |
+| `HANDOVER.NOT_RECONCILED` | HANDOVER-001 | error | completed but not reconciled |
 
 ## Status semantics
 

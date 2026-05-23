@@ -151,3 +151,27 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 (D-0011) tractable — each engine duplicates a *small* driver, not a whole agent.
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
+
+### D-0014 - Project structure conventions - 2026-05-23
+
+Conventions for growing the repo across the roadmap, to keep additions purely
+additive and churn-free:
+
+1. **Sibling concern-dirs + registry discovery.** New contract surfaces are new
+   `framework/<concern>/` directories; **every** artifact is listed in
+   `framework/registry/EXECUTION_REGISTRY.yaml` so conformance discovers it by
+   data, never by hard-coded path.
+2. **One concern = one package, per engine.** Each engine grows by adding
+   `src/iops_<engine>/<concern>/` packages (intake, orchestrator, executor,
+   effectors, evidence, vcs, saga, leases, security, control, chain, …). Keep
+   ledger persistence under `ledger/` (`store.py` + `persistence.py` + `index.py`).
+3. **Injected clock + ID source.** Core logic (orchestrator/executor/ledger)
+   takes time and identifiers as inputs — never ambient `datetime.now()` /
+   `uuid4()`. Required so independent engines produce identical hash-chained
+   ledgers under scenario vectors, and so everything is deterministically
+   testable.
+4. **`cli/` package from Phase 3.** When the CLI gains `run`/`status`/`pause`/…,
+   `cli.py` becomes a `cli/` package with one module per command group.
+5. **Stateless vs stateful vectors.** `framework/conformance/vectors/` holds
+   pure-validator cases; `framework/conformance/scenarios/` holds stateful
+   run-loop cases (`steps.yaml` + `expect.yaml`).

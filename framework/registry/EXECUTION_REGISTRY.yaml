@@ -35,6 +35,7 @@ protocol_docs:
   - "framework/execution/HOOK_INTEGRATION_POINTS.md"
   - "framework/execution/SAGA_EXECUTION_MODEL.md"
   - "framework/execution/LEDGER_ISOLATION_MODEL.md"
+  - "framework/execution/STATE_MODEL.md"
   - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"

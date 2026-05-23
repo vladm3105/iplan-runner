@@ -35,10 +35,43 @@ ruff check platforms                                   # clean
 mypy --strict platforms/hermes/src platforms/claude/src  # clean
 ```
 
+## Repo CI — install manually (App lacks `workflows` permission)
+
+The automation token cannot push files under `.github/workflows/`. Add this
+workflow via the GitHub web UI (**Actions → New workflow → set up a workflow
+yourself**) or commit it from a context with `workflows` permission. Save as
+`.github/workflows/ci.yml`:
+
+```yaml
+name: CI
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install engines (editable, with dev extras)
+        run: pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"
+      - name: Conformance (vector replay + isolation + parity)
+        run: python -m unittest discover -s tests/conformance -v
+      - name: Engine tests
+        run: pytest platforms/hermes platforms/claude -q
+      - name: Lint
+        run: ruff check platforms
+      - name: Types
+        run: mypy --strict platforms/hermes/src platforms/claude/src
+```
+
 ## Backlog (post slice 1)
 
 - `platforms/codex/`, `platforms/vertexai/` engines (own plans).
 - Live Claude Code hook wiring for the `claude` engine.
 - Fuller OTel provider (metrics/logs instruments) + OTLP collector wiring.
 - Observability-driven issue loop (alert → issue).
-- Optional: `LICENSE`, CI workflow, web-session `SessionStart` setup hook.
+- Optional: `LICENSE`, `CONTRIBUTING`, web-session `SessionStart` setup hook.

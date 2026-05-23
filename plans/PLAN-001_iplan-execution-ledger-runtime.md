@@ -1,4 +1,4 @@
-# IPLAN Execution Ledger + Runtime (hermes + claude) Implementation Plan
+# IPLAN Execution Ledger + Runtime (hermes + claude, strict isolation) Implementation Plan
 
 > Development plans follow the SDD workflow inherited from
 > `aidoc-flow-framework`: **plan → review (≥2 passes) → implement → verify →
@@ -7,26 +7,30 @@
 
 **Goal:** Stand up `aidoc-flow-iops-framework` as the execution/operations-plane
 companion to SDD: an engine-agnostic execution-ledger + verification-gate +
-monitoring **contract** (`framework/`), a shared **core** runtime (`core/`),
-and **two full reference engines** (`platforms/hermes`, `platforms/claude`) that
-record, validate, gate, audit, and monitor IPLAN execution as append-only,
-isolation-scoped, hash-chained transactions.
+monitoring **contract** (`framework/`), and **two fully self-contained reference
+engines** (`platforms/hermes`, `platforms/claude`) that each independently
+record, validate, gate, audit, and monitor IPLAN execution. The engines share
+**no code** (D-0011); their behavioral identity is guaranteed by **golden
+conformance vectors** (D-0012).
 
-**Architecture:** Hybrid (D-0001). `framework/` holds the portable contract;
-`core/` (`iops_core`) holds shared logic; `platforms/<engine>/` add only
-engine-specific adapters and depend on `iops_core` (D-0007). Conformance in
-`tests/` keeps every engine honest to the one spec.
+**Architecture:** Hybrid (D-0001) with **strict engine isolation** (D-0011).
+`framework/` holds the portable contract — including a canonical rule-ID catalog
+and a golden-vector corpus. Each `platforms/<engine>/` is a complete, standalone
+implementation that imports only the spec, never another engine. Conformance in
+`tests/` replays the vectors against every engine and forbids cross-engine
+imports.
 
-**Tech Stack:** YAML contract templates; Python ≥3.11 (`iops_core` + platforms);
-`pytest` (unit/integration); `unittest`-style conformance; OpenTelemetry SDK +
-OTLP exporter; `ruff` + `mypy --strict`; Markdown governance docs.
+**Tech Stack:** YAML contract templates + vectors; Python ≥3.11 (each engine,
+independently); `pytest` (per-engine unit/integration); `unittest`-style
+conformance (vector replay + isolation + parity); OpenTelemetry SDK + OTLP
+behind an optional extra; `ruff` + `mypy --strict`; Markdown governance docs.
 
 ---
 
 | Field      | Value |
 |------------|-------|
 | Task       | IOPS-PLAN-001 |
-| Depends on | Attached "IPLAN Ledger Implementation Plan"; `aidoc-flow-framework` Layer 8 IPLAN spec (consumed, not modified); `plans/DECISIONS.md` D-0001..D-0010 |
+| Depends on | Attached "IPLAN Ledger Implementation Plan"; `aidoc-flow-framework` Layer 8 IPLAN spec (consumed, not modified); `plans/DECISIONS.md` D-0001..D-0012 |
 | Status     | IN REVIEW - 2026-05-23 |
 | Feeds      | Follow-up engine plans (`codex`, `vertexai`); multi-project control plane; observability-driven issue loop |
 
@@ -37,57 +41,63 @@ work as auditable transactions. The framework consumes an **approved** SDD IPLAN
 (at the `EXEC-Ready ≥90` boundary, D-0002) and provides:
 
 1. A portable **contract** for execution ledgers, verification gates, multi-IPLAN
-   chains, audit reports, and post-implementation monitoring.
-2. A shared **runtime** (`iops_core`) that creates/validates ledgers, enforces
-   append-only hash-chained logging and isolation scopes, runs verification
-   gates, generates audit/version-comparison reports, and wires OpenTelemetry
-   monitoring.
-3. **Two reference engines** (`hermes`, `claude`) that adapt the runtime to a
-   specific AI execution engine, proving the contract is genuinely
-   engine-agnostic.
+   chains, audit reports, and post-implementation monitoring — plus a **rule-ID
+   catalog** and **golden vectors** that pin validation *behavior*, not just
+   document shape.
+2. **Two reference engines** (`hermes`, `claude`), each a complete standalone
+   runtime that creates/validates ledgers, enforces append-only hash-chained
+   logging and isolation scopes, runs verification gates, generates audit /
+   version-comparison reports, and wires OpenTelemetry monitoring.
 
-The contract prevents silent task skips, weak completion claims, cross-task
-interference, and cross-project/client leakage by requiring structured
-transaction records, isolation boundaries, IPLAN version binding, leases,
-evidence, verification gates, and chain-level reconciliation. This is the
-attached IPLAN ledger plan, re-homed (D-0003) and extended with a runtime and
-OTel monitoring.
+Strict isolation (D-0011) means the engines duplicate logic on purpose and can
+evolve — or be reimplemented in other languages — independently, while the
+golden vectors (D-0012) keep their verdicts identical. This prevents silent task
+skips, weak completion claims, cross-task interference, and cross-project/client
+leakage by requiring structured transaction records, isolation boundaries, IPLAN
+version binding, leases, evidence, verification gates, and chain reconciliation.
+This is the attached IPLAN ledger plan, re-homed (D-0003) and extended with
+self-contained runtimes, OTel monitoring, and a parity harness.
 
 ## Scope
 
 **In:**
 
 1. Repo conventions mirroring SDD: `CLAUDE.md`, `README.md`, `CHANGELOG.md`,
-   `VERSION`, `plans/`, `.gitignore`.
+   `framework/VERSION`, `.gitignore`, `plans/`.
 2. Engine-agnostic execution contract under `framework/execution/`: ledger,
    verify-gate, chain-ledger, and audit-report templates; agent-update,
    hook-integration, saga-execution, and ledger-isolation protocol docs.
 3. Engine-agnostic monitoring contract under `framework/monitoring/`:
    OTel-aligned monitoring manifest template + post-implementation monitoring doc.
-4. Engine-adapter contract (`framework/engines/ENGINE-ADAPTER-CONTRACT.md`) and
-   the single-source-of-truth registry (`framework/registry/EXECUTION_REGISTRY.yaml`).
-5. Shared `core/` package (`iops_core`): ledger store (append-only, hash-chain),
-   isolation enforcement, ledger/chain/audit validators (re-homed), gate runner,
-   audit-report generator, OTel monitoring helpers + SLO evaluation, shared CLI.
-6. Two full engines: `platforms/hermes/` and `platforms/claude/`, each with
-   `pyproject.toml`, `VERSION`, `FRAMEWORK_SPEC_VERSION`, an adapter implementing
-   the engine-adapter contract, a console-script CLI, and platform tests.
-7. Conformance suite: templates parse + match registry; registry integrity;
-   relaxed engine-isolation; `FRAMEWORK_SPEC_VERSION == framework/VERSION`.
-8. Unit + integration tests: validators, hash-chain, isolation, gate runner,
-   audit generation, monitoring manifest validation, end-to-end ledger lifecycle.
+4. Engine-adapter contract (`framework/engines/ENGINE-ADAPTER-CONTRACT.md`), the
+   single-source-of-truth registry (`framework/registry/EXECUTION_REGISTRY.yaml`),
+   the rule-ID catalog (`framework/conformance/rule-ids.yaml` + `RULE-IDS.md`).
+5. Golden conformance vectors under `framework/conformance/vectors/`: valid +
+   invalid ledger/chain/audit/monitoring documents, each with an `*.expect.yaml`
+   (status + rule-ID set + severities), seeded from the attached plan's tests.
+6. Two fully self-contained engines, `platforms/hermes/` and `platforms/claude/`,
+   each with its own `pyproject.toml`, `VERSION`, `FRAMEWORK_SPEC_VERSION`, a
+   complete runtime (ledger store, iplan reader, validators emitting rule IDs,
+   gate runner, audit generator, monitoring provider + optional OTel, CLI), an
+   adapter implementing the engine-adapter contract (incl. the uniform
+   `validate(document)` entry point), and its own test suite.
+7. Conformance suite: replays vectors against **each** engine (status + rule-ID
+   parity); rule-ID catalog coverage; relaxed-free **strict** isolation (no
+   cross-engine imports); `FRAMEWORK_SPEC_VERSION == framework/VERSION`;
+   cross-engine differential agreement.
 
 **Out:**
 
 1. Engines beyond `hermes` + `claude` (`codex`, `vertexai`, …) — follow-up plans.
-2. A central multi-project database, dashboard, or web UI.
-3. Automatic GitHub Issues / Projects synchronization.
-4. Runtime distributed lease acquisition / cross-repository locking.
-5. Automatic rollback of source changes (saga compensation records recovery +
+2. Any shared runtime library between engines (explicitly rejected, D-0011).
+3. A central multi-project database, dashboard, or web UI.
+4. Automatic GitHub Issues / Projects synchronization.
+5. Runtime distributed lease acquisition / cross-repository locking.
+6. Automatic rollback of source changes (saga compensation records recovery +
    escalation only).
-6. Live OTLP backend deployment (we emit OTel + ship a console/in-memory exporter
-   for tests; pointing at a real collector is operator config).
-7. Modifying the SDD repo (`aidoc-flow-framework`) in any way.
+7. Live OTLP backend deployment (engines emit OTel + ship a console/no-op
+   provider; pointing at a collector is operator config).
+8. Modifying the SDD repo (`aidoc-flow-framework`) in any way.
 
 ## Approach
 
@@ -95,76 +105,80 @@ The contract is additive and backward-compatible: an SDD IPLAN remains valid as
 authored; this framework adds *companion* execution artifacts that bind to it by
 `source_iplan` id + version + checksum (D-0003). No SDD template is vendored.
 
-Three-part execution-control model, extended for ops (D-0002):
+Execution-control model, extended for ops (D-0002): `IPLAN` (planned contract,
+from SDD) → `Ledger` (append-only, hash-chained actuals) → `Gate` (independent
+completion proof) → `Monitor` (post-implementation OTel signals + SLOs).
 
-- `IPLAN` = planned execution contract (from SDD)
-- `Ledger` = actual task/agent/evidence record (append-only, hash-chained)
-- `Gate` = independent proof that completion is valid
-- `Monitor` = post-implementation observation (OTel signals + SLOs)
+**Strict isolation, no shared code (D-0011).** Each engine is a complete,
+standalone runtime. `hermes` and `claude` each carry their own ledger store,
+validators, gate runner, audit generator, monitoring, and CLI. Neither imports
+the other; both import only the `framework/` spec (as data). The duplication is
+deliberate.
 
-**Shared core, not four copies (D-0007).** The append-only hash-chained ledger,
-isolation enforcement, and validators live once in `iops_core`. Each engine adds
-only its adapter: how it dispatches execution, where it records transactions
-from, and how it wires instrumentation. The relaxed engine-isolation rule
-(*platforms import `iops_core` + spec, never each other*) is enforced by
-conformance so the divergence stays disciplined.
+**Behavioral parity via golden vectors (D-0012).** The thing that keeps two
+independent implementations honest is data, not shared code:
+- `framework/conformance/rule-ids.yaml` enumerates stable, fine-grained rule IDs
+  (`LEDGER.EVIDENCE_REQUIRED`, `LEDGER.LEASE_OVERLAP`,
+  `CHAIN.UPSTREAM_UNRECONCILED`, `AUDIT.IDENTITY_MISMATCH`, `HASHCHAIN.BROKEN`,
+  `ISOLATION.PATH_OUTSIDE_ROOTS`, `MON.SLO_MISSING_TARGET`, …) under the coarse
+  categories `IPLAN-007/008/009`, `MON-001` (D-0009).
+- `framework/conformance/vectors/<kind>/*.yaml` are input documents; each has a
+  sibling `*.expect.yaml` = `{status, rule_ids:[…]}`. Severity is **not** in the
+  expectation — it is a fixed property of each rule in the catalog, so
+  conformance instead asserts every emitted finding's severity equals the
+  catalog's severity for that rule ID.
+- Every engine exposes a uniform `validate(document) -> {status,
+  findings:[{rule_id, severity, message}]}` (part of the engine-adapter
+  contract). Conformance replays each vector through each engine and asserts the
+  **rule-ID set + status** match the expectation (and each finding's severity
+  matches the catalog); human message text is **not** compared (it will
+  legitimately differ between independent implementations).
+- Coverage is enforced both ways: every catalog rule has ≥1 vector, and every
+  emitted/expected rule ID is in the catalog.
+- Ground truth is in the spec, so a future engine (`codex`, `vertexai`) can be
+  certified against the vectors **alone**. Once ≥2 engines exist, a
+  **cross-engine differential** test additionally asserts the engines agree with
+  *each other* on every vector (defense-in-depth on top of the golden answers).
 
-**Test-first where logic is non-trivial.** Core validators, the hash-chain, and
-the gate runner are built TDD-style (failing test → implementation), inheriting
-the attached plan's test cases (re-homed as standalone-document tests).
+**Validators emit findings, not strings.** Re-homing the attached plan's
+validator logic, each finding becomes `{rule_id, severity, message}` (the
+attached plan appended plain strings under coarse codes). The coarse code is
+derived from the rule ID's category. Validators stay deterministic, pure, no I/O.
 
-**Validators are deterministic** (D-0009): pure functions over parsed dicts,
-accumulating `errors` / `warnings` / `passes`. We re-home only the ledger-side
-codes (`IPLAN-007/008/009`); SDD's IPLAN structural codes (`SDD-IPLAN-001..006`)
-stay in SDD because we consume already-approved IPLANs, not author them.
+**OpenTelemetry is an optional extra per engine (R5).** Each engine defines a
+small `MonitoringProvider` interface with a console/no-op default; the OTLP/OTel
+SDK lives behind that engine's `[otel]` extra. Absent it (offline container),
+the no-op provider is used; SLO evaluation operates on supplied samples and is
+exporter-independent. All tests + conformance run with only `pyyaml`.
 
-**Engine differences:**
-- `hermes`: exposes core as MCP-server-style tools (`iops_validate_ledger`,
-  `iops_run_gate`, `iops_audit_report`, `iops_monitor_check`) and dispatches
-  execution via an API executor; console script `iops-hermes`.
-- `claude`: a Claude Code adapter that implements `AGENT_UPDATE_PROTOCOL`
-  (startup → lease → edit-recording → evidence → reconciliation) and records
-  ledger transactions from observed local file edits / hook callbacks; console
-  script `iops-claude`.
+**Source-IPLAN binding is real.** Each engine's `iplan.read_iplan_ref(path)`
+reads any SDD IPLAN-shaped YAML (read-only) → `{id, version, last_updated,
+checksum}` where `checksum = "sha256:" + sha256(file_bytes)`. Populates a
+ledger's `ledger_control.source_iplan*` without depending on the SDD repo.
 
-Both engines are "full" in the sense that matters: a complete adapter
-implementing the engine-adapter contract, a working CLI, passing tests, and
-spec-version parity. They are *thin by design* — all shared logic is in
-`iops_core` (D-0007). `instrument()` differs only by OTel `Resource`
-(`service.name = "iops-hermes"` vs `"iops-claude"`) before delegating to
-`iops_core.monitoring.otel`.
+**Dev setup.** `src/` layout per engine, installed editable for tests/types:
+`pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"`.
+Conformance itself needs only `pyyaml` and imports the engines (test code may
+import engines; engines must not import each other).
 
-**OpenTelemetry is an optional extra (R5).** `iops_core` defines a small
-monitoring provider interface; the OTLP/OTel SDK lives behind
-`iops_core[otel]`. When the extra is absent (e.g. offline container), a
-console/no-op provider is used, so the contract, SLO evaluation, and all tests
-remain runnable without network installs. SLO evaluation operates on collected
-samples and is exporter-independent.
-
-**Dev setup.** Packages use a `src/` layout and are installed editable for
-tests/type-checking: `pip install -e ./core -e ./platforms/hermes -e
-./platforms/claude` (plus `[dev]` extras for `pytest`/`ruff`/`mypy`).
-Conformance itself needs only `pyyaml` (R12) and never imports the engines.
-
-**Source-IPLAN binding is real, not nominal.** `iops_core.iplan.read_iplan_ref`
-reads any SDD IPLAN-shaped YAML (read-only) and returns `{id, version,
-last_updated, checksum}` where `checksum = "sha256:" + sha256(file_bytes)`. This
-populates a ledger's `ledger_control.source_iplan*` fields without depending on
-the SDD repo being present.
+**Test-first where logic is non-trivial.** Per engine, the ledger store,
+validators, hash-chain, and gate runner are built TDD-style against the
+re-homed cases; the golden vectors are authored in `framework/` first so both
+engines are implemented to the same target.
 
 ## File Structure
 
 | Path | Responsibility |
 |------|----------------|
-| `CLAUDE.md` | Repo dev workflow + durable conventions (adapted from SDD). |
+| `CLAUDE.md` | Repo dev workflow + durable conventions (adapted from SDD; strict isolation rule). |
 | `README.md` | What the framework is; control-plane vs execution-plane relationship to SDD. |
 | `CHANGELOG.md` | Keep-a-changelog; `[Unreleased]`; tracks repo releases. |
 | `.gitignore` | Python + tooling ignores. |
-| `framework/VERSION` | **Single** spec-version source (`0.1.0`); registry + every engine must match it. |
+| `framework/VERSION` | **Single** spec-version source (`0.1.0`); registry + every engine must match. |
 | `framework/README.md` | IPLAN / Ledger / Gate / Monitor model overview. |
-| `framework/registry/EXECUTION_REGISTRY.yaml` | Single source of truth: contract artifacts, engines, error-code namespaces. |
+| `framework/registry/EXECUTION_REGISTRY.yaml` | Single source of truth: artifacts, engines, coarse codes, rule-ID catalog ref. |
 | `framework/execution/IPLAN-LEDGER-TEMPLATE.yaml` | Ledger: task state, leases, evidence, blockers, reconciliation, saga journal, execution history, hash-chained execution log, audit snapshots. |
-| `framework/execution/IPLAN-VERIFY-TEMPLATE.yaml` | Verification-gate rules + outcomes. |
+| `framework/execution/IPLAN-VERIFY-TEMPLATE.yaml` | Verification-gate rules (GATE-LEDGER-001..005) + outcomes. |
 | `framework/execution/IPLAN-CHAIN-LEDGER-TEMPLATE.yaml` | Ordered multi-IPLAN execution path + chain reconciliation. |
 | `framework/execution/IPLAN-AUDIT-REPORT-TEMPLATE.yaml` | Execution history + version-comparison report. |
 | `framework/execution/AGENT_UPDATE_PROTOCOL.md` | Mandatory agent update protocol. |
@@ -172,44 +186,35 @@ the SDD repo being present.
 | `framework/execution/SAGA_EXECUTION_MODEL.md` | Saga-lite transactions, retries, compensation, escalation, journaling. |
 | `framework/execution/LEDGER_ISOLATION_MODEL.md` | Task/project/client isolation boundaries. |
 | `framework/execution/README.md` | Ledger semantics, status model, lease/evidence/reconciliation rules. |
-| `framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml` | OTel-aligned SLOs, signals (spans/metrics/logs), probes, alert rules, bound to `@iplan` + `@ledger`. |
-| `framework/monitoring/POST_IMPLEMENTATION_MONITORING.md` | Post-impl monitoring model, OTel mapping, SLO evaluation, monitoring window. |
+| `framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml` | OTel-aligned SLOs, signals, probes, alerts, bound to `@iplan` + `@ledger`. |
+| `framework/monitoring/POST_IMPLEMENTATION_MONITORING.md` | Monitoring model, OTel mapping, SLO evaluation, window. |
 | `framework/monitoring/README.md` | Monitoring contract overview. |
-| `framework/engines/ENGINE-ADAPTER-CONTRACT.md` | The interface every engine implements + capability declarations. |
-| `core/pyproject.toml` | `iops_core` package metadata (Python ≥3.11). |
-| `core/src/iops_core/iplan.py` | Read-only SDD IPLAN reference reader: `read_iplan_ref(path) -> {id, version, last_updated, checksum}`. |
-| `core/src/iops_core/ledger/store.py` | Append-only ledger load/append; hash-chain (`sequence`/`previous_event_hash`/`event_hash`). |
-| `core/src/iops_core/ledger/isolation.py` | Isolation-scope checks; touched-path ⊆ `allowed_roots`. |
-| `core/src/iops_core/validation/ledger_rules.py` | `check_execution_ledger`, `run_iplan_ledger_validation_checks` (re-homed). |
-| `core/src/iops_core/validation/chain_rules.py` | `run_iplan_chain_ledger_validation_checks` (re-homed). |
-| `core/src/iops_core/validation/audit_rules.py` | `run_iplan_audit_report_validation_checks` (re-homed). |
-| `core/src/iops_core/validation/monitoring_rules.py` | `run_monitoring_manifest_validation_checks` (`MON-001`). |
-| `core/src/iops_core/gates/runner.py` | Verification-gate runner over a ledger + gate doc. |
-| `core/src/iops_core/audit/report.py` | Audit-report + version-comparison generation. |
-| `core/src/iops_core/monitoring/provider.py` | Monitoring provider interface + console/no-op default (no OTel dep). |
-| `core/src/iops_core/monitoring/otel.py` | OTel tracer/meter/logger setup behind `iops_core[otel]` extra; exporter selection. |
-| `core/src/iops_core/monitoring/slo.py` | SLO evaluation against collected samples (exporter-independent). |
-| `core/src/iops_core/engine.py` | `EngineAdapter` Protocol/ABC (the engine-adapter contract in code). |
-| `core/src/iops_core/cli.py` | Shared CLI commands (`ledger`, `gate`, `audit`, `monitor`); `main(argv)->int`. |
-| `core/tests/fixtures/` | Valid sample ledger/chain/audit/monitoring docs + a sample IPLAN ref. |
-| `core/tests/unit/` | Re-homed validator tests + hash-chain/isolation/gate/audit/monitoring unit tests. |
-| `core/tests/integration/test_ledger_lifecycle.py` | End-to-end: read IPLAN ref → create ledger → record tasks → run gate → 2-plan chain reconcile → audit report. |
-| `platforms/hermes/pyproject.toml` | `iops_hermes`; depends on `iops_core`; console script `iops-hermes`. |
-| `platforms/hermes/VERSION`, `platforms/hermes/FRAMEWORK_SPEC_VERSION` | Engine version + spec parity. |
-| `platforms/hermes/src/iops_hermes/adapter.py` | `HermesEngine(EngineAdapter)`; MCP-style tool surface + API-executor dispatch. |
-| `platforms/hermes/src/iops_hermes/cli.py` | `iops-hermes` entry point (wraps `iops_core.cli`). |
-| `platforms/hermes/README.md` | Hermes engine + ledger-verification expectations. |
-| `platforms/hermes/tests/` | Hermes adapter unit tests. |
-| `platforms/claude/pyproject.toml` | `iops_claude`; depends on `iops_core`; console script `iops-claude`. |
-| `platforms/claude/VERSION`, `platforms/claude/FRAMEWORK_SPEC_VERSION` | Engine version + spec parity. |
-| `platforms/claude/src/iops_claude/adapter.py` | `ClaudeEngine(EngineAdapter)`; AGENT_UPDATE_PROTOCOL via hooks/edit observation. |
-| `platforms/claude/src/iops_claude/cli.py` | `iops-claude` entry point (wraps `iops_core.cli`). |
-| `platforms/claude/README.md` | Claude engine + hook guardrail expectations. |
-| `platforms/claude/tests/` | Claude adapter unit tests. |
-| `tests/conformance/_spec.py` | Locate `framework/`, load registry. |
-| `tests/conformance/test_contract.py` | Templates parse + metadata matches registry; required docs present. |
-| `tests/conformance/test_registry.py` | Registry integrity (artifacts/engines/error codes resolve to files). |
-| `tests/conformance/test_engines.py` | Relaxed engine isolation + `FRAMEWORK_SPEC_VERSION == framework/VERSION`. |
+| `framework/engines/ENGINE-ADAPTER-CONTRACT.md` | Interface every engine implements, incl. `validate(document)` parity entry point + capabilities. |
+| `framework/conformance/rule-ids.yaml` | Canonical fine-grained rule-ID catalog (id, category, severity, description). |
+| `framework/conformance/RULE-IDS.md` | Human-readable rule catalog. |
+| `framework/conformance/vectors/<kind>/*.yaml` | Golden input docs (kind ∈ ledger/chain/audit/monitoring). |
+| `framework/conformance/vectors/<kind>/*.expect.yaml` | Expected `{status, rule_ids}` per input (severity checked against the catalog). |
+| `platforms/<engine>/pyproject.toml` | Standalone package (`iops_<engine>`); base dep `pyyaml`; `[otel]` + `[dev]` extras; console script `iops-<engine>`. |
+| `platforms/<engine>/VERSION`, `platforms/<engine>/FRAMEWORK_SPEC_VERSION` | Engine version + spec parity. |
+| `platforms/<engine>/README.md` | Engine-specific expectations. |
+| `platforms/<engine>/src/iops_<engine>/iplan.py` | Read-only SDD IPLAN reference reader. |
+| `platforms/<engine>/src/iops_<engine>/ledger/store.py` | Append-only ledger load/append; hash-chain. |
+| `platforms/<engine>/src/iops_<engine>/ledger/isolation.py` | Isolation-scope + touched-path ⊆ `allowed_roots`. |
+| `platforms/<engine>/src/iops_<engine>/validation/{ledger,chain,audit,monitoring}_rules.py` | Validators emitting `{rule_id, severity, message}`. |
+| `platforms/<engine>/src/iops_<engine>/gates/runner.py` | Verify-gate runner (maps GATE-LEDGER-NNN ↔ rule IDs). |
+| `platforms/<engine>/src/iops_<engine>/audit/report.py` | Audit + version-comparison generation. |
+| `platforms/<engine>/src/iops_<engine>/monitoring/{provider,otel,slo}.py` | Monitoring provider (no-op default), optional OTel, SLO eval. |
+| `platforms/<engine>/src/iops_<engine>/engine.py` | Adapter implementing the engine-adapter contract incl. `validate(document)`. |
+| `platforms/<engine>/src/iops_<engine>/cli.py` | `iops-<engine>` entry point; `main(argv)->int`. |
+| `platforms/<engine>/src/iops_<engine>/py.typed` | Typing marker for `mypy --strict`. |
+| `platforms/<engine>/tests/` | Per-engine unit + integration tests. |
+| `tests/conformance/_spec.py` | Locate `framework/`, load registry + rule catalog + discover vectors + engines. |
+| `tests/conformance/test_contract.py` | Templates parse + metadata matches registry; protocol docs present. |
+| `tests/conformance/test_registry.py` | Registry integrity; `spec_version == framework/VERSION`. |
+| `tests/conformance/test_rule_catalog.py` | Catalog well-formed; every catalog rule has ≥1 vector; every vector rule is in the catalog. |
+| `tests/conformance/test_vectors.py` | Replay each vector through each engine's `validate`; assert status + rule-ID set match `*.expect.yaml`. |
+| `tests/conformance/test_engines.py` | Strict isolation (no cross-engine imports); `FRAMEWORK_SPEC_VERSION == framework/VERSION`. |
+| `tests/conformance/test_differential.py` | Cross-engine agreement: all engines return identical status + rule-ID set per vector. |
 | `tests/conformance/requirements.txt` | `pyyaml`. |
 
 ## Step Sequence
@@ -219,50 +224,44 @@ the SDD repo being present.
 **Files:** Create `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `.gitignore`,
 `framework/VERSION`, `framework/README.md`.
 
-- [ ] **Step 1: Write `CLAUDE.md`** documenting: project purpose (execution/ops
-  plane, D-0002); the plan → ≥2-review → implement → verify → land workflow;
-  durable conventions (spec is the contract; conformance stays green; single
-  source of truth = registry; engines import `iops_core` + spec only); session
-  handoff via `plans/HANDOFF.md` ("only committed + pushed work survives").
-- [ ] **Step 2: Write `README.md`** — what the framework is, the
-  IPLAN/Ledger/Gate/Monitor model, the relationship to SDD, and a repo map.
-- [ ] **Step 3: Write `framework/VERSION` (`0.1.0`)** — the single spec-version
-  source; `CHANGELOG.md` (Keep-a-Changelog skeleton with `[Unreleased]`);
-  `.gitignore` (Python, `.venv`, `__pycache__`, `*.egg-info`, `.pytest_cache`,
-  `.mypy_cache`).
-- [ ] **Step 4: Write `framework/README.md`** with the canonical model framing
-  and links to the execution/monitoring/engines contract docs.
+- [ ] **Step 1: `CLAUDE.md`** — project purpose (execution/ops plane, D-0002);
+  plan → ≥2-review → implement → verify → land workflow; durable conventions
+  (spec is the contract; **strict isolation** — engines import only the spec,
+  never each other, D-0011; parity is proven by golden vectors, D-0012;
+  conformance stays green; single source of truth = registry); handoff via
+  `plans/HANDOFF.md` ("only committed + pushed work survives").
+- [ ] **Step 2: `README.md`** — model, relationship to SDD, repo map.
+- [ ] **Step 3: `framework/VERSION` (`0.1.0`); `CHANGELOG.md` (Keep-a-Changelog,
+  `[Unreleased]`); `.gitignore`** (`.venv`, `__pycache__`, `*.egg-info`,
+  `.pytest_cache`, `.mypy_cache`).
+- [ ] **Step 4: `framework/README.md`** — model framing + links.
 - [ ] **Step 5: Commit** — `git commit -m "chore: scaffold repo conventions"`.
 
 ### Task 2: Engine-agnostic execution contract
 
-**Files:** Create the four `framework/execution/*.yaml` templates and four
-`framework/execution/*.md` protocol docs + `framework/execution/README.md`.
+**Files:** Create the four `framework/execution/*.yaml` templates, four
+`*.md` protocol docs, and `framework/execution/README.md`.
 
-- [ ] **Step 1: `IPLAN-LEDGER-TEMPLATE.yaml`** — re-home verbatim from the
-  attached plan (Task 1, Step 1), changing only `metadata.tags`/`document_type`
-  to suit this repo (`document_type: "iplan-ledger"`, drop `layer: 8`; add
-  `framework: iops`). Keep all sections: `ledger_control` (with
-  `source_iplan`/`source_iplan_version`/`source_iplan_last_updated`/
-  `source_iplan_checksum`), `isolation_scope`, `task_ledger`, `agent_leases`,
-  `execution_evidence`, `blockers`, `reconciliation`, `saga_journal`,
-  `execution_history`, `execution_log` (hash-chained), `audit_snapshots`.
-- [ ] **Step 2: `IPLAN-CHAIN-LEDGER-TEMPLATE.yaml`** — re-home from attached plan
-  (Task 1, Step 2): `chain_control`, `iplan_chain`, `execution_tiers`,
-  `cross_plan_leases`, `chain_gate_results`, `chain_reconciliation`.
-- [ ] **Step 3: `IPLAN-AUDIT-REPORT-TEMPLATE.yaml`** — re-home from attached plan
-  (Task 1, Step 3): `audit_control`, `version_scope`, `execution_summary`,
-  `change_report`, `audit_findings`, `recommendation`.
-- [ ] **Step 4: `IPLAN-VERIFY-TEMPLATE.yaml`** — re-home from attached plan
-  (Task 1, Step 4): `gate_control`, `gate_rules` (GATE-LEDGER-001..005),
-  `gate_results`.
+- [ ] **Step 1: `IPLAN-LEDGER-TEMPLATE.yaml`** — re-home from the attached plan
+  (Task 1 Step 1); `document_type: "iplan-ledger"`, `framework: iops`, drop
+  `layer: 8`. Keep `ledger_control` (with `source_iplan*`), `isolation_scope`,
+  `task_ledger`, `agent_leases`, `execution_evidence`, `blockers`,
+  `reconciliation`, `saga_journal`, `execution_history`, `execution_log`
+  (hash-chained), `audit_snapshots`.
+- [ ] **Step 2: `IPLAN-CHAIN-LEDGER-TEMPLATE.yaml`** — re-home (attached Task 1
+  Step 2): `chain_control`, `iplan_chain`, `execution_tiers`, `cross_plan_leases`,
+  `chain_gate_results`, `chain_reconciliation`.
+- [ ] **Step 3: `IPLAN-AUDIT-REPORT-TEMPLATE.yaml`** — re-home (attached Task 1
+  Step 3): `audit_control`, `version_scope`, `execution_summary`, `change_report`,
+  `audit_findings`, `recommendation`.
+- [ ] **Step 4: `IPLAN-VERIFY-TEMPLATE.yaml`** — re-home (attached Task 1 Step 4):
+  `gate_control`, `gate_rules` (GATE-LEDGER-001..005), `gate_results`.
 - [ ] **Step 5: Protocol docs** — re-home `AGENT_UPDATE_PROTOCOL.md`,
   `HOOK_INTEGRATION_POINTS.md`, `SAGA_EXECUTION_MODEL.md`,
-  `LEDGER_ISOLATION_MODEL.md` from attached plan (Task 3), removing SDD
-  Layer-8-specific phrasing and pointing links at `framework/execution/` paths.
-- [ ] **Step 6: `framework/execution/README.md`** — re-home the Layer 8 ledger
-  semantics (attached plan Task 4 Steps 1–2): IPLAN/Ledger/Gate/Monitor model,
-  task status model, lease/evidence/reconciliation rules, links to companions.
+  `LEDGER_ISOLATION_MODEL.md` (attached Task 3); re-point links to
+  `framework/execution/`.
+- [ ] **Step 6: `framework/execution/README.md`** — ledger semantics, status
+  model, lease/evidence/reconciliation rules (attached Task 4 Steps 1–2).
 - [ ] **Step 7: Parse check** — `python -c "import glob,yaml;[yaml.safe_load(open(f)) for f in glob.glob('framework/execution/*.yaml')]"`.
 - [ ] **Step 8: Commit** — `git commit -m "feat: add engine-agnostic execution ledger contract"`.
 
@@ -271,257 +270,173 @@ the SDD repo being present.
 **Files:** Create `framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml`,
 `POST_IMPLEMENTATION_MONITORING.md`, `README.md`.
 
-- [ ] **Step 1: `MONITORING-MANIFEST-TEMPLATE.yaml`** with sections:
+- [ ] **Step 1: `MONITORING-MANIFEST-TEMPLATE.yaml`** — `metadata`
+  (`document_type: "iplan-monitoring-manifest"`, `framework: iops`),
+  `monitor_control` (`source_iplan`, `source_ledger`, `monitoring_window`),
+  `slos` (id/objective/unit/window/signal_ref), `signals.otel`
+  (traces/metrics/logs with attributes `iplan.id`/`ledger.id`/`task.id`/
+  `client.id`/`project.id`), `probes` (health/readiness/startup), `alert_rules`.
+- [ ] **Step 2: `POST_IMPLEMENTATION_MONITORING.md`** — monitoring binds to the
+  same `@iplan`/`@ledger` identity; OTel signal mapping; SLO evaluation; window;
+  alert escalation (future observability-driven issue loop). Cite D-0006.
+- [ ] **Step 3: `framework/monitoring/README.md`**.
+- [ ] **Step 4: Parse check + Commit** — `git commit -m "feat: add otel post-implementation monitoring contract"`.
 
-  ```yaml
-  metadata:
-    schema_version: "1.0"
-    document_type: "iplan-monitoring-manifest"
-    framework: iops
-    last_updated: "YYYY-MM-DD"
-    tags: [monitoring-manifest, post-implementation, otel]
-  monitor_control:
-    monitor_id: "MON-IPLAN-NN"
-    source_iplan: "@iplan: IPLAN-NN"
-    source_ledger: "@ledger: LEDGER-IPLAN-NN"
-    status: Draft
-    monitoring_window:
-      starts_at: "YYYY-MM-DDTHH:MM:SSZ"
-      duration: "P7D"
-  slos:
-    - id: "SLO-001"
-      name: "Availability"
-      objective: 99.9
-      unit: percent
-      window: "30d"
-      signal_ref: "availability_ratio"
-  signals:
-    otel:
-      traces:
-        - name: "iplan.task.execution"
-          kind: internal
-          attributes: ["iplan.id", "ledger.id", "task.id", "client.id", "project.id"]
-      metrics:
-        - name: "availability_ratio"
-          instrument: gauge
-          unit: "1"
-        - name: "iplan.task.duration"
-          instrument: histogram
-          unit: "s"
-      logs:
-        - name: "iplan.execution.event"
-          severity: INFO
-  probes:
-    health: "/healthz"
-    readiness: "/readyz"
-    startup: "/startupz"
-  alert_rules:
-    - id: "ALERT-001"
-      when: "availability_ratio < 0.999"
-      severity: error
-      escalation_owner: "operator"
-  ```
-
-- [ ] **Step 2: `POST_IMPLEMENTATION_MONITORING.md`** — explain the monitoring
-  model: monitoring binds to the same `@iplan`/`@ledger` identity (traceable
-  observation), OTel signal mapping, SLO evaluation, the post-implementation
-  window, and how alerts escalate (feeding a future observability-driven issue
-  loop). Cite D-0006.
-- [ ] **Step 3: `framework/monitoring/README.md`** — overview + links.
-- [ ] **Step 4: Parse check** + **Commit** — `git commit -m "feat: add otel post-implementation monitoring contract"`.
-
-### Task 4: Engine-adapter contract + execution registry
+### Task 4: Engine-adapter contract, registry, rule-ID catalog
 
 **Files:** Create `framework/engines/ENGINE-ADAPTER-CONTRACT.md`,
-`framework/registry/EXECUTION_REGISTRY.yaml`.
+`framework/registry/EXECUTION_REGISTRY.yaml`,
+`framework/conformance/rule-ids.yaml`, `framework/conformance/RULE-IDS.md`.
 
 - [ ] **Step 1: `ENGINE-ADAPTER-CONTRACT.md`** — define the interface each engine
-  implements (mirrors `iops_core.engine.EngineAdapter`): `engine_id()`,
-  `capabilities()`, `record_transaction(ledger, txn)`, `emit_execution_log(event)`,
-  `run_gate(ledger, gate)`, `instrument(manifest)`. State the relaxed isolation
-  rule (D-0007) and capability declaration format.
-- [ ] **Step 2: `EXECUTION_REGISTRY.yaml`** — single source of truth:
+  implements: `engine_id()`, `capabilities()`, **`validate(document) ->
+  {status, findings:[{rule_id, severity, message}]}`** (the parity entry point;
+  dispatch by `metadata.document_type`), `run_gate(ledger, gate)`,
+  `record_transaction(ledger, txn)`, `emit_execution_log(event)`,
+  `instrument(manifest)`. State the strict-isolation rule (D-0011) and that
+  `validate` outcomes are compared by rule-ID set + status only (D-0012).
+- [ ] **Step 2: `rule-ids.yaml`** — canonical catalog; each entry `{id, category,
+  severity, description}`. Enumerate ledger/chain/audit/monitoring/hashchain/
+  isolation rules covering every failure condition in the attached plan's
+  validators (e.g. `LEDGER.EVIDENCE_REQUIRED` → category `IPLAN-007`, severity
+  `error`). `RULE-IDS.md` documents them in a table.
+- [ ] **Step 3: `EXECUTION_REGISTRY.yaml`** — `metadata.spec_version: "0.1.0"`;
+  `artifacts[]` (ledger/verify/chain/audit/monitoring → template path +
+  document_type + coarse error_prefix); `protocol_docs[]`; `rule_catalog:
+  "framework/conformance/rule-ids.yaml"`; `vectors_root:
+  "framework/conformance/vectors"`; `engines[]` (`hermes`→`iops_hermes`,
+  `claude`→`iops_claude`, with `path`).
+- [ ] **Step 4: Parse check + Commit** — `git commit -m "feat: add engine-adapter contract, registry, and rule-id catalog"`.
 
-  ```yaml
-  metadata:
-    framework: "AI Doc Flow IOps"
-    spec_version: "0.1.0"
-    template_policy: unified_yaml
-  artifacts:
-    - id: ledger
-      template: "framework/execution/IPLAN-LEDGER-TEMPLATE.yaml"
-      document_type: "iplan-ledger"
-      error_prefix: "IPLAN-007"
-    - id: verify
-      template: "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml"
-      document_type: "iplan-verification-gate"
-    - id: chain
-      template: "framework/execution/IPLAN-CHAIN-LEDGER-TEMPLATE.yaml"
-      document_type: "iplan-chain-ledger"
-      error_prefix: "IPLAN-008"
-    - id: audit
-      template: "framework/execution/IPLAN-AUDIT-REPORT-TEMPLATE.yaml"
-      document_type: "iplan-audit-report"
-      error_prefix: "IPLAN-009"
-    - id: monitoring
-      template: "framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml"
-      document_type: "iplan-monitoring-manifest"
-      error_prefix: "MON-001"
-  protocol_docs:
-    - "framework/execution/AGENT_UPDATE_PROTOCOL.md"
-    - "framework/execution/HOOK_INTEGRATION_POINTS.md"
-    - "framework/execution/SAGA_EXECUTION_MODEL.md"
-    - "framework/execution/LEDGER_ISOLATION_MODEL.md"
-    - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
-  engines:
-    - id: hermes
-      package: iops_hermes
-      path: "platforms/hermes"
-    - id: claude
-      package: iops_claude
-      path: "platforms/claude"
-  ```
+### Task 5: Golden conformance vectors
 
-- [ ] **Step 3: Parse check** + **Commit** — `git commit -m "feat: add engine-adapter contract and execution registry"`.
+**Files:** Create `framework/conformance/vectors/{ledger,chain,audit,monitoring}/*.yaml`
++ sibling `*.expect.yaml`.
 
-### Task 5: Shared core library (`iops_core`) — TDD
+- [ ] **Step 1: Author valid baselines** — one passing document per kind
+  (`status: pass`, `rule_ids: []`), derived from the templates with realistic
+  values (timestamps, a real-looking `sha256:` checksum, reconciled state).
+- [ ] **Step 2: Author invalid cases** — one vector per catalog rule, lifted from
+  the attached plan's Task 5 test cases (missing evidence, weak acceptance,
+  blocked-without-owner, overlapping leases, unreconciled-but-allowed,
+  missing source-version metadata, out-of-scope isolation, event isolation
+  breach, touched-path-outside-roots, broken hash-chain, chain out-of-order,
+  upstream-unreconciled, cross-plan lease overlap, audit identity/version
+  mismatch, monitoring SLO missing target). Each `*.expect.yaml` lists the exact
+  `rule_ids` set + `status: fail`.
+- [ ] **Step 3: Self-check** — a small throwaway script asserts every vector
+  parses and every `expect` rule ID exists in `rule-ids.yaml` (the real coverage
+  test lands in Task 8).
+- [ ] **Step 4: Commit** — `git commit -m "test: add golden conformance vectors"`.
 
-**Files:** Create `core/pyproject.toml`, `core/src/iops_core/**`, `core/tests/**`.
-
-- [ ] **Step 1: `core/pyproject.toml`** — package `iops_core`, Python ≥3.11,
-  base dep: `pyyaml`. Extras: `[otel]` = `opentelemetry-api`,
-  `opentelemetry-sdk`, `opentelemetry-exporter-otlp`; `[dev]` = `pytest`,
-  `ruff`, `mypy`. OTel is NOT a base dep (R5). Ship `py.typed` for `--strict`.
-  Console entry not required here (engines own CLIs). Add `core/tests/fixtures/`
-  with one valid ledger, chain, audit, monitoring manifest, and a minimal
-  IPLAN-shaped YAML for `read_iplan_ref`.
-- [ ] **Step 2: Write failing unit tests** in `core/tests/unit/` — re-home the
-  attached plan's Task 5 Step 1 tests as standalone-document tests against:
-  `run_iplan_ledger_validation_checks(ledger_data=...)` (evidence, acceptance,
-  blocked decision owner, overlapping leases, reconciliation, source-version
-  metadata, isolation scope, event isolation, touched-path-in-roots, hash-chain),
-  `run_iplan_chain_ledger_validation_checks(chain_data=...)` (dependency order,
-  upstream reconciliation, cross-plan lease overlap),
-  `run_iplan_audit_report_validation_checks(audit_data=...)` (baseline/comparison
-  identity + version/checksum). Add new tests: hash-chain `append_event`
-  produces linked `event_hash`; isolation `touched_path` outside roots fails;
-  `run_monitoring_manifest_validation_checks` MON-001 (source binding, SLO
-  targets, signal types, probes). Run `pytest core -q` → expect failures.
-- [ ] **Step 2b: Implement `iplan.py`** — `read_iplan_ref(path)` returns
-  `{id, version, last_updated, checksum}`; `checksum = "sha256:" +
-  sha256(file_bytes).hexdigest()`; `id`/`version`/`last_updated` pulled from the
-  IPLAN's `document_control` when present (read-only; tolerant of missing fields).
-- [ ] **Step 3: Implement `ledger/store.py`** — `load_ledger(path)`,
-  `append_event(ledger, event)` computing `event_hash =
-  sha256(f"{sequence}|{previous_event_hash}|{event_type}|{subject_id}|{at}")`,
-  `verify_chain(ledger)`; append-only guarantee (never mutate prior events).
-- [ ] **Step 4: Implement `ledger/isolation.py`** — `in_scope(path, allowed_roots)`,
-  `assert_event_isolation(event)`.
-- [ ] **Step 5: Implement `validation/{ledger,chain,audit,monitoring}_rules.py`**
-  — re-home the attached plan's Task 5 Step 3–6 bodies (`check_execution_ledger`,
-  `run_iplan_ledger_validation_checks`, `run_iplan_chain_ledger_validation_checks`,
-  `run_iplan_audit_report_validation_checks`) into these modules unchanged except
-  imports/namespace; add `run_monitoring_manifest_validation_checks` (MON-001).
-- [ ] **Step 6: Implement `gates/runner.py`** — evaluate a verify-gate doc
-  against a ledger doc by reusing the validators, mapping each
-  `GATE-LEDGER-001..005` rule to the corresponding validator finding and
-  returning per-rule pass/warn/error plus an overall gate status.
-- [ ] **Step 7: Implement `audit/report.py`** — build an audit-report dict from a
-  baseline + comparison ledger (version comparison); validate it via audit_rules.
-- [ ] **Step 8: Implement `monitoring/provider.py` + `otel.py` + `slo.py`** —
-  `provider.py` defines `MonitoringProvider` (start_span/record_metric/log) with a
-  console/no-op default; `otel.py` provides an OTel-backed provider, imported
-  lazily so absence of the `[otel]` extra degrades to the default (R5);
-  `slo.py` `evaluate_slos(manifest, samples)` is exporter-independent (samples
-  supplied as a dict/JSON; `monitor slo-check` reads a samples file).
-- [ ] **Step 9: Implement `engine.py`** — `EngineAdapter` ABC/Protocol matching
-  `ENGINE-ADAPTER-CONTRACT.md`.
-- [ ] **Step 10: Implement `cli.py`** — argparse commands returning `int` exit
-  codes: `ledger validate|show|append`, `gate run`, `audit report`, `monitor
-  validate|slo-check`; `main(argv: list[str] | None = None) -> int`.
-- [ ] **Step 11: Implement `tests/integration/test_ledger_lifecycle.py`** —
-  read a fixture IPLAN ref → build a ledger (source bound) → append hash-chained
-  events → `verify_chain` → run the verify-gate → build a 2-plan chain and
-  reconcile → generate + validate an audit report. Asserts the happy path is
-  gate-passing and the chain rejects out-of-order starts.
-- [ ] **Step 12: Run `pytest core -q`, `ruff check core`, `mypy --strict
-  core/src`** → all green. **Commit** — `git commit -m "feat: add iops_core ledger runtime, validators, gates, audit, monitoring"`.
-
-### Task 6: Hermes engine
+### Task 6: Hermes engine (full, self-contained, TDD)
 
 **Files:** `platforms/hermes/{pyproject.toml,VERSION,FRAMEWORK_SPEC_VERSION,README.md}`,
-`platforms/hermes/src/iops_hermes/{__init__,adapter,cli}.py`, `platforms/hermes/tests/`.
+`platforms/hermes/src/iops_hermes/**`, `platforms/hermes/tests/**`.
 
-- [ ] **Step 1: Package files** — `pyproject.toml` (`iops_hermes`, depends on
-  `iops_core`, console script `iops-hermes = iops_hermes.cli:main`); `VERSION`
-  (`0.1.0`); `FRAMEWORK_SPEC_VERSION` (`0.1.0`).
-- [ ] **Step 2: `adapter.py`** — `HermesEngine(EngineAdapter)` exposing
-  MCP-style tool functions (`iops_validate_ledger`, `iops_run_gate`,
-  `iops_audit_report`, `iops_monitor_check`) delegating to `iops_core`; an
-  API-executor dispatch stub (`run_executor(prompt)`) wrapped with execution-log
-  emission; `instrument(manifest)` sets OTel `service.name="iops-hermes"` then
-  delegates to `iops_core.monitoring`. No import from `iops_claude`.
-- [ ] **Step 3: `cli.py`** — `iops-hermes` wrapping `iops_core.cli` + Hermes tools.
-- [ ] **Step 4: `README.md`** — re-home attached plan Task 6 Step 2 (Hermes
-  ledger-verification expectations).
-- [ ] **Step 5: Tests** — adapter returns expected validator results on a known
-  ledger; `engine_id() == "hermes"`. Run `pytest platforms/hermes -q`, `ruff`,
-  `mypy --strict`.
-- [ ] **Step 6: Commit** — `git commit -m "feat: add hermes execution engine"`.
+- [ ] **Step 1: Package files** — `pyproject.toml` (`iops_hermes`, Python ≥3.11,
+  base dep `pyyaml`; `[otel]` = opentelemetry-{api,sdk}, otlp exporter; `[dev]` =
+  pytest/ruff/mypy; console script `iops-hermes = iops_hermes.cli:main`);
+  `VERSION` (`0.1.0`); `FRAMEWORK_SPEC_VERSION` (`0.1.0`); `py.typed`.
+- [ ] **Step 2: Failing unit tests** — re-home the attached plan's Task 5 cases as
+  standalone-document tests against `validation/*` (asserting emitted
+  **rule IDs**), plus hash-chain (`HASHCHAIN.BROKEN`), isolation
+  (`ISOLATION.PATH_OUTSIDE_ROOTS`), monitoring (`MON.*`). Run `pytest
+  platforms/hermes -q` → failures.
+- [ ] **Step 3: `iplan.py`** — `read_iplan_ref(path)` → `{id, version,
+  last_updated, checksum="sha256:"+sha256(bytes)}`, tolerant of missing fields.
+- [ ] **Step 4: `ledger/store.py`** — `load_ledger`, `append_event` (`event_hash
+  = sha256(f"{sequence}|{previous_event_hash}|{event_type}|{subject_id}|{at}")`),
+  `verify_chain`; append-only (never mutate prior events).
+- [ ] **Step 5: `ledger/isolation.py`** — `in_scope(path, allowed_roots)`,
+  `assert_event_isolation(event)`.
+- [ ] **Step 6: `validation/{ledger,chain,audit,monitoring}_rules.py`** — re-home
+  the attached plan's validator logic, but emit `{rule_id, severity, message}`
+  findings keyed to `rule-ids.yaml` (coarse code derived from category).
+- [ ] **Step 7: `gates/runner.py`** — evaluate a verify-gate doc against a ledger,
+  mapping each `GATE-LEDGER-NNN` to the relevant rule IDs; per-rule + overall status.
+- [ ] **Step 8: `audit/report.py`** — build + validate an audit report from
+  baseline + comparison ledgers.
+- [ ] **Step 9: `monitoring/{provider,otel,slo}.py`** — `MonitoringProvider`
+  (console/no-op default), lazy OTel-backed provider behind `[otel]`,
+  `evaluate_slos(manifest, samples)` (samples as dict/JSON).
+- [ ] **Step 10: `engine.py`** — `HermesEngine` implementing the adapter incl.
+  `validate(document)` (dispatch by `document_type` to the validators, aggregate
+  to `{status, findings}`); MCP-style tool fns (`iops_validate_ledger`,
+  `iops_run_gate`, `iops_audit_report`, `iops_monitor_check`); `run_executor`
+  stub wrapped with execution-log emission; `instrument` sets OTel
+  `service.name="iops-hermes"`. **No import of `iops_claude`.**
+- [ ] **Step 11: `cli.py`** — `main(argv)->int`: `ledger validate|show|append`,
+  `gate run`, `audit report`, `monitor validate|slo-check`.
+- [ ] **Step 12: Integration test** — read IPLAN ref → build ledger → append
+  hash-chained events → `verify_chain` → run gate → 2-plan chain reconcile →
+  audit report. Run `pytest platforms/hermes -q`, `ruff check platforms/hermes`,
+  `mypy --strict platforms/hermes/src` → green.
+- [ ] **Step 13: `README.md`** — Hermes expectations (attached Task 6 Step 2).
+- [ ] **Step 14: Commit** — `git commit -m "feat: add self-contained hermes execution engine"`.
 
-### Task 7: Claude engine
+### Task 7: Claude engine (full, self-contained, TDD)
 
 **Files:** `platforms/claude/{pyproject.toml,VERSION,FRAMEWORK_SPEC_VERSION,README.md}`,
-`platforms/claude/src/iops_claude/{__init__,adapter,cli}.py`, `platforms/claude/tests/`.
+`platforms/claude/src/iops_claude/**`, `platforms/claude/tests/**`.
 
-- [ ] **Step 1: Package files** — `pyproject.toml` (`iops_claude`, depends on
-  `iops_core`, console script `iops-claude = iops_claude.cli:main`); `VERSION`;
-  `FRAMEWORK_SPEC_VERSION`.
-- [ ] **Step 2: `adapter.py`** — `ClaudeEngine(EngineAdapter)` implementing
-  `AGENT_UPDATE_PROTOCOL`: `start_session()`, `acquire_lease()`,
-  `record_touched_file()`, `record_evidence()`, `reconcile()`. Records ledger
-  transactions from observed edits / hook callbacks via `iops_core.ledger.store`;
-  `instrument(manifest)` sets OTel `service.name="iops-claude"` then delegates to
-  `iops_core.monitoring`. No import from `iops_hermes`.
-- [ ] **Step 3: `cli.py`** — `iops-claude` wrapping `iops_core.cli` + protocol helpers.
-- [ ] **Step 4: `README.md`** — re-home attached plan Task 6 Step 1 (Claude Code
-  hook guardrail expectations).
-- [ ] **Step 5: Tests** — protocol round-trip produces a valid, gate-passing
-  ledger; `engine_id() == "claude"`. Slice 1 exercises the adapter
-  programmatically (live Claude Code hook wiring is a follow-up; the README
-  documents how real hooks call these methods). Run `pytest platforms/claude
-  -q`, `ruff`, `mypy --strict`.
-- [ ] **Step 6: Commit** — `git commit -m "feat: add claude execution engine"`.
+- [ ] **Step 1–9: Re-implement the full runtime independently** — its **own**
+  copies of `iplan.py`, `ledger/`, `validation/`, `gates/`, `audit/`,
+  `monitoring/` (same contract, emitting the same rule IDs), with its own
+  failing-first unit tests. Package files mirror Task 6 Step 1 but for
+  `iops_claude` / console script `iops-claude`. **No import of `iops_hermes`.**
+- [ ] **Step 10: `engine.py`** — `ClaudeEngine` implementing the adapter incl.
+  `validate(document)`; plus `AGENT_UPDATE_PROTOCOL` methods (`start_session`,
+  `acquire_lease`, `record_touched_file`, `record_evidence`, `reconcile`)
+  recording ledger transactions via its own `ledger.store`; `instrument` sets
+  `service.name="iops-claude"`. Slice 1 exercises these programmatically; live
+  Claude Code hook wiring is a follow-up (documented in README).
+- [ ] **Step 11: `cli.py`** — `iops-claude` `main(argv)->int` (same commands).
+- [ ] **Step 12: Integration test** — same lifecycle as Task 6 Step 12. Run
+  `pytest platforms/claude -q`, `ruff`, `mypy --strict platforms/claude/src` → green.
+- [ ] **Step 13: `README.md`** — Claude hook-guardrail expectations (attached
+  Task 6 Step 1).
+- [ ] **Step 14: Commit** — `git commit -m "feat: add self-contained claude execution engine"`.
 
 ### Task 8: Conformance suite
 
-**Files:** `tests/conformance/{_spec.py,test_contract.py,test_registry.py,test_engines.py,requirements.txt}`.
+**Files:** `tests/conformance/{_spec.py,test_contract.py,test_registry.py,
+test_rule_catalog.py,test_vectors.py,test_engines.py,test_differential.py,requirements.txt}`.
 
-- [ ] **Step 1: `_spec.py`** — locate `framework/`, load `EXECUTION_REGISTRY.yaml`,
-  expose `registry()`, `framework_root()`, `repo_root()`.
-- [ ] **Step 2: `test_contract.py`** — every registry `artifacts[].template` is a
-  file that parses as YAML and whose `metadata.document_type` matches the registry;
-  every `protocol_docs[]` file exists.
-- [ ] **Step 3: `test_registry.py`** — registry parses; artifact ids unique;
-  error_prefixes unique; every referenced path exists; `metadata.spec_version`
-  equals `framework/VERSION`.
-- [ ] **Step 4: `test_engines.py`** — for each `engines[]`: its `path` exists,
-  `FRAMEWORK_SPEC_VERSION` file equals `framework/VERSION`; **relaxed isolation** —
-  grep each engine's `src/` for `import iops_<other-engine>` and assert none
-  (importing `iops_core` is allowed).
-- [ ] **Step 5: Run** `python -m unittest discover -s tests/conformance -v` → all
-  pass. **Commit** — `git commit -m "test: add execution contract conformance suite"`.
+- [ ] **Step 1: `_spec.py`** — locate `framework/`, load registry, rule catalog,
+  discover `(input, expect)` vector pairs, and attempt to import each engine's
+  adapter. Engines that are not importable are recorded as skipped (so the
+  contract/registry/catalog tests still run with only `pyyaml`); vector +
+  differential tests run for the engines that import.
+- [ ] **Step 2: `test_contract.py`** — every `artifacts[].template` parses + its
+  `metadata.document_type` matches the registry; every `protocol_docs[]` exists.
+- [ ] **Step 3: `test_registry.py`** — registry parses; ids/error_prefixes unique;
+  paths exist; `spec_version == framework/VERSION`.
+- [ ] **Step 4: `test_rule_catalog.py`** — catalog well-formed (unique ids, valid
+  categories/severities); **every catalog rule appears in ≥1 vector**; **every
+  rule ID used in any `*.expect.yaml` is in the catalog**.
+- [ ] **Step 5: `test_vectors.py`** — parametrized over (importable engine ×
+  vector): call `engine.validate(input)`; assert `status` and the **set** of
+  `rule_id`s equal the `*.expect.yaml`, and each finding's `severity` equals the
+  catalog severity for its rule ID (message text ignored). Skips if no engine
+  imports.
+- [ ] **Step 6: `test_engines.py`** — each `engines[].path` exists;
+  `FRAMEWORK_SPEC_VERSION == framework/VERSION`; **strict isolation** — grep each
+  engine's `src/` for any reference to another engine's package name
+  (`iops_<other>`) and assert none.
+- [ ] **Step 7: `test_differential.py`** — for every vector, all importable
+  engines return the identical `{status, rule_id set}` (defense-in-depth,
+  D-0012). Skips when fewer than two engines import.
+- [ ] **Step 8: Run** `python -m unittest discover -s tests/conformance -v` (with
+  both engines installed) → all pass. **Commit** — `git commit -m "test: add vector-replay + isolation conformance suite"`.
 
 ### Task 9: Changelog, handoff, decisions finalize
 
-**Files:** Modify `CHANGELOG.md`, `plans/HANDOFF.md`, `plans/PLAN-001_*.md` (status).
-
-- [ ] **Step 1:** `CHANGELOG.md` `[Unreleased] → Added`: contract, core runtime,
-  hermes + claude engines, OTel monitoring, conformance.
-- [ ] **Step 2:** Update `plans/HANDOFF.md` with branch, completed tasks, next
-  engines (`codex`, `vertexai`).
+- [ ] **Step 1:** `CHANGELOG.md` `[Unreleased] → Added`: contract + rule catalog
+  + vectors, hermes + claude engines, OTel monitoring, conformance.
+- [ ] **Step 2:** Update `plans/HANDOFF.md` (branch, done tasks, next engines).
 - [ ] **Step 3:** Set PLAN-001 `Status: DONE - <ISO>`.
-- [ ] **Step 4: Full verification** (see below). **Commit** — `git commit -m "docs: record iops execution framework slice 1"`.
+- [ ] **Step 4: Full verification** (below). **Commit** — `git commit -m "docs: record iops execution framework slice 1"`.
 
 ## Verification
 
@@ -529,40 +444,44 @@ the SDD repo being present.
 
 ```bash
 # one-time dev setup (editable installs; [otel] optional)
-pip install -e "./core[dev]" -e ./platforms/hermes -e ./platforms/claude
+pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"
 
-python -m unittest discover -s tests/conformance -v   # needs only pyyaml
-pytest core platforms/hermes platforms/claude -q
-ruff check core platforms
-mypy --strict core/src platforms/hermes/src platforms/claude/src
+python -m unittest discover -s tests/conformance -v    # vectors + isolation + parity
+pytest platforms/hermes platforms/claude -q
+ruff check platforms
+mypy --strict platforms/hermes/src platforms/claude/src
 git status --short --branch
 ```
 
 Expected:
 
-1. Conformance passes (contract parses + matches registry; engines spec-parity;
-   no cross-engine imports).
-2. Unit + integration tests pass (validators reject the attached plan's invalid
-   cases; hash-chain links; gate runner + audit + monitoring validators behave).
+1. Conformance passes: contract parses + matches registry; rule catalog fully
+   covered; **every vector yields the expected status + rule-ID set in each
+   engine**; engines agree with each other; no cross-engine imports; spec parity.
+2. Per-engine unit + integration tests pass (validators reject the attached
+   plan's invalid cases with the right rule IDs; hash-chain links; gate + audit +
+   monitoring behave).
 3. Lint + strict types clean.
-4. Two engines produce gate-passing ledgers from the same `iops_core`.
+4. Two independent engines produce identical verdicts from shared vectors.
 
 ## Risks
 
 | # | Risk | Mitigation |
 |---|------|------------|
-| R1 | Re-homing drifts from the attached plan's validated rules. | Re-home validator bodies + test cases verbatim; only namespaces/paths change. |
-| R2 | Contract leaks engine specifics. | Keep `framework/` code-free; engines import `iops_core`, never each other (conformance-enforced). |
-| R3 | Shared `core` undermines engine isolation (vs SDD). | Relaxed-isolation conformance test (D-0007); documented divergence. |
-| R4 | Two engines duplicate logic anyway. | Engines hold only adapters; all shared logic lives in `iops_core`. |
-| R5 | OTel deps heavy / unavailable offline. | OTel is an optional `[otel]` extra behind a `MonitoringProvider` interface; absent it, a console/no-op provider is used. SLO eval + all tests run with only `pyyaml`. OTLP endpoint is operator config. |
+| R1 | Re-homing drifts from the attached plan's validated rules. | Re-home logic + cases verbatim; the only change is emitting `{rule_id,…}` findings; vectors pin the result. |
+| R2 | Contract leaks engine specifics. | `framework/` stays code-free; engines import only the spec; conformance forbids cross-engine imports. |
+| R3 | Duplicated logic across engines diverges silently. | Golden vectors (D-0012) + cross-engine differential test make divergence a test failure. |
+| R4 | Vector corpus under-covers a rule, allowing drift there. | `test_rule_catalog` requires every catalog rule to have ≥1 vector; corpus seeded from the attached plan's full case list. |
+| R5 | OTel deps heavy / unavailable offline. | Per-engine optional `[otel]` extra behind a `MonitoringProvider`; no-op default; SLO eval + tests run with only `pyyaml`. |
 | R6 | Python 3.11 vs SDD's 3.12. | Target 3.11 builtin generics only; no 3.12-only syntax (D-0010). |
-| R7 | Ledger treated as self-attested. | Completed tasks require evidence + acceptance results; gate is the authority. |
-| R8 | Append-only claim unauditable. | `sequence`/`previous_event_hash`/`event_hash` validated; `verify_chain` in tests. |
-| R9 | Cross-project/client leakage. | Isolation scope + touched-path ⊆ `allowed_roots` validated per event. |
-| R10 | `claude` CLI name clashes with Claude Code CLI. | Console script is `iops-claude`, package `iops_claude`. |
-| R11 | Monitoring scope creep. | Slice 1 = manifest contract + OTel wiring + SLO eval only; no dashboards/collector deploy. |
-| R12 | Conformance can't run without engine installs. | Conformance uses only `pyyaml` + filesystem/grep checks; no package import required. |
+| R7 | Ledger treated as self-attested. | Completed tasks require evidence + acceptance; the gate is the authority. |
+| R8 | Append-only claim unauditable. | `sequence`/`previous_event_hash`/`event_hash` validated; `verify_chain` tested; `HASHCHAIN.BROKEN` vector. |
+| R9 | Cross-project/client leakage. | Isolation scope + touched-path ⊆ `allowed_roots`; `ISOLATION.*` vectors. |
+| R10 | `claude` CLI clashes with Claude Code CLI. | Console script `iops-claude`, package `iops_claude`. |
+| R11 | A vector's *expected* answer is itself wrong → both engines "agree" on a bug. | Golden expectations derive from the documented rules and are reviewed; differential test is a secondary, not primary, guard. |
+| R12 | Rule-ID catalog and validators drift apart. | `test_rule_catalog` cross-checks catalog ↔ vectors ↔ emitted IDs both directions. |
+| R13 | Two full engines = large slice. | Tasks are independently committable; engines built sequentially against the same pre-authored vectors. |
+| R14 | Conformance can't run without engine installs. | Structural/contract/catalog tests need only `pyyaml`; vector-replay + differential require the editable installs in Verification. |
 
 ## Review log
 
@@ -570,41 +489,57 @@ Expected:
 > list findings, fold fixes back into the sections above. Stop when a pass finds
 > nothing.
 
-### Pass 1 - 2026-05-23
+### Pass 1 - 2026-05-23 (pre-rework, shared-core design)
 
-- Finding: integration test referenced no fixtures and the source-IPLAN binding
-  was nominal. Change: added `core/src/iops_core/iplan.py` (`read_iplan_ref`,
-  sha256 checksum), `core/tests/fixtures/`, and a Task 5 step to build them.
-- Finding: OTel as a base dependency would make the runtime un-buildable in an
-  offline container and couple tests to a network install. Change: moved OTel to
-  an optional `[otel]` extra behind a `MonitoringProvider` interface with a
-  console/no-op default; SLO eval + tests now need only `pyyaml` (R5 hardened).
-- Finding: tests across packages can't import `iops_core` without installs.
-  Change: added a "Dev setup" note + editable-install line in Verification.
-- Finding: registry `spec_version` had no parity guard, risking drift from
-  `framework/VERSION`. Change: added that assertion to `test_registry.py`.
-- Finding: engine `instrument()` had no concrete per-engine behavior, making
-  "two full engines" hand-wavy. Change: specified per-engine OTel
-  `service.name` delegating to shared core (Tasks 6, 7).
-- Finding: chain + audit contracts were only unit-tested. Change: extended the
-  integration test to a 2-plan chain reconcile + audit-report generation.
+- Added real source-IPLAN binding (`read_iplan_ref` + sha256), test fixtures,
+  OTel-as-optional-extra behind a provider interface, editable-install dev setup,
+  registry spec-version parity, concrete per-engine `instrument()`, and extended
+  the integration test to chain + audit. (Applied to the prior shared-core draft.)
 
-### Pass 2 - 2026-05-23
+### Pass 2 - 2026-05-23 (pre-rework, shared-core design)
 
-- Finding: three version sources (root `VERSION`, `framework/VERSION`, registry
-  `spec_version`) created a drift trap. Change: removed root `VERSION`;
-  `framework/VERSION` is the single spec-version source, with registry + engines
-  asserted equal to it.
-- Finding: the gate runner glossed over mapping `GATE-LEDGER-NNN` rules to the
-  `IPLAN-007`-coded validator findings. Change: specified the per-rule mapping
-  and overall gate status in Task 5 Step 6.
-- Finding: `claude` adapter "observes edits/hooks" overstated slice-1 reality.
-  Change: clarified slice 1 exercises the adapter programmatically; live hook
-  wiring is a follow-up, documented in the README.
-- Finding: `mypy --strict` needs typing markers. Change: ship `py.typed`.
-- Verification ↔ rules cross-check: each validator gate rule
-  (`IPLAN-007/008/009`, `MON-001`, isolation, hash-chain) is exercised by a named
-  unit test re-homed from the attached plan plus the new monitoring/chain/audit
-  tests; the verification commands run that suite. No rule is left unverified and
-  no check fires on a valid fixture (false-positive guard via the passing
-  fixtures). No further findings.
+- Removed the root `VERSION` drift trap (single source = `framework/VERSION`);
+  specified the gate-rule ↔ validator mapping; clarified `claude` is exercised
+  programmatically in slice 1; added `py.typed`; cross-checked Verification ↔
+  rules. No further findings against that design.
+
+### Pass 3 - 2026-05-23 (post-rework: strict isolation + golden vectors)
+
+- Reworked the entire plan for D-0011 (strict isolation, no shared `core/`) and
+  D-0012 (golden vectors + fine-grained rule IDs). Findings folded in during the
+  rewrite:
+  - The attached plan's validators append plain strings under coarse codes,
+    which is too imprecise for parity. Change: validators now emit
+    `{rule_id, severity, message}`; added `framework/conformance/rule-ids.yaml`
+    + `RULE-IDS.md`; comparison is on rule-ID **set** + status, ignoring messages.
+  - Parity needs ground truth, not just engine-vs-engine. Change: golden
+    `*.expect.yaml` per vector (engine-vs-spec) is primary; `test_differential`
+    (engine-vs-engine) is secondary (R11).
+  - Coverage could silently lapse. Change: `test_rule_catalog` enforces
+    catalog↔vector bidirectional coverage (R4, R12).
+  - Conformance now imports engines (to call `validate`); confirmed this does not
+    violate isolation (test code may import engines; engines must not import each
+    other) and recorded the install requirement (R14).
+  - Removed every reference to `core/`/`iops_core`; duplicated the full runtime
+    into each `platforms/<engine>/src/`; verification installs both engines.
+
+### Pass 4 - 2026-05-23 (post-rework re-read)
+
+- Finding: `*.expect.yaml` schema was inconsistent — described as `{status,
+  rule_ids, severities}` in some places and `{status, rule_ids}` in others.
+  Change: expectation is `{status, rule_ids}`; severity is a fixed catalog
+  property, and `test_vectors` instead asserts each emitted finding's severity
+  equals the catalog severity for its rule ID. Aligned Approach, file structure,
+  Task 8 Step 5, and D-0012.
+- Finding: conformance imports engines to call `validate`, but the
+  contract/registry/catalog tests should still run with only `pyyaml` (and the
+  differential test is meaningless with <2 engines). Change: `_spec.py` records
+  non-importable engines as skipped; `test_vectors` runs over importable engines
+  only; `test_differential` skips when <2 engines import. Verification still
+  installs both, so the full matrix runs there.
+- Finding: "every emitted rule is in the catalog" is enforced only indirectly.
+  Confirmed acceptable: a typo'd/unknown rule ID makes the engine's rule-ID set
+  diverge from `*.expect.yaml`, failing `test_vectors`; `test_rule_catalog`
+  covers catalog↔vector directly. No extra check needed.
+- No further structural findings; the plan is internally consistent and ready
+  for approval.

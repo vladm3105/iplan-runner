@@ -53,22 +53,17 @@ the manifest/SLO/signal contract; the runtime wires the OTel SDK and evaluates
 SLOs. Health/readiness/startup probe shapes are adapted from the legacy
 `aiops_framework` Cloud Run sample.
 
-### D-0007 - Shared `core/` library; relaxed engine isolation - 2026-05-23
+### D-0007 - [SUPERSEDED by D-0011] Shared `core/` library; relaxed isolation - 2026-05-23
 
-Because slice 1 ships **two** full engines, we resolve the shared-code question
-now. We introduce a top-level **`core/` package (`iops_core`)** holding the
-engine-agnostic logic: append-only ledger store, hash-chaining, isolation
-enforcement, validators (ledger/chain/audit), the gate runner, audit-report
-generation, OTel monitoring helpers, and shared CLI commands. Platforms depend
-on `iops_core`; each adds only its engine-specific adapter (transport,
-execution dispatch, instrumentation wiring).
+> **Superseded 2026-05-23 by D-0011.** Originally proposed a shared `core/`
+> (`iops_core`) library with a relaxed engine-isolation rule. Rejected by the
+> repo owner in favor of SDD-faithful strict isolation; behavioral parity is
+> instead guaranteed by golden conformance vectors (D-0012). Retained for
+> history.
 
-This is a **deliberate divergence** from SDD's strict "platforms share only the
-spec, no shared code" rule. Our engine-isolation conformance test is relaxed to:
-*no platform imports another platform's package; platforms may import
-`iops_core` and the `framework/` spec.* Rationale: an append-only,
-hash-chained, auditable ledger must not exist as four divergent copies — that
-would defeat the audit guarantees the framework exists to provide.
+Original text: introduce a top-level `core/` package holding engine-agnostic
+ledger/validation/gate/audit/monitoring logic that both engines import, relaxing
+SDD's "platforms share only the spec" rule. Not adopted.
 
 ### D-0008 - Append-only, hash-chained, isolation-scoped ledger - 2026-05-23
 
@@ -80,11 +75,19 @@ fall inside declared `allowed_roots`. Task transactions follow Saga-lite
 semantics (forward action, compensation, idempotency key, timeout, escalation).
 Inherited from the attached plan.
 
-### D-0009 - Validation error-code namespaces - 2026-05-23
+### D-0009 - Validation codes: coarse categories + fine-grained rule IDs - 2026-05-23
 
-Reuse the attached plan's codes: `IPLAN-007` (ledger), `IPLAN-008` (chain
-ledger), `IPLAN-009` (audit report). Add `MON-001` (monitoring manifest) and
-`ENG-001` (engine-adapter conformance). Validators are deterministic
+Keep the attached plan's **coarse categories**: `IPLAN-007` (ledger),
+`IPLAN-008` (chain ledger), `IPLAN-009` (audit report), plus `MON-001`
+(monitoring manifest) and `ENG-001` (engine-adapter conformance). **Add
+fine-grained, stable rule IDs** beneath them (e.g. `LEDGER.EVIDENCE_REQUIRED`,
+`LEDGER.LEASE_OVERLAP`, `CHAIN.UPSTREAM_UNRECONCILED`, `AUDIT.IDENTITY_MISMATCH`,
+`HASHCHAIN.BROKEN`, `ISOLATION.PATH_OUTSIDE_ROOTS`, `MON.SLO_MISSING_TARGET`).
+
+Rule IDs are enumerated canonically in `framework/conformance/rule-ids.yaml`
+(documented in `RULE-IDS.md`); every engine validator must emit them per
+finding. They are the unit of behavioral parity (D-0012) — coarse codes alone
+are too imprecise to prove two engines agree. Validators stay deterministic
 (dict-shape + regex), no LLM, no I/O — pure functions over parsed data.
 
 ### D-0010 - Python 3.11+ runtime - 2026-05-23
@@ -93,3 +96,35 @@ The container ships Python 3.11.15. Target Python ≥3.11 (SDD's Hermes targets
 ≥3.12, but the validator code uses only `dict[str,...]` / `list[...]` builtin
 generics available in 3.11). Each platform declares `FRAMEWORK_SPEC_VERSION`
 equal to `framework/VERSION`, enforced by conformance.
+
+### D-0011 - Strict engine isolation, SDD-faithful - 2026-05-23
+
+Supersedes D-0007. There is **no shared runtime library**. Each engine
+(`platforms/hermes`, `platforms/claude`, …) is **fully self-contained**: it owns
+its own ledger store, hash-chain, isolation enforcement, validators, gate runner,
+audit generator, monitoring wiring, and CLI. Platforms share **only** the
+`framework/` spec (templates, protocol docs, registry, rule-ID catalog, golden
+vectors). Conformance enforces that no engine imports another engine's package.
+Code duplication across engines is **intentional**, and is held safe by the
+behavioral-parity mechanism in D-0012. Rationale: the repo owner wants the same
+isolation guarantees SDD enforces, so engines can evolve (and be implemented in
+different languages) independently while remaining interchangeable.
+
+### D-0012 - Behavioral parity via golden conformance vectors - 2026-05-23
+
+Because engines duplicate logic (D-0011), behavioral identity is guaranteed by
+**golden conformance vectors**, not by shared code. `framework/conformance/`
+ships language-neutral input documents paired with expected outcomes
+(`*.expect.yaml`: `status` + the set of fine-grained `rule_ids`; severity is a
+fixed catalog property checked separately against each emitted finding; human
+message text is **not** compared). `tests/conformance/` replays every
+vector against **every** engine (via each engine's uniform
+`validate(document) -> {status, findings:[{rule_id, severity, ...}]}` entry
+point) and asserts the rule-ID set + status match the expectation. Coverage is
+cross-checked against `rule-ids.yaml` (every catalog rule has ≥1 vector; every
+emitted/expected rule is in the catalog). The vector corpus is seeded from the
+attached plan's Task 5 test cases. Ground truth lives in the spec, so a *single*
+new engine can be certified against the spec alone (no need for other engines to
+be present). Once ≥2 engines exist, an additional **cross-engine differential**
+test asserts the engines agree with each other on every vector, as
+defense-in-depth on top of the golden expectations.

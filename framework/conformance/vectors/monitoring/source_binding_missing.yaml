@@ -1,0 +1,45 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan-monitoring-manifest
+  framework: iops
+  last_updated: '2026-05-23'
+  tags:
+  - monitoring-manifest
+monitor_control:
+  monitor_id: MON-IPLAN-001
+  source_iplan: IPLAN-001
+  status: active
+  monitoring_window:
+    starts_at: '2026-05-23T00:00:00Z'
+    duration: P7D
+slos:
+- id: SLO-001
+  name: Availability
+  objective: 99.9
+  unit: percent
+  window: 30d
+  signal_ref: availability_ratio
+signals:
+  otel:
+    traces:
+    - name: iplan.task.execution
+      kind: internal
+      attributes:
+      - iplan.id
+      - ledger.id
+    metrics:
+    - name: availability_ratio
+      instrument: gauge
+      unit: '1'
+    logs:
+    - name: iplan.execution.event
+      severity: INFO
+probes:
+  health: /healthz
+  readiness: /readyz
+  startup: /startupz
+alert_rules:
+- id: ALERT-001
+  when: availability_ratio < 0.999
+  severity: error
+  escalation_owner: operator

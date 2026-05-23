@@ -1,0 +1,3 @@
+status: fail
+rule_ids:
+- LEDGER.BLOCKED_WITHOUT_OWNER

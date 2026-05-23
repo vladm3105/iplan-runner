@@ -1,0 +1,3 @@
+status: warn
+rule_ids:
+- MON.PROBE_MISSING

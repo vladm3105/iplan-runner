@@ -1,0 +1,3 @@
+status: fail
+rule_ids:
+- LEDGER.RECONCILE_INCONSISTENT

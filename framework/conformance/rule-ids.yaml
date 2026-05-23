@@ -16,6 +16,8 @@ categories:
   IPLAN-008: "Chain ledger validation"
   IPLAN-009: "Audit report validation"
   MON-001: "Monitoring manifest validation"
+  INTAKE-001: "IPLAN intake manifest validation"
+  HANDOVER-001: "Handover receipt validation"
 
 severities: [error, warning]
 
@@ -107,3 +109,33 @@ rules:
     category: "MON-001"
     severity: warning
     description: "A health, readiness, or startup probe is not declared."
+
+  # --- Intake (INTAKE-001) ---
+  - id: "INTAKE.SCHEMA_UNSUPPORTED"
+    category: "INTAKE-001"
+    severity: error
+    description: "metadata.schema_version is not a supported intake schema version."
+  - id: "INTAKE.SOURCE_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "intake_control is missing source_iplan, version, or checksum."
+  - id: "INTAKE.APPROVAL_INSUFFICIENT"
+    category: "INTAKE-001"
+    severity: error
+    description: "Not approved, or exec_ready_score is below the minimum (90)."
+  - id: "INTAKE.SCOPE_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "isolation_scope is missing client_id, project_id, or allowed_roots."
+  - id: "INTAKE.NO_TASKS"
+    category: "INTAKE-001"
+    severity: error
+    description: "task_graph is empty."
+  - id: "INTAKE.TASK_FIELDS_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "A task lacks task_id, title, or acceptance."
+  - id: "INTAKE.DEP_UNRESOLVED"
+    category: "INTAKE-001"
+    severity: error
+    description: "A depends_on entry references an unknown task_id."

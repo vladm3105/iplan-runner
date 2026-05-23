@@ -12,6 +12,8 @@ conformance compares the rule-ID set + status across engines (D-0012).
 | `IPLAN-008` | Chain ledger validation |
 | `IPLAN-009` | Audit report validation |
 | `MON-001` | Monitoring manifest validation |
+| `INTAKE-001` | IPLAN intake manifest validation |
+| `HANDOVER-001` | Handover receipt validation |
 
 ## Rules
 
@@ -37,6 +39,13 @@ conformance compares the rule-ID set + status across engines (D-0012).
 | `MON.SLO_MISSING_TARGET` | MON-001 | error | SLO has no objective |
 | `MON.SIGNAL_REF_UNRESOLVED` | MON-001 | error | SLO signal_ref not a declared metric |
 | `MON.PROBE_MISSING` | MON-001 | warning | health/readiness/startup probe absent |
+| `INTAKE.SCHEMA_UNSUPPORTED` | INTAKE-001 | error | unsupported intake schema version |
+| `INTAKE.SOURCE_MISSING` | INTAKE-001 | error | source IPLAN id/version/checksum absent |
+| `INTAKE.APPROVAL_INSUFFICIENT` | INTAKE-001 | error | not approved or score < 90 |
+| `INTAKE.SCOPE_MISSING` | INTAKE-001 | error | client/project/allowed_roots absent |
+| `INTAKE.NO_TASKS` | INTAKE-001 | error | task_graph empty |
+| `INTAKE.TASK_FIELDS_MISSING` | INTAKE-001 | error | task missing id/title/acceptance |
+| `INTAKE.DEP_UNRESOLVED` | INTAKE-001 | error | depends_on references unknown task |
 
 ## Status semantics
 

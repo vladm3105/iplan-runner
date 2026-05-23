@@ -128,3 +128,26 @@ new engine can be certified against the spec alone (no need for other engines to
 be present). Once ≥2 engines exist, an additional **cross-engine differential**
 test asserts the engines agree with each other on every vector, as
 defense-in-depth on top of the golden expectations.
+
+### D-0013 - Execution = governance loop + pluggable executor - 2026-05-23
+
+An execution engine is a **governance loop** (IPLAN ingestion → orchestrate →
+execute → record ledger → gate → reconcile → monitor) wired to a pluggable
+**`Executor`** interface. This dissolves the "autonomous coder (A)" vs
+"governor/driver of a host runtime (B)" fork: the expensive, parity-critical
+core (orchestrator, state machine, ledger writes, gate veto, saga, leases) is
+written once per engine and is **executor-agnostic**, while *how a task gets
+done* is a plug:
+
+- `MockExecutor` — deterministic, for tests + scenario-vector conformance (no
+  network);
+- `HostRuntimeExecutor` — drives a host agent runtime (Claude Code, Codex, an
+  MCP loop) — the "governor" style (B);
+- `ApiExecutor` — calls a model directly — the "autonomous" style (A).
+
+The A/B choice is therefore made **per executor plugin, per engine** (Phase 5),
+not globally. Rationale: avoid rebuilding a coding agent per engine, keep the
+whole loop testable offline via the mock plugin, and keep strict isolation
+(D-0011) tractable — each engine duplicates a *small* driver, not a whole agent.
+Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
+→ expected ledger), an extension of D-0012's pure-function golden vectors.

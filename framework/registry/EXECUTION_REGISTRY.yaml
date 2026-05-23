@@ -1,0 +1,49 @@
+# Execution Registry — single source of truth for the contract.
+#
+# Conformance reads this to discover contract artifacts, the rule catalog, the
+# golden vectors, and the registered engines. spec_version must equal
+# framework/VERSION.
+
+metadata:
+  framework: "AI Doc Flow IOps"
+  spec_version: "0.1.0"
+  template_policy: unified_yaml
+
+artifacts:
+  - id: ledger
+    template: "framework/execution/IPLAN-LEDGER-TEMPLATE.yaml"
+    document_type: "iplan-ledger"
+    error_prefix: "IPLAN-007"
+  - id: verify
+    template: "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml"
+    document_type: "iplan-verification-gate"
+  - id: chain
+    template: "framework/execution/IPLAN-CHAIN-LEDGER-TEMPLATE.yaml"
+    document_type: "iplan-chain-ledger"
+    error_prefix: "IPLAN-008"
+  - id: audit
+    template: "framework/execution/IPLAN-AUDIT-REPORT-TEMPLATE.yaml"
+    document_type: "iplan-audit-report"
+    error_prefix: "IPLAN-009"
+  - id: monitoring
+    template: "framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml"
+    document_type: "iplan-monitoring-manifest"
+    error_prefix: "MON-001"
+
+protocol_docs:
+  - "framework/execution/AGENT_UPDATE_PROTOCOL.md"
+  - "framework/execution/HOOK_INTEGRATION_POINTS.md"
+  - "framework/execution/SAGA_EXECUTION_MODEL.md"
+  - "framework/execution/LEDGER_ISOLATION_MODEL.md"
+  - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
+
+rule_catalog: "framework/conformance/rule-ids.yaml"
+vectors_root: "framework/conformance/vectors"
+
+engines:
+  - id: hermes
+    package: iops_hermes
+    path: "platforms/hermes"
+  - id: claude
+    package: iops_claude
+    path: "platforms/claude"

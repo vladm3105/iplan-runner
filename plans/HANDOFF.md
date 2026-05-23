@@ -6,31 +6,39 @@
 ## Current state - 2026-05-23
 
 - Branch: `claude/iplan-execution-framework-jc03k`
-- Phase: **Planning** (SDD workflow: plan → ≥2 review → implement → verify → land).
+- Phase: **PLAN-001 implemented** (SDD workflow: plan → 4 review passes →
+  implement → verify → land).
 - Repo decisions captured in `plans/DECISIONS.md` (D-0001..D-0012; D-0007
   superseded by D-0011).
-- `plans/PLAN-001_iplan-execution-ledger-runtime.md` drafted, reworked for
-  **strict isolation + golden vectors**, and hardened across four review passes.
-  **Status: IN REVIEW — awaiting user approval before implementation.**
+- `plans/PLAN-001_iplan-execution-ledger-runtime.md` — **DONE**.
 
-## What PLAN-001 will build (slice 1)
+## What landed (slice 1)
 
-Hybrid spec + runtime with **strict engine isolation** (D-0011): engine-agnostic
-contract in `framework/` (execution ledger / verify-gate / chain / audit + OTel
-monitoring + engine-adapter + **rule-ID catalog + golden vectors**), and **two
-fully self-contained engines** (`platforms/hermes`, `platforms/claude`) that
-share no code. Behavioral parity is enforced by replaying golden vectors against
-each engine + a cross-engine differential test (D-0012).
+Hybrid spec + runtime with **strict engine isolation** (D-0011):
 
-## Next action
+- `framework/` — engine-agnostic contract: execution ledger / verify-gate /
+  chain / audit templates + protocol docs, OTel monitoring manifest,
+  engine-adapter contract, registry, rule-ID catalog (20 rules), 24 golden
+  vectors.
+- `platforms/hermes/` + `platforms/claude/` — two fully self-contained engines
+  (no shared code), each with ledger store + hash chain, validators, gate
+  runner, audit generation, OTel-optional monitoring, SLO eval, CLI.
+- `tests/conformance/` — vector replay + cross-engine differential + strict
+  isolation + catalog coverage + spec parity.
 
-- Await approval / feedback on `PLAN-001`.
-- On approval: implement Tasks 1→9 in order, committing per task, running
-  conformance + `pytest` + `ruff` + `mypy --strict` before "done".
+## Verification (all green)
+
+```
+python -m unittest discover -s tests/conformance -v   # 14 passed
+pytest platforms/hermes platforms/claude -q            # 57 passed
+ruff check platforms                                   # clean
+mypy --strict platforms/hermes/src platforms/claude/src  # clean
+```
 
 ## Backlog (post slice 1)
 
 - `platforms/codex/`, `platforms/vertexai/` engines (own plans).
 - Live Claude Code hook wiring for the `claude` engine.
-- Observability-driven issue loop (OTLP collector + alert→issue).
+- Fuller OTel provider (metrics/logs instruments) + OTLP collector wiring.
+- Observability-driven issue loop (alert → issue).
 - Optional: `LICENSE`, CI workflow, web-session `SessionStart` setup hook.

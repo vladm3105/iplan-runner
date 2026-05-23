@@ -31,7 +31,7 @@ behind an optional extra; `ruff` + `mypy --strict`; Markdown governance docs.
 |------------|-------|
 | Task       | IOPS-PLAN-001 |
 | Depends on | Attached "IPLAN Ledger Implementation Plan"; `aidoc-flow-framework` Layer 8 IPLAN spec (consumed, not modified); `plans/DECISIONS.md` D-0001..D-0012 |
-| Status     | IN REVIEW - 2026-05-23 |
+| Status     | DONE - 2026-05-23 |
 | Feeds      | Follow-up engine plans (`codex`, `vertexai`); multi-project control plane; observability-driven issue loop |
 
 ## Objective

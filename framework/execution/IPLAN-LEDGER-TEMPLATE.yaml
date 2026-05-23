@@ -1,0 +1,110 @@
+# IPLAN Execution Ledger — TEMPLATE
+#
+# An append-only, hash-chained, isolation-scoped record of what agents actually
+# did while executing an approved SDD IPLAN. Corrections are new compensating
+# entries — prior entries are never mutated.
+#
+# Document type: iplan-ledger   (registered in framework/registry)
+# Validation:    category IPLAN-007 (see framework/conformance/rule-ids.yaml)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-ledger"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [execution-ledger, append-only, hash-chained]
+
+# Binds the ledger to the source IPLAN by identity + version + checksum.
+ledger_control:
+  ledger_id: "LEDGER-IPLAN-001"
+  source_iplan: "IPLAN-001"
+  source_iplan_version: "1.2.0"
+  source_iplan_last_updated: "2026-05-20"
+  source_iplan_checksum: "sha256:3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"
+  status: "completed"            # planned | in_progress | completed | blocked
+
+# Every transaction is bound to this scope; touched paths must fall inside roots.
+isolation_scope:
+  client_id: "client-a"
+  project_id: "project-x"
+  allowed_roots:
+    - "src/"
+    - "tests/"
+
+task_ledger:
+  - task_id: "T1"
+    title: "Implement feature foo"
+    status: "completed"          # pending | in_progress | completed | blocked
+    evidence_refs: ["EV1"]       # required for completed tasks
+    acceptance:
+      criteria: ["unit tests pass", "lint clean"]
+      result: "pass"             # pass | fail | none  (completed ⇒ pass)
+    blocked_reason: null
+    decision_owner: null         # required when status == blocked
+
+agent_leases:
+  - lease_id: "L1"
+    task_id: "T1"
+    agent_id: "agent-1"
+    acquired_at: "2026-05-23T10:00:00Z"
+    expires_at: "2026-05-23T11:00:00Z"
+    released_at: "2026-05-23T10:45:00Z"   # null while held
+
+execution_evidence:
+  - evidence_id: "EV1"
+    task_id: "T1"
+    kind: "test"                 # test | command | artifact | review
+    summary: "pytest: 12 passed"
+    location: "ci://run/4821"
+
+blockers: []                     # each open blocker needs a decision_owner
+
+reconciliation:
+  allowed: true                  # may only be true when the counts below are 0
+  pending_tasks: 0
+  open_blockers: 0
+
+# Saga-lite: each task transaction has a forward action + compensation.
+saga_journal:
+  - txn_id: "TX1"
+    task_id: "T1"
+    action: "apply-edit"
+    compensation: "revert-edit"
+    idempotency_key: "T1-apply-edit-1"
+    status: "committed"          # pending | committed | compensated
+    timeout_s: 600
+
+execution_history:
+  - at: "2026-05-23T10:00:00Z"
+    task_id: "T1"
+    from_status: "pending"
+    to_status: "in_progress"
+  - at: "2026-05-23T10:45:00Z"
+    task_id: "T1"
+    from_status: "in_progress"
+    to_status: "completed"
+
+# Append-only hash chain. event_hash =
+#   sha256(f"{sequence}|{previous_event_hash}|{event_type}|{subject_id}|{at}")
+# previous_event_hash of the first event is null.
+execution_log:
+  - sequence: 1
+    previous_event_hash: null
+    event_hash: "sha256:9f2c0e1b..."
+    event_type: "task_started"
+    subject_id: "T1"
+    at: "2026-05-23T10:00:00Z"
+    touched_paths: []
+    client_id: "client-a"
+    project_id: "project-x"
+  - sequence: 2
+    previous_event_hash: "sha256:9f2c0e1b..."
+    event_hash: "sha256:c4a51d77..."
+    event_type: "file_edited"
+    subject_id: "T1"
+    at: "2026-05-23T10:30:00Z"
+    touched_paths: ["src/foo.py"]
+    client_id: "client-a"
+    project_id: "project-x"
+
+audit_snapshots: []

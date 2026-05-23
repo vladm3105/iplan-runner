@@ -1,0 +1,48 @@
+# IPLAN Chain Ledger — TEMPLATE
+#
+# Coordinates execution across an ordered set of IPLANs (a chain). Ensures
+# dependencies run in order, upstreams are reconciled before downstreams, and
+# cross-plan resource leases don't overlap.
+#
+# Document type: iplan-chain-ledger
+# Validation:    category IPLAN-008 (see framework/conformance/rule-ids.yaml)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-chain-ledger"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [chain-ledger, multi-iplan]
+
+chain_control:
+  chain_id: "CHAIN-001"
+  status: "in_progress"          # planned | in_progress | completed | blocked
+
+iplan_chain:
+  - iplan_id: "IPLAN-001"
+    order: 1
+    depends_on: []
+    reconciled: true             # upstream must be reconciled before dependents run
+  - iplan_id: "IPLAN-002"
+    order: 2
+    depends_on: ["IPLAN-001"]
+    reconciled: false
+
+execution_tiers:
+  - tier: 1
+    iplans: ["IPLAN-001"]
+  - tier: 2
+    iplans: ["IPLAN-002"]
+
+cross_plan_leases:
+  - lease_id: "CL1"
+    iplan_id: "IPLAN-001"
+    resource: "db/migrations"
+    acquired_at: "2026-05-23T09:00:00Z"
+    expires_at: "2026-05-23T10:00:00Z"
+    released_at: "2026-05-23T09:40:00Z"
+
+chain_gate_results: []
+
+chain_reconciliation:
+  allowed: false                 # true only when every iplan is reconciled

@@ -26,7 +26,13 @@ class ExecutorResult:
     touched_paths: list[str]           # paths edited (must be within allowed_roots)
     evidence: dict | None = None       # {kind, summary, location} or None
     reason: str | None = None          # failure reason (-> blocked_reason)
+    retriable: bool = False            # a retriable failure (the saga may retry)
 ```
+
+A `retriable` failure (e.g. a transient error or a reported timeout) is retried
+by the saga up to `max_retries` with injected backoff `sleep`; a non-retriable
+failure (or exhausted retries) escalates to a blocker (see
+`framework/execution/SAGA_EXECUTION_MODEL.md`).
 
 The orchestrator interprets the result per RUN_MODEL: `success` with evidence →
 `completed` with a passing acceptance; `success` without evidence → optimistically
@@ -50,7 +56,13 @@ mock_outcomes:
   T1: {outcome: success, touched_paths: ["src/a.py"], evidence: {kind: test, summary: "ok", location: "ci://1"}}
   T2: {outcome: failure, reason: "tests failed"}
   # unscripted task -> default success (no paths, no evidence)
+  # an optional per-attempt sequence (consumed one-per-call, last repeats):
+  T3: {attempts: [{outcome: failure, retriable: true}, {outcome: success, evidence: {kind: test, summary: ok, location: x}}]}
 ```
+
+`MockExecutor` is stateful per task across attempts (a per-task call counter), so
+the saga's retry loop sees the scripted sequence. `clock` and `sleep` are injected
+(D-0014); executors must not call ambient `datetime.now()` / `time.sleep`.
 
 ## Determinism
 

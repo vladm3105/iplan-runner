@@ -45,6 +45,7 @@ protocol_docs:
   - "framework/execution/LEDGER_ISOLATION_MODEL.md"
   - "framework/execution/STATE_MODEL.md"
   - "framework/execution/RUN_MODEL.md"
+  - "framework/execution/LEASE_MODEL.md"
   - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
   - "framework/engines/EXECUTOR-CONTRACT.md"
   - "framework/intake/INTAKE_CONTRACT.md"
@@ -57,6 +58,7 @@ vectors_root: "framework/conformance/vectors"
 intake_samples_root: "framework/conformance/intake_samples"
 scenarios_root: "framework/conformance/scenarios"
 sandbox_root: "framework/conformance/sandbox"
+leases_root: "framework/conformance/leases"
 
 engines:
   - id: hermes

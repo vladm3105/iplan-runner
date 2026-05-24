@@ -69,6 +69,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_status.add_argument("ledger_id", nargs="?")
     p_status.add_argument("--store", default=_DEFAULT_STORE)
 
+    p_verify = sub.add_parser("verify", help="verify a ledger's signatures")
+    p_verify.add_argument("ledger")
+    p_verify.add_argument("--key", required=True)
+
     return parser
 
 
@@ -157,6 +161,11 @@ def main(argv: list[str] | None = None) -> int:
         else:
             _emit(list_runs(args.store))
         return 0
+
+    if args.command == "verify":
+        verified = engine.verify_ledger(_load(args.ledger), args.key)
+        _emit({"verified": verified})
+        return 0 if verified else 1
 
     return 2
 

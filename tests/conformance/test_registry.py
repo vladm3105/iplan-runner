@@ -37,6 +37,7 @@ class RegistryTest(unittest.TestCase):
             self.reg["authz_root"],
             self.reg["budget_root"],
             self.reg["alert_root"],
+            self.reg["chains_root"],
         ]
         for rel in paths:
             with self.subTest(path=rel):

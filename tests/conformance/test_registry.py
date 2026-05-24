@@ -26,7 +26,11 @@ class RegistryTest(unittest.TestCase):
     def test_referenced_paths_exist(self) -> None:
         paths = [a["template"] for a in self.reg["artifacts"]]
         paths += list(self.reg["protocol_docs"])
-        paths += [self.reg["rule_catalog"], self.reg["vectors_root"]]
+        paths += [
+            self.reg["rule_catalog"],
+            self.reg["vectors_root"],
+            self.reg["intake_samples_root"],
+        ]
         for rel in paths:
             with self.subTest(path=rel):
                 self.assertTrue((_spec.REPO_ROOT / rel).exists(), rel)

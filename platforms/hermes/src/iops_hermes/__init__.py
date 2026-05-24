@@ -3,4 +3,4 @@
 from .engine import HermesEngine
 
 __all__ = ["HermesEngine"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"

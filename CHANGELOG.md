@@ -6,6 +6,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-24
+
+### Added
+
+- IPLAN **intake** contract (`framework/intake/`): normalize an approved SDD
+  IPLAN into a validated `iplan-intake` manifest (task graph) via a configurable
+  field mapping; `INTAKE-001` rules.
+- IPLAN **handover** contract (`framework/handover/`): `iplan-handover-receipt`
+  published back toward the control plane; `HANDOVER-001` rules.
+- Per-engine `ingest_iplan`, intake/handover validators, deterministic handover
+  builder (injected clock), CLI `intake` / `handover` commands.
+- Golden vectors for both new document types + a cross-engine **reader-parity**
+  conformance test.
+
+## [0.1.0]
+
 ### Added
 
 - Planning artifacts and architecture decisions (D-0001..D-0012).

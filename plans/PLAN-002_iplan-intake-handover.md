@@ -27,7 +27,7 @@ SDD repo.
 |------------|-------|
 | Task       | IOPS-PLAN-002 |
 | Depends on | `PLAN-001` (DONE); `plans/DECISIONS.md` D-0011..D-0014; Roadmap Phase 2 |
-| Status     | IN REVIEW - 2026-05-23 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-003` (run loop consumes the intake manifest); `PLAN-006` (handover ↔ landing) |
 
 ## Objective

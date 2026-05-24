@@ -10,7 +10,11 @@
   implement → verify → land).
 - Repo decisions captured in `plans/DECISIONS.md` (D-0001..D-0012; D-0007
   superseded by D-0011).
-- `plans/PLAN-001_iplan-execution-ledger-runtime.md` — **DONE**.
+- `plans/PLAN-001_iplan-execution-ledger-runtime.md` — **DONE** (`v0.1.0`).
+- `plans/PLAN-002_iplan-intake-handover.md` — **DONE** (`v0.2.0`): IPLAN intake
+  (normalize SDD IPLAN → `iplan-intake` manifest) + handover receipt contracts,
+  per-engine readers/validators/builders, reader-parity conformance.
+  Next: `PLAN-003` (execution core & run loop).
 
 ## What landed (slice 1)
 

@@ -1,0 +1,21 @@
+tasks:
+  T1:
+    status: completed
+    has_evidence: false
+reconciliation:
+  allowed: true
+  pending_tasks: 0
+  open_blockers: 0
+log_events:
+- event_type: task_started
+  subject_id: T1
+  touched_paths: []
+- event_type: file_edited
+  subject_id: T1
+  touched_paths:
+  - src/a.py
+- event_type: task_completed
+  subject_id: T1
+  touched_paths: []
+gate: failed
+handover_status: aborted

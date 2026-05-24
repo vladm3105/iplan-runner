@@ -219,50 +219,64 @@ Expected:
    `authorize` matrix; `apply_write` blocks a symlink escape.
 3. `ruff` + `mypy --strict` clean.
 
-## Auth / identity provider recommendation (forward-looking)
+## Auth / identity provider recommendation (forward-looking, agent-first)
 
-Full authn is out of scope for this phase, but the direction is set now so the
-PLAN-007 primitives (`authorize`, the actor role) slot into it cleanly. Two
-principles, both matching the framework's vendor-neutral ethos (engine-agnostic
-D-0011/D-0013, OTel-agnostic D-0006):
+IPLAN is an **agent-first** framework: the actors are agents / machines (the
+engines themselves, sub-agents, CI runners) acting **A2A** (agent-to-agent) and
+**M2M** (machine-to-machine) — *not* humans logging in through a browser. So the
+auth model is **workload-identity- and delegation-first**, with human OIDC login
+reserved for the operator **approval/override** layer (HITL, PLAN-009). Full
+authn is out of scope for this phase, but the direction is set now so the
+PLAN-007 primitives (`authorize`, the actor role) slot in. Principles (matching
+the vendor-neutral ethos of D-0011/D-0013/D-0006):
 
-1. **Authenticate via OIDC/OAuth2, provider-pluggable.** The framework verifies a
-   standard JWT and extracts a principal (`{id, role, client_id, project_id,
-   claims}`); *any* OIDC IdP plugs in — no lock-in. Agent/service actors use
-   OAuth2 client-credentials or **SPIFFE/SPIRE** (workload identity / mTLS).
-2. **Authorization is layered (defense in depth) behind a pluggable `Authorizer`
-   PDP.** A decision must pass **every** applicable layer:
+1. **Identity = workload identity, not human login.** Prefer **SPIFFE/SPIRE**
+   (short-lived SVIDs — X.509 for **mTLS**, JWT-SVID) as the agent/engine identity
+   backbone (no shared long-lived secrets), and/or **OAuth2 client-credentials**
+   (RFC 6749) for M2M tokens. The framework verifies the credential and extracts
+   a `Principal` (`{agent_id, capabilities, on_behalf_of, client_id, project_id}`).
+2. **A2A delegation is explicit.** When agent A acts on behalf of principal P (or
+   agent B), use **OAuth2 Token Exchange (RFC 8693)** with the `act` / `may_act`
+   (actor) claim, **capability-scoped** least-privilege tokens, and a bounded
+   **delegation depth**. Align with the **A2A protocol** (Linux Foundation
+   Agent2Agent) auth schemes and **MCP** client auth where engines expose/consume
+   those surfaces.
+3. **Authorization is layered (defense in depth)** behind a pluggable `Authorizer`
+   PDP; a decision must pass **every** applicable layer:
 
-| Layer | Concern | Owned by |
-|-------|---------|----------|
-| **L0 Authn** | Who is the actor? | External IdP via OIDC; framework verifies the JWT |
+| Layer | Concern (agent-first) | Owned by |
+|-------|------------------------|----------|
+| **L0 Identity** | which **agent/workload** (SVID / M2M token), and on whose behalf | SPIFFE/SPIRE or OAuth2 client-creds; framework verifies |
 | **L1 Tenant** | `client_id` / `project_id` / `allowed_roots` boundary | Framework (already enforced) |
-| **L2 RBAC** | role → permitted action (run/land/approve/override) | Framework (`authorize`, this plan) |
-| **L3 ReBAC** | which actor may act on which IPLAN/ledger (resource graph) | External authz engine |
-| **L4 ABAC / policy** | context rules (risk, env, budget caps, approval thresholds) | Policy-as-code engine |
+| **L2 RBAC** | agent role → permitted action (run/land/approve/override) | Framework (`authorize`, this plan) |
+| **L3 ReBAC** | which agent may act on which IPLAN/ledger, incl. **delegation graph** | External authz engine |
+| **L4 ABAC / policy** | context (capability scope, **delegation depth**, risk, budget, approval thresholds) | Policy-as-code engine |
 
-### Recommended providers
+### Recommended providers (agent-first ordering)
 
-- **Self-hosted, open-source, layered out of the box → Keycloak.** OIDC/OAuth2
-  identity **+** realm/client roles + groups **+** fine-grained *Authorization
-  Services* (resource / scope / policy permissions). One system covering L0–L2
-  and much of L3/L4. Best default given the vendor-neutral ethos.
-- **Composable open-source → the Ory stack:** Kratos (identity) + Hydra
-  (OAuth2/OIDC) + **Keto** (Zanzibar-style ReBAC, L3).
-- **L3 at scale (relationship/resource graph) → OpenFGA or SpiceDB** (both Google
-  Zanzibar model); pair with Keycloak/Ory for L0–L2.
-- **L4 policy-as-code → OPA (Rego) or AWS Cedar** for context-aware rules.
-- **Managed alternatives:** Auth0 / Okta (+ Okta FGA / Auth0 FGA), or AWS Cognito
-  + **Amazon Verified Permissions (Cedar)**, or Azure Entra ID.
+- **Workload/agent identity → SPIFFE/SPIRE** (primary): SVID issuance, mTLS,
+  JWT-SVID — the standard for M2M/A2A identity without static secrets.
+- **M2M tokens + delegation → Keycloak or Ory Hydra** (open-source): OAuth2
+  **client-credentials** + **token exchange (RFC 8693)** + roles. Keycloak also
+  bundles fine-grained Authorization Services (L2–L4). Managed: Auth0/Okta
+  (client-creds + token vault / FGA), AWS Cognito, Azure Entra ID (workload IDs).
+- **L3 ReBAC at scale → OpenFGA or SpiceDB** (Google Zanzibar): models
+  agent ↔ resource ↔ principal **delegation relationships** directly.
+- **L4 policy-as-code → OPA (Rego) or AWS Cedar**: capability/delegation-depth
+  limits, budget caps, approval thresholds.
+- **Human operator** (approval/override, PLAN-009) → any **OIDC** IdP — the
+  *only* place a human login flow belongs.
 
 ### Framework seam
 
 Add (in the authn integration phase, not now) an `Authorizer` Protocol (the PDP)
-and a verified `Principal`; the built-in RBAC `authorize` is the **default**
-Authorizer (inner layers L1–L2), and an external engine (OPA / OpenFGA / Keycloak
-adapter) implements the same interface for L3–L4 — exactly the pluggability
-pattern of engines (D-0013) and monitoring exporters (D-0006). Authz is evaluated
-at each decision point (run / record / land / approve / override).
+and a verified **agent** `Principal` (with `on_behalf_of` / capabilities); the
+built-in RBAC `authorize` is the **default** Authorizer (inner layers L1–L2), and
+external engines (SPIFFE-aware, OPA / OpenFGA / Keycloak adapters) implement the
+same interface for L0/L3/L4 — the pluggability pattern of engines (D-0013) and
+monitoring exporters (D-0006). Authz is evaluated at each decision point
+(run / record / land / approve / override), and the acting agent (+ delegation
+chain) is stamped into the ledger lease/transaction and signed (HMAC).
 
 ## Risks
 

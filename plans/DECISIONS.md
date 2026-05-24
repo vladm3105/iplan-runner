@@ -152,29 +152,41 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
-### D-0015 - Auth: OIDC identity + pluggable, layered authorization - 2026-05-24
+### D-0015 - Auth: agent-first (M2M/A2A) identity + pluggable, layered authorization - 2026-05-24
 
-Identity and authorization are **provider-agnostic and pluggable**, matching the
-engine (D-0013) and monitoring-exporter (D-0006) ethos — no lock-in.
+IPLAN is **agent-first**: actors are agents/machines (engines, sub-agents, CI)
+acting **A2A**/**M2M**, not humans at a browser. Identity and authorization are
+**provider-agnostic and pluggable** (engine D-0013 / exporter D-0006 ethos), and
+**workload-identity- and delegation-first**.
 
-- **Authn:** the framework verifies a standard **OIDC/OAuth2 JWT** and extracts a
-  `Principal` (`{id, role, client_id, project_id, claims}`); any IdP plugs in.
-  Agent/service actors use OAuth2 client-credentials or **SPIFFE/SPIRE**.
-- **Authz is layered (defense in depth)** behind a pluggable `Authorizer` PDP; a
-  decision must pass every applicable layer:
+- **Identity (M2M/A2A, not human login):** prefer **SPIFFE/SPIRE** (short-lived
+  SVIDs: X.509 mTLS + JWT-SVID) for agent/engine identity, and/or **OAuth2
+  client-credentials** for M2M tokens. The framework verifies the credential and
+  extracts an **agent** `Principal` (`{agent_id, capabilities, on_behalf_of,
+  client_id, project_id}`). Human OIDC login is reserved for the operator
+  **approval/override** layer (HITL, PLAN-009) — the only place it belongs.
+- **A2A delegation is explicit:** **OAuth2 Token Exchange (RFC 8693)**
+  (`act`/`may_act` actor claim), capability-scoped least-privilege tokens, bounded
+  delegation depth; align with the **A2A protocol** (LF Agent2Agent) + **MCP**
+  client auth.
+- **Authz is layered (defense in depth)** behind a pluggable `Authorizer` PDP;
+  a decision passes every applicable layer:
+  - **L0 Identity** (which agent / on whose behalf) — SPIFFE or OAuth2 client-creds.
   - **L1 Tenant** (`client_id`/`project_id`/`allowed_roots`) — framework, enforced.
-  - **L2 RBAC** (role → action) — framework (`authorize`, PLAN-007).
-  - **L3 ReBAC** (resource/relationship graph) — external (OpenFGA / SpiceDB).
-  - **L4 ABAC / policy-as-code** (context: risk, budget, approval thresholds) —
-    external (OPA/Rego or Cedar).
-- **Recommended provider:** **Keycloak** (self-hosted, open-source: OIDC + roles
-  + groups + fine-grained Authorization Services, covering L0–L2 and much of
-  L3/L4); or the **Ory** stack (Kratos + Hydra + Keto). Managed alternatives:
-  Auth0/Okta (+ FGA), AWS Cognito + Verified Permissions (Cedar), Azure Entra ID.
-- The built-in RBAC `authorize` is the **default** `Authorizer`; external engines
-  implement the same interface. Full authn/authz wiring is a later phase; PLAN-007
-  ships the inner-layer primitives (RBAC + ledger signing) the model builds on.
-  See `PLAN-007` "Auth / identity provider recommendation".
+  - **L2 RBAC** (agent role → action) — framework (`authorize`, PLAN-007).
+  - **L3 ReBAC** (agent↔resource↔principal **delegation graph**) — OpenFGA/SpiceDB.
+  - **L4 ABAC/policy** (capability scope, delegation depth, risk, budget,
+    approval thresholds) — OPA/Rego or Cedar.
+- **Recommended (agent-first ordering):** SPIFFE/SPIRE for workload identity;
+  **Keycloak** or **Ory Hydra** for OAuth2 client-credentials + token exchange
+  (Keycloak also bundles fine-grained authz, L2–L4); OpenFGA/SpiceDB for L3;
+  OPA/Cedar for L4. Managed: Auth0/Okta (+FGA), AWS Cognito + Verified
+  Permissions (Cedar), Azure Entra ID (workload identities).
+- Built-in RBAC `authorize` is the **default** `Authorizer`; external engines
+  implement the same interface. The acting agent + delegation chain is stamped
+  into the ledger and HMAC-signed. Full wiring is a later phase; PLAN-007 ships
+  the inner-layer primitives. See `PLAN-007` "Auth / identity provider
+  recommendation".
 
 ### D-0014 - Project structure conventions - 2026-05-23
 

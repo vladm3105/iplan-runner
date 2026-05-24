@@ -1,0 +1,5 @@
+alerts:
+- alert_id: ALERT-001
+  slo_ref: SLO-001
+  severity: error
+  escalation_owner: operator

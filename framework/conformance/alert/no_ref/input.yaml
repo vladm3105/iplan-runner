@@ -1,0 +1,30 @@
+manifest:
+  metadata:
+    schema_version: '1.0'
+    document_type: iplan-monitoring-manifest
+    framework: iops
+  monitor_control:
+    monitor_id: MON-1
+    source_iplan: IPLAN-001
+    source_ledger: LEDGER-IPLAN-001
+    status: active
+  slos:
+  - id: SLO-001
+    name: Availability
+    objective: 99.9
+    unit: percent
+    window: 30d
+    signal_ref: availability_ratio
+  signals:
+    otel:
+      metrics:
+      - name: availability_ratio
+        instrument: gauge
+        unit: '1'
+  alert_rules:
+  - id: ALERT-002
+    slo_ref: SLO-999
+    severity: error
+    escalation_owner: operator
+samples:
+  availability_ratio: 50.0

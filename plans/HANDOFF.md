@@ -18,7 +18,12 @@
   + task state machine, pluggable `Executor` + `MockExecutor`, durable ledger
   persistence + status/query, gate-as-veto, `iops-<engine> run`/`status`, and
   scenario-vector conformance (projection + cross-engine differential).
-  Next: `PLAN-004` (effectors & evidence — make the executor's effects real).
+- `plans/PLAN-004_effectors-evidence.md` — **DONE** (`v0.4.0`): sandbox/evidence
+  contracts, pure `classify_path` (vector'd), sandboxed `apply_write`/
+  `run_command`, evidence runner, secret redaction, and a `ScriptedExecutor`
+  performing real effects; sandbox conformance.
+  Next: `PLAN-005` (saga & lease runtime — incl. compensation/rollback of the
+  partial effects PLAN-004 left non-transactional).
 
 ## What landed (slice 1)
 

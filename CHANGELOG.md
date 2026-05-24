@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-24
+
+### Added
+
+- Sandbox + evidence contracts (`framework/effectors/`).
+- Pure path-jail decision `classify_path` (`SANDBOX.OK` / `OUTSIDE_ROOTS` /
+  `ESCAPE`), enforced *before* effects; pinned by golden vectors + differential.
+- Sandboxed effectors (`apply_write`, `run_command`), an evidence runner that
+  runs acceptance checks, deterministic secret redaction, and a `ScriptedExecutor`
+  that performs real effects from an action script.
+- `iops-<engine> run --actions/--workspace` for real-effect runs.
+
 ## [0.3.0] - 2026-05-24
 
 ### Added

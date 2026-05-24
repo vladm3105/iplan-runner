@@ -30,7 +30,7 @@ conformance; `ruff` + `mypy --strict`; YAML.
 |------------|-------|
 | Task       | IOPS-PLAN-004 |
 | Depends on | `PLAN-001`..`PLAN-003` (DONE); D-0011..D-0014; Roadmap Phase 4 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-005` (saga/lease wrap real effects); `PLAN-008` (live executors generate the actions these effectors apply) |
 
 ## Objective

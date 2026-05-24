@@ -44,13 +44,16 @@ protocol_docs:
   - "framework/execution/SAGA_EXECUTION_MODEL.md"
   - "framework/execution/LEDGER_ISOLATION_MODEL.md"
   - "framework/execution/STATE_MODEL.md"
+  - "framework/execution/RUN_MODEL.md"
   - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
+  - "framework/engines/EXECUTOR-CONTRACT.md"
   - "framework/intake/INTAKE_CONTRACT.md"
   - "framework/handover/HANDOVER_CONTRACT.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"
 intake_samples_root: "framework/conformance/intake_samples"
+scenarios_root: "framework/conformance/scenarios"
 
 engines:
   - id: hermes

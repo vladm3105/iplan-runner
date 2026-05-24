@@ -31,7 +31,7 @@ unlimited), so all prior conformance stays green.
 |------------|-------|
 | Task       | IOPS-PLAN-008 |
 | Depends on | `PLAN-001`..`PLAN-007` (DONE); D-0011..D-0015; Roadmap Phase 8 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-009` (HITL approves live runs); `PLAN-010` (monitoring of live runs); follow-on engines (`codex`, `vertexai`) |
 
 ## Objective

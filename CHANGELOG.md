@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-24
+
+### Added
+
+- Config + secrets contract (`framework/config/CONFIG_CONTRACT.md`) +
+  `load_config` (file + env merge; secrets/signing_key from env only).
+- Resource governance (`framework/execution/RESOURCE_GOVERNANCE.md`): `Budget`
+  (token/cost/wall-time) + pure `check`; `BUDGET.*` decisions + conformance.
+- First **live executors** (A/B per D-0013): `hermes` `ApiExecutor` (autonomous:
+  a model proposes typed actions, applied through the sandbox + budget) and
+  `claude` `HostRuntimeExecutor` (governor: drive a host runtime, then govern its
+  result against scope). Pluggable `ModelClient` / `RuntimeClient` with offline
+  stubs; real clients import-guarded behind extras (integration-only).
+
 ## [0.7.0] - 2026-05-24
 
 ### Added

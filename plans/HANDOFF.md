@@ -33,8 +33,12 @@
 - `plans/PLAN-007_security-ledger-integrity.md` — **DONE** (`v0.7.0`): security
   model + authenticated ledger (`sign_ledger`/`verify_ledger`, HMAC over canonical
   event), role-based `authorize`, realpath sandbox hardening; signing/authz
-  vectors. Agent-first auth direction recorded in D-0015 (provider integration is
-  a later phase). Next: `PLAN-008` (config, secrets & live executors).
+  vectors. Agent-first auth direction recorded in D-0015.
+- `plans/PLAN-008_config-live-executors.md` — **DONE** (`v0.8.0`): config +
+  secrets (`load_config`), resource governance (`Budget`/`check`), and the first
+  live executors — hermes `ApiExecutor` (autonomous) + claude `HostRuntimeExecutor`
+  (governor), the A/B divergence (D-0013); offline stub-tested, real clients
+  integration-only. Next: `PLAN-009` (human-in-the-loop & operator control).
 
 ## What landed (slice 1)
 

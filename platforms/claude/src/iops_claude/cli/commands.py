@@ -1,4 +1,4 @@
-"""``iops-claude`` command-line interface."""
+"""``iops-claude`` command handlers."""
 from __future__ import annotations
 
 import argparse
@@ -8,9 +8,14 @@ from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
-from .audit.report import build_audit_report
-from .engine import ClaudeEngine
-from .monitoring.slo import evaluate_slos
+from ..audit.report import build_audit_report
+from ..engine import ClaudeEngine, _default_clock
+from ..executor.base import IdSource
+from ..ledger.index import list_runs, status
+from ..ledger.persistence import save
+from ..monitoring.slo import evaluate_slos
+
+_DEFAULT_STORE = ".iops/ledgers"
 
 
 def _load(path: str) -> dict[str, Any]:
@@ -22,7 +27,7 @@ def _emit(result: Any) -> None:
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
-def main(argv: list[str] | None = None) -> int:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="iops-claude")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -52,7 +57,19 @@ def main(argv: list[str] | None = None) -> int:
     p_handover.add_argument("ledger")
     p_handover.add_argument("gate")
 
-    args = parser.parse_args(argv)
+    p_run = sub.add_parser("run", help="execute an IPLAN end-to-end")
+    p_run.add_argument("iplan")
+    p_run.add_argument("--store", default=_DEFAULT_STORE)
+
+    p_status = sub.add_parser("status", help="list runs or show one run's status")
+    p_status.add_argument("ledger_id", nargs="?")
+    p_status.add_argument("--store", default=_DEFAULT_STORE)
+
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _build_parser().parse_args(argv)
     engine = ClaudeEngine()
 
     if args.command == "ledger":
@@ -94,6 +111,34 @@ def main(argv: list[str] | None = None) -> int:
         validation = engine.validate(receipt)
         _emit({"receipt": receipt, "validation": validation})
         return 0 if validation["status"] != "fail" else 1
+
+    if args.command == "run":
+        manifest = engine.ingest_iplan(args.iplan)
+        validation = engine.validate(manifest)
+        if validation["status"] == "fail":
+            _emit({"validation": validation})
+            return 1
+        run_result = engine.run(
+            manifest, engine.default_executor(), clock=_default_clock, ids=IdSource()
+        )
+        saved = save(run_result.ledger, args.store)
+        receipt = engine.build_handover(run_result.ledger, run_result.gate_result)
+        _emit(
+            {
+                "ledger_id": run_result.ledger["ledger_control"]["ledger_id"],
+                "gate": run_result.gate_result["status"],
+                "handover": receipt["result"],
+                "saved": str(saved),
+            }
+        )
+        return 0 if receipt["result"]["status"] == "completed" else 1
+
+    if args.command == "status":
+        if args.ledger_id:
+            _emit(status(args.ledger_id, args.store))
+        else:
+            _emit(list_runs(args.store))
+        return 0
 
     return 2
 

@@ -19,10 +19,13 @@ class ExecutorResult:
     touched_paths: list[str] = field(default_factory=list)
     evidence: dict[str, Any] | None = None
     reason: str | None = None
+    retriable: bool = False
 
 
 class Executor(Protocol):
     def execute(self, task: dict[str, Any], ctx: ExecutionContext) -> ExecutorResult: ...
+
+    def compensate(self, touched_paths: list[str]) -> None: ...
 
 
 class IdSource:

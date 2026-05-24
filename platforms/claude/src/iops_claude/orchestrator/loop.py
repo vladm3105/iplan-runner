@@ -12,6 +12,8 @@ from ..executor.base import ExecutionContext, Executor
 from ..gates.runner import run_gate
 from ..ledger.store import append_event
 from ..validation import status_of, validate_intake
+from .leases import can_acquire
+from .saga import already_committed, execute_with_retry
 from .state import add_history, set_status, task
 from .topo import topo_order
 
@@ -101,30 +103,62 @@ def _event(
     }
 
 
+def _escalate(
+    ledger: dict[str, Any],
+    task_id: str,
+    reason: str,
+    ids: Callable[[str], str],
+    blocked_at: str,
+) -> None:
+    scope = ledger["isolation_scope"]
+    ledger["blockers"].append(
+        {
+            "blocker_id": ids("B"),
+            "task_id": task_id,
+            "description": reason,
+            "decision_owner": "operator",
+        }
+    )
+    entry = task(ledger, task_id)
+    entry["blocked_reason"] = reason
+    entry["decision_owner"] = "operator"
+    set_status(ledger, task_id, "blocked")
+    add_history(ledger, task_id, "in_progress", "blocked", blocked_at)
+    append_event(ledger, _event(scope, "task_blocked", task_id, blocked_at, []))
+
+
 def _run_task(
     ledger: dict[str, Any],
     task_node: dict[str, Any],
     executor: Executor,
     clock: Callable[[], str],
     ids: Callable[[str], str],
+    sleep: Callable[[float], None],
+    max_retries: int,
+    backoff_base: float,
 ) -> None:
     task_id = str(task_node["task_id"])
     scope = ledger["isolation_scope"]
 
-    lease_id = ids("L")
+    if already_committed(ledger, f"{task_id}-execute"):
+        return  # idempotency: enables resume (Phase 9)
+
+    acquired_at = clock()
+    if not can_acquire(ledger["agent_leases"], task_id, acquired_at):
+        _escalate(ledger, task_id, "lease conflict", ids, acquired_at)
+        return
     lease = {
-        "lease_id": lease_id,
+        "lease_id": ids("L"),
         "task_id": task_id,
         "agent_id": _AGENT_ID,
-        "acquired_at": clock(),
+        "acquired_at": acquired_at,
         "expires_at": None,
         "released_at": None,
     }
     ledger["agent_leases"].append(lease)
 
-    txn_id = ids("TX")
     txn = {
-        "txn_id": txn_id,
+        "txn_id": ids("TX"),
         "task_id": task_id,
         "action": "execute",
         "compensation": "revert",
@@ -140,7 +174,10 @@ def _run_task(
     append_event(ledger, _event(scope, "task_started", task_id, started_at, []))
 
     ctx = ExecutionContext(task=task_node, isolation_scope=scope, clock=clock, ids=ids)
-    result = executor.execute(task_node, ctx)
+    result, attempts = execute_with_retry(
+        executor, task_node, ctx, sleep=sleep, max_retries=max_retries, backoff_base=backoff_base
+    )
+    txn["attempts"] = attempts
 
     if result.outcome == "success":
         for path in result.touched_paths:
@@ -158,22 +195,13 @@ def _run_task(
         append_event(ledger, _event(scope, "task_completed", task_id, completed_at, []))
         txn["status"] = "committed"
     else:
-        reason = result.reason or "execution failed"
-        ledger["blockers"].append(
-            {
-                "blocker_id": ids("B"),
-                "task_id": task_id,
-                "description": reason,
-                "decision_owner": "operator",
-            }
-        )
-        blocked_at = clock()
-        entry = task(ledger, task_id)
-        entry["blocked_reason"] = reason
-        entry["decision_owner"] = "operator"
-        set_status(ledger, task_id, "blocked")
-        add_history(ledger, task_id, "in_progress", "blocked", blocked_at)
-        append_event(ledger, _event(scope, "task_blocked", task_id, blocked_at, []))
+        if result.touched_paths:
+            executor.compensate(result.touched_paths)
+            append_event(
+                ledger, _event(scope, "compensation", task_id, clock(), result.touched_paths)
+            )
+            txn["status"] = "compensated"
+        _escalate(ledger, task_id, result.reason or "execution failed", ids, clock())
 
     lease["released_at"] = clock()
 
@@ -227,6 +255,9 @@ def run(
     *,
     clock: Callable[[], str],
     ids: Callable[[str], str],
+    sleep: Callable[[float], None],
+    max_retries: int = 0,
+    backoff_base: float = 0.0,
     gate: dict[str, Any] | None = None,
 ) -> RunResult:
     if status_of(validate_intake(manifest)) == "fail":
@@ -238,7 +269,7 @@ def run(
         node = by_id[task_id]
         deps = [str(d) for d in node.get("depends_on", [])]
         if all(d in completed for d in deps):
-            _run_task(ledger, node, executor, clock, ids)
+            _run_task(ledger, node, executor, clock, ids, sleep, max_retries, backoff_base)
             if task(ledger, task_id)["status"] == "completed":
                 completed.add(task_id)
         else:

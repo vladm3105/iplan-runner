@@ -19,3 +19,5 @@ class Config:
     map_scope: str = "isolation_scope"
     map_tasks: str = "tasks"
     secrets: list[str] = field(default_factory=list)
+    max_retries: int = 0
+    backoff_base: float = 0.0

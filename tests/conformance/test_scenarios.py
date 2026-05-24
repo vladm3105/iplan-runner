@@ -63,6 +63,7 @@ def _project(engine: Any, result: Any) -> dict[str, Any]:
         "reconciliation": ledger["reconciliation"],
         "log_events": log_events,
         "saga": saga,
+        "run_state": ledger["ledger_control"].get("run_state", "completed"),
         "gate": result.gate_result["status"],
         "handover_status": handover["result"]["status"],
     }
@@ -70,6 +71,13 @@ def _project(engine: Any, result: Any) -> dict[str, Any]:
 
 def _noop_sleep(_seconds: float) -> None:
     return None
+
+
+def _control(states: list[str] | None) -> Callable[[], str] | None:
+    if not states:
+        return None
+    iterator = iter(states)
+    return lambda: next(iterator, "running")
 
 
 def _scenarios() -> list[Path]:
@@ -96,6 +104,7 @@ class ScenarioTest(unittest.TestCase):
                     ids=_make_ids(),
                     sleep=_noop_sleep,
                     max_retries=scenario.get("max_retries", 0),
+                    control=_control(scenario.get("control")),
                 )
                 with self.subTest(engine=engine_id, scenario=scenario_path.parent.name):
                     self.assertEqual(_project(engine, result), expect)

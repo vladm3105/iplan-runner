@@ -57,6 +57,7 @@ protocol_docs:
   - "framework/security/SECURITY_MODEL.md"
   - "framework/config/CONFIG_CONTRACT.md"
   - "framework/execution/RESOURCE_GOVERNANCE.md"
+  - "framework/monitoring/MONITORING_RUNTIME.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"
@@ -67,6 +68,7 @@ leases_root: "framework/conformance/leases"
 signing_root: "framework/conformance/signing"
 authz_root: "framework/conformance/authz"
 budget_root: "framework/conformance/budget"
+alert_root: "framework/conformance/alert"
 
 engines:
   - id: hermes

@@ -62,6 +62,7 @@ probes:
 
 alert_rules:
   - id: "ALERT-001"
-    when: "availability_ratio < 0.999"
+    slo_ref: "SLO-001"             # fires when this SLO is breached
+    when: "availability_ratio < 0.999"   # human-readable; not evaluated
     severity: error
     escalation_owner: "operator"

@@ -6,9 +6,8 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
 
 ## Numbered plans (the path to GA)
 
-- [ ] **PLAN-010 — Monitoring runtime** (`v0.10.0`): probe HTTP server
-  (`/healthz` `/readyz` `/startupz`), live OTel metrics/logs (today no-ops),
-  alert → issue record, product-monitoring vs engine self-telemetry. *(drafting)*
+- [x] **PLAN-010 — Monitoring runtime** (`v0.10.0`): probe HTTP server, live OTel
+  metrics/logs, alert → issue record, product-monitoring vs engine self-telemetry.
 - [ ] **PLAN-011 — Chain orchestration runtime** (`v0.11.0`): execute multi-IPLAN
   chains (tiers, cross-plan leases, chain reconciliation) — today only validated.
 - [ ] **PLAN-012 / GA** (`v1.0.0`): end-to-end hardening, full security review,

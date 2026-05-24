@@ -26,7 +26,7 @@ default). The run loop is untouched — monitoring is observe-only.
 |------------|-------|
 | Task       | IOPS-PLAN-010 |
 | Depends on | `PLAN-001`..`PLAN-009` (DONE); D-0011..D-0015; Roadmap Phase 10 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | GA (`v1.0.0`); the post-v1.0 observability-driven issue loop |
 
 ## Objective

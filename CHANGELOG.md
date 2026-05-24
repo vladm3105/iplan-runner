@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-05-24
+
+### Added
+
+- Monitoring runtime (`framework/monitoring/MONITORING_RUNTIME.md`): SLO-breach-
+  driven `evaluate_alerts` (via `alert_rules[].slo_ref`) + `build_issue` record
+  (bound to `@iplan`/`@ledger`); alert conformance vectors.
+- Probe HTTP server (`/healthz` `/readyz` `/startupz`); live OTel metrics/logs
+  behind the `[otel]` extra (no-op default offline); engine self-telemetry
+  (`emit_run_telemetry`), distinct from product monitoring.
+
 ## [0.9.0] - 2026-05-24
 
 ### Added

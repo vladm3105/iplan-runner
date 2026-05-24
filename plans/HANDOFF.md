@@ -43,7 +43,10 @@
   control (pause/abort between tasks + `run_state`), `resume` (paused/crashed via
   idempotency), `resolve_blocker` (approve/reject/override, operator-authorized +
   signed); pause/abort/resume/resolve CLI; `aborted` scenario.
-  Next: `PLAN-010` (monitoring runtime) — the last numbered phase before GA.
+- `plans/PLAN-010_monitoring-runtime.md` — **DONE** (`v0.10.0`): SLO-breach alert
+  evaluation + issue record, probe HTTP server, live OTel metrics/logs (behind
+  the extra), engine self-telemetry; alert conformance.
+  Next: `PLAN-011` (chain orchestration runtime), then GA (`v1.0.0`).
 
 ## What landed (slice 1)
 

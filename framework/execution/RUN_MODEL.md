@@ -43,9 +43,18 @@ Tasks run in a topological order of `task_graph[].depends_on`, with a **stable
 tie-break by `task_id`** (lexicographic) among ready tasks, so the order is
 deterministic across engines.
 
+## Unmet dependencies
+
+Before running a task, all of its `depends_on` must be `completed`. If any
+dependency did not complete (blocked or itself dependency-blocked), the task is
+**blocked without execution**: append a blocker (`decision_owner: "operator"`,
+reason `"dependency not satisfied"`), transition `pending → blocked`, and append
+a single `task_blocked` event — no lease, transaction, or `task_started`.
+
 ## Per-task event sequence (exact)
 
-For each task, in order, the orchestrator performs these steps. `clock()` is
+For a task whose dependencies are satisfied, in order, the orchestrator performs
+these steps. `clock()` is
 called once per timestamp in this order; `ids(prefix)` yields `prefix1`,
 `prefix2`, … per prefix.
 

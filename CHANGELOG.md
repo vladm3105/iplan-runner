@@ -6,6 +6,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-24
+
+### Added
+
+- Execution **run model** (`framework/execution/RUN_MODEL.md`) and **executor
+  contract** (`framework/engines/EXECUTOR-CONTRACT.md`).
+- Orchestrator + task state machine: drives an `iplan-intake` manifest through
+  `pending → in_progress → completed | blocked` (dependency order, unmet-deps
+  blocking), recording a hash-chained ledger.
+- Pluggable `Executor` interface + deterministic `MockExecutor` (injected
+  clock + id source).
+- Durable, atomic, lock-guarded ledger persistence + a status/query surface.
+- Gate-as-veto wired at the completion boundary; `iops-<engine> run` and
+  `status` commands (CLI refactored to a `cli/` package).
+- Scenario-vector conformance: per-engine projection + cross-engine differential.
+
 ## [0.2.0] - 2026-05-24
 
 ### Added

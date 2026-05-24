@@ -14,7 +14,11 @@
 - `plans/PLAN-002_iplan-intake-handover.md` — **DONE** (`v0.2.0`): IPLAN intake
   (normalize SDD IPLAN → `iplan-intake` manifest) + handover receipt contracts,
   per-engine readers/validators/builders, reader-parity conformance.
-  Next: `PLAN-003` (execution core & run loop).
+- `plans/PLAN-003_execution-core-run-loop.md` — **DONE** (`v0.3.0`): orchestrator
+  + task state machine, pluggable `Executor` + `MockExecutor`, durable ledger
+  persistence + status/query, gate-as-veto, `iops-<engine> run`/`status`, and
+  scenario-vector conformance (projection + cross-engine differential).
+  Next: `PLAN-004` (effectors & evidence — make the executor's effects real).
 
 ## What landed (slice 1)
 

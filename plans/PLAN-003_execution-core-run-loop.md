@@ -28,7 +28,7 @@ cross-engine differential. Strict isolation (D-0011) holds.
 |------------|-------|
 | Task       | IOPS-PLAN-003 |
 | Depends on | `PLAN-001`, `PLAN-002` (DONE); D-0011..D-0014; Roadmap Phase 3 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-004` (effectors/evidence make the executor's effects real); `PLAN-005` (saga/lease runtime); `PLAN-006` (handover ↔ landing) |
 
 ## Objective

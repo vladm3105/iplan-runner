@@ -98,6 +98,7 @@ def _init_ledger(manifest: dict[str, Any]) -> dict[str, Any]:
             "source_iplan_version": control["source_iplan_version"],
             "source_iplan_checksum": control["source_iplan_checksum"],
             "status": "in_progress",
+            "run_state": "running",
         },
         "isolation_scope": dict(manifest["isolation_scope"]),
         "task_ledger": [
@@ -285,6 +286,48 @@ def _reconcile(ledger: dict[str, Any]) -> None:
         ledger["ledger_control"]["status"] = "blocked"
 
 
+def _running(_state: str = "running") -> str:
+    return "running"
+
+
+def _drive(
+    ledger: dict[str, Any],
+    manifest: dict[str, Any],
+    executor: Executor,
+    *,
+    completed: set[str],
+    clock: Callable[[], str],
+    ids: Callable[[str], str],
+    sleep: Callable[[float], None],
+    max_retries: int,
+    backoff_base: float,
+    control: Callable[[], str],
+    gate: dict[str, Any] | None,
+) -> RunResult:
+    by_id = {str(t["task_id"]): t for t in manifest["task_graph"]}
+    run_state = "completed"
+    for task_id in topo_order(manifest["task_graph"]):
+        if task(ledger, task_id)["status"] == "completed":
+            completed.add(task_id)
+            continue
+        state = control()
+        if state in ("aborted", "paused"):
+            run_state = state
+            break
+        node = by_id[task_id]
+        deps = [str(d) for d in node.get("depends_on", [])]
+        if all(d in completed for d in deps):
+            _run_task(ledger, node, executor, clock, ids, sleep, max_retries, backoff_base)
+            if task(ledger, task_id)["status"] == "completed":
+                completed.add(task_id)
+        else:
+            _block_unmet_deps(ledger, node, clock, ids)
+    ledger["ledger_control"]["run_state"] = run_state
+    _reconcile(ledger)
+    gate_result = run_gate(ledger, gate or default_gate())
+    return RunResult(ledger=ledger, gate_result=gate_result)
+
+
 def run(
     manifest: dict[str, Any],
     executor: Executor,
@@ -294,22 +337,38 @@ def run(
     sleep: Callable[[float], None],
     max_retries: int = 0,
     backoff_base: float = 0.0,
+    control: Callable[[], str] | None = None,
     gate: dict[str, Any] | None = None,
 ) -> RunResult:
     if status_of(validate_intake(manifest)) == "fail":
         raise ValueError("intake manifest failed validation")
     ledger = _init_ledger(manifest)
-    by_id = {str(t["task_id"]): t for t in manifest["task_graph"]}
-    completed: set[str] = set()
-    for task_id in topo_order(manifest["task_graph"]):
-        node = by_id[task_id]
-        deps = [str(d) for d in node.get("depends_on", [])]
-        if all(d in completed for d in deps):
-            _run_task(ledger, node, executor, clock, ids, sleep, max_retries, backoff_base)
-            if task(ledger, task_id)["status"] == "completed":
-                completed.add(task_id)
-        else:
-            _block_unmet_deps(ledger, node, clock, ids)
-    _reconcile(ledger)
-    gate_result = run_gate(ledger, gate or default_gate())
-    return RunResult(ledger=ledger, gate_result=gate_result)
+    return _drive(
+        ledger, manifest, executor, completed=set(), clock=clock, ids=ids, sleep=sleep,
+        max_retries=max_retries, backoff_base=backoff_base,
+        control=control or _running, gate=gate,
+    )
+
+
+def resume(
+    manifest: dict[str, Any],
+    ledger: dict[str, Any],
+    executor: Executor,
+    *,
+    clock: Callable[[], str],
+    ids: Callable[[str], str],
+    sleep: Callable[[float], None],
+    max_retries: int = 0,
+    backoff_base: float = 0.0,
+    control: Callable[[], str] | None = None,
+    gate: dict[str, Any] | None = None,
+) -> RunResult:
+    completed = {
+        str(t["task_id"]) for t in ledger.get("task_ledger", []) if t["status"] == "completed"
+    }
+    ledger["ledger_control"]["run_state"] = "running"
+    return _drive(
+        ledger, manifest, executor, completed=completed, clock=clock, ids=ids, sleep=sleep,
+        max_retries=max_retries, backoff_base=backoff_base,
+        control=control or _running, gate=gate,
+    )

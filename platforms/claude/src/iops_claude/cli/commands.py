@@ -11,8 +11,8 @@ import yaml  # type: ignore[import-untyped]
 from ..audit.report import build_audit_report
 from ..engine import ClaudeEngine, _default_clock
 from ..executor.base import IdSource
-from ..ledger.index import list_runs, status
-from ..ledger.persistence import save
+from ..ledger.index import list_runs, set_control, status, store_control
+from ..ledger.persistence import ledger_path, load, save
 from ..monitoring.slo import evaluate_slos
 
 _DEFAULT_STORE = ".iops/ledgers"
@@ -72,6 +72,22 @@ def _build_parser() -> argparse.ArgumentParser:
     p_verify = sub.add_parser("verify", help="verify a ledger's signatures")
     p_verify.add_argument("ledger")
     p_verify.add_argument("--key", required=True)
+
+    for name in ("pause", "abort"):
+        p = sub.add_parser(name, help=f"{name} a run")
+        p.add_argument("ledger_id")
+        p.add_argument("--store", default=_DEFAULT_STORE)
+
+    p_resume = sub.add_parser("resume", help="resume a paused/crashed run")
+    p_resume.add_argument("iplan")
+    p_resume.add_argument("--store", default=_DEFAULT_STORE)
+
+    p_resolve = sub.add_parser("resolve", help="resolve a blocker")
+    p_resolve.add_argument("ledger_id")
+    p_resolve.add_argument("blocker_id")
+    p_resolve.add_argument("decision", choices=["approve", "reject", "override"])
+    p_resolve.add_argument("--store", default=_DEFAULT_STORE)
+    p_resolve.add_argument("--role", default="operator")
 
     return parser
 
@@ -166,6 +182,33 @@ def main(argv: list[str] | None = None) -> int:
         verified = engine.verify_ledger(_load(args.ledger), args.key)
         _emit({"verified": verified})
         return 0 if verified else 1
+
+    if args.command in ("pause", "abort"):
+        set_control(args.ledger_id, "paused" if args.command == "pause" else "aborted", args.store)
+        _emit({"ledger_id": args.ledger_id, "run_state": "paused" if args.command == "pause" else "aborted"})
+        return 0
+
+    if args.command == "resume":
+        manifest = engine.ingest_iplan(args.iplan)
+        ledger_id = "LEDGER-" + str(manifest["intake_control"]["source_iplan"])
+        ledger = load(ledger_path(args.store, ledger_id))
+        set_control(ledger_id, "running", args.store)
+        resumed = engine.resume(
+            manifest, ledger, engine.default_executor(),
+            clock=_default_clock, ids=IdSource(),
+            control=store_control(ledger_id, args.store),
+        )
+        save(resumed.ledger, args.store)
+        _emit({"ledger_id": ledger_id, "run_state": resumed.ledger["ledger_control"]["run_state"],
+               "gate": resumed.gate_result["status"]})
+        return 0 if resumed.gate_result["status"] == "passed" else 1
+
+    if args.command == "resolve":
+        ledger = load(ledger_path(args.store, args.ledger_id))
+        engine.resolve_blocker(ledger, args.blocker_id, args.decision, {"id": "cli", "role": args.role})
+        save(ledger, args.store)
+        _emit({"ledger_id": args.ledger_id, "blocker_id": args.blocker_id, "decision": args.decision})
+        return 0
 
     return 2
 

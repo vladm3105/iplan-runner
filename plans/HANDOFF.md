@@ -26,7 +26,11 @@
   (bounded retry/backoff, idempotency, compensation undoing partial writes,
   escalation) + lease lifecycle (`can_acquire`/`renew`/state); saga scenarios +
   lease vectors.
-  Next: `PLAN-006` (landing & VCS — the "committed" half of done).
+- `plans/PLAN-006_landing-vcs.md` — **DONE** (`v0.6.0`): landing/VCS — `land()`
+  commits a green+reconciled run to a git branch, records it in the ledger,
+  `LEDGER.NOT_COMMITTED` (requires_landing-gated) lets the gate require
+  committed + green; handover commit field; `run --land`.
+  Next: `PLAN-007` (security & ledger integrity).
 
 ## What landed (slice 1)
 

@@ -26,7 +26,7 @@ conformance; `ruff` + `mypy --strict`; YAML.
 |------------|-------|
 | Task       | IOPS-PLAN-006 |
 | Depends on | `PLAN-001`..`PLAN-005` (DONE); D-0011..D-0014; Roadmap Phase 6 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-009` (operator approval before landing); the SDD "done when committed + green" closure |
 
 ## Objective

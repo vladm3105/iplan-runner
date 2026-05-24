@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-24
+
+### Added
+
+- Landing / VCS (`framework/vcs/LANDING_CONTRACT.md`): the "committed" half of
+  done. VCS effector (`commit_all`/`head_sha`/`has_changes`) and a post-run
+  `land()` that commits a green+reconciled run to a branch and records the commit
+  in the ledger `vcs` section.
+- `ledger_control.requires_landing` + `LEDGER.NOT_COMMITTED` (GATE-LEDGER-006):
+  a landed ledger is complete only when committed + green.
+- Handover receipt `commit` field; `iops-<engine> run --land --branch`.
+
 ## [0.5.0] - 2026-05-24
 
 ### Added

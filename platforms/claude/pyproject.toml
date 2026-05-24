@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iops-claude"
-version = "0.4.0"
+version = "0.5.0"
 description = "Claude reference engine for the AI Doc Flow IOps execution framework"
 requires-python = ">=3.11"
 dependencies = ["pyyaml>=6"]

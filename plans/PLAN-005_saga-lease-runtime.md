@@ -29,7 +29,7 @@ projection field.
 |------------|-------|
 | Task       | IOPS-PLAN-005 |
 | Depends on | `PLAN-001`..`PLAN-004` (DONE); D-0011..D-0014; Roadmap Phase 5 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-007` (chain runtime reuses leases + cross-plan saga); `PLAN-009` (resume uses idempotency) |
 
 ## Objective

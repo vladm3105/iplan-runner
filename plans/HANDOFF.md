@@ -22,8 +22,11 @@
   contracts, pure `classify_path` (vector'd), sandboxed `apply_write`/
   `run_command`, evidence runner, secret redaction, and a `ScriptedExecutor`
   performing real effects; sandbox conformance.
-  Next: `PLAN-005` (saga & lease runtime — incl. compensation/rollback of the
-  partial effects PLAN-004 left non-transactional).
+- `plans/PLAN-005_saga-lease-runtime.md` — **DONE** (`v0.5.0`): saga runtime
+  (bounded retry/backoff, idempotency, compensation undoing partial writes,
+  escalation) + lease lifecycle (`can_acquire`/`renew`/state); saga scenarios +
+  lease vectors.
+  Next: `PLAN-006` (landing & VCS — the "committed" half of done).
 
 ## What landed (slice 1)
 

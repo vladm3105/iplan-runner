@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-24
+
+### Added
+
+- Saga runtime: bounded retry with injected backoff, idempotency skip,
+  timeout-as-failure, **compensation** that undoes partial writes, and escalation
+  to a blocker (`SAGA_EXECUTION_MODEL.md` runtime state machine).
+- Lease lifecycle + concurrency guard (`LEASE_MODEL.md`): `lease_state`,
+  `can_acquire`, `renew`.
+- `ExecutorResult.retriable`; `MockExecutor` per-task attempt sequences; injected
+  `sleep`; `run(..., sleep=, max_retries=)`.
+- Saga scenarios + lease decision vectors + cross-engine conformance.
+
 ## [0.4.0] - 2026-05-24
 
 ### Added

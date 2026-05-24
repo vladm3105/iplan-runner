@@ -30,5 +30,12 @@ log_events:
 - event_type: task_completed
   subject_id: T2
   touched_paths: []
+saga:
+  T1:
+    status: committed
+    attempts: 1
+  T2:
+    status: committed
+    attempts: 1
 gate: passed
 handover_status: completed

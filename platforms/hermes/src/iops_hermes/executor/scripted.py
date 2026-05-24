@@ -6,6 +6,7 @@ from typing import Any
 
 from ..effectors.apply import apply_write
 from ..effectors.commands import run_command
+from ..effectors.compensate import undo_writes
 from ..evidence.runner import run_checks
 from .base import ExecutionContext, ExecutorResult
 
@@ -59,3 +60,6 @@ class ScriptedExecutor:
                 outcome="failure", touched_paths=touched, evidence=evidence, reason="checks failed"
             )
         return ExecutorResult(outcome="success", touched_paths=touched, evidence=evidence)
+
+    def compensate(self, touched_paths: list[str]) -> None:
+        undo_writes(touched_paths, self._workspace)

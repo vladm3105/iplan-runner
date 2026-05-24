@@ -17,5 +17,9 @@ log_events:
 - event_type: task_completed
   subject_id: T1
   touched_paths: []
+saga:
+  T1:
+    status: committed
+    attempts: 1
 gate: failed
 handover_status: aborted

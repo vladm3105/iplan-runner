@@ -6,6 +6,7 @@ package and the framework spec, never another engine (strict isolation, D-0011).
 """
 from __future__ import annotations
 
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -101,8 +102,19 @@ class HermesEngine:
         *,
         clock: Callable[[], str],
         ids: Callable[[str], str],
+        sleep: Callable[[float], None] | None = None,
+        max_retries: int | None = None,
     ) -> RunResult:
-        return _run(manifest, executor, clock=clock, ids=ids, gate=self.default_gate())
+        return _run(
+            manifest,
+            executor,
+            clock=clock,
+            ids=ids,
+            sleep=sleep if sleep is not None else time.sleep,
+            max_retries=max_retries if max_retries is not None else self._config.max_retries,
+            backoff_base=self._config.backoff_base,
+            gate=self.default_gate(),
+        )
 
     def build_handover(
         self,

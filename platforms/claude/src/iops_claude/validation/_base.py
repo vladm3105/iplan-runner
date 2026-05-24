@@ -29,6 +29,17 @@ SEVERITY: dict[str, str] = {
     "MON.SLO_MISSING_TARGET": "error",
     "MON.SIGNAL_REF_UNRESOLVED": "error",
     "MON.PROBE_MISSING": "warning",
+    "INTAKE.SCHEMA_UNSUPPORTED": "error",
+    "INTAKE.SOURCE_MISSING": "error",
+    "INTAKE.APPROVAL_INSUFFICIENT": "error",
+    "INTAKE.SCOPE_MISSING": "error",
+    "INTAKE.NO_TASKS": "error",
+    "INTAKE.TASK_FIELDS_MISSING": "error",
+    "INTAKE.DEP_UNRESOLVED": "error",
+    "HANDOVER.SOURCE_MISSING": "error",
+    "HANDOVER.STATUS_INVALID": "error",
+    "HANDOVER.GATE_NOT_PASSED": "error",
+    "HANDOVER.NOT_RECONCILED": "error",
 }
 
 

@@ -3,6 +3,8 @@
 from ._base import Finding, finding, status_of
 from .audit_rules import validate_audit
 from .chain_rules import validate_chain
+from .handover_rules import validate_handover
+from .intake_rules import validate_intake
 from .ledger_rules import validate_ledger
 from .monitoring_rules import validate_monitoring
 
@@ -14,4 +16,6 @@ __all__ = [
     "validate_chain",
     "validate_audit",
     "validate_monitoring",
+    "validate_intake",
+    "validate_handover",
 ]

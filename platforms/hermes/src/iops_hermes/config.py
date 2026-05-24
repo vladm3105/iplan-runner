@@ -1,13 +1,18 @@
-"""Thin engine configuration (intake field mapping, thresholds).
+"""Engine configuration: intake mapping, thresholds, secrets, loading.
 
 A minimal seam that later phases extend. Defaults match
 framework/intake/INTAKE_CONTRACT.md; override fields to absorb SDD IPLAN schema
-drift without touching engine core.
+drift without touching engine core. Secrets come from the environment only
+(see framework/config/CONFIG_CONTRACT.md).
 """
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Mapping
+
+import yaml  # type: ignore[import-untyped]
 
 
 @dataclass
@@ -25,6 +30,34 @@ class Config:
     signing_key: str | None = None
 
 
-def secrets_from_env(prefix: str = "IOPS_SECRET_") -> list[str]:
+def secrets_from_env(
+    prefix: str = "IOPS_SECRET_", env: Mapping[str, str] | None = None
+) -> list[str]:
     """Collect secret values from environment variables named `<prefix>*`."""
-    return [value for name, value in os.environ.items() if name.startswith(prefix) and value]
+    environ = env if env is not None else os.environ
+    return [v for k, v in environ.items() if k.startswith(prefix) and v]
+
+
+def load_config(
+    path: str | Path | None = None, env: Mapping[str, str] | None = None
+) -> Config:
+    """Merge a YAML file (non-secret defaults) + env (overrides, secrets)."""
+    environ = env if env is not None else os.environ
+    data: dict[str, Any] = {}
+    if path is not None and Path(path).exists():
+        loaded = yaml.safe_load(Path(path).read_text())
+        if isinstance(loaded, dict):
+            data = loaded
+
+    cfg = Config()
+    fields = set(Config.__dataclass_fields__)
+    for key, value in data.items():
+        # secrets never come from the file
+        if key in fields and key not in ("secrets", "signing_key"):
+            setattr(cfg, key, value)
+
+    cfg.secrets = secrets_from_env(env=environ)
+    signing_key = environ.get("IOPS_SIGNING_KEY")
+    if signing_key:
+        cfg.signing_key = signing_key
+    return cfg

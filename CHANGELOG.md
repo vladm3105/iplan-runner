@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-24
+
+### Added
+
+- Chain orchestration runtime (`framework/execution/CHAIN_MODEL.md`): `chain_order`
+  (stable topo), `run_chain` composing the single-IPLAN run loop with
+  upstream-reconciled gating + a between-IPLAN control checkpoint, and an
+  identity-free chain ledger (`build_chain_ledger`) + `ChainResult`.
+- `iops-<engine> run-chain`; chain scenarios + cross-engine chain conformance.
+
 ## [0.10.0] - 2026-05-24
 
 ### Added

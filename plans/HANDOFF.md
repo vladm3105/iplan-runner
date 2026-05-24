@@ -46,7 +46,11 @@
 - `plans/PLAN-010_monitoring-runtime.md` — **DONE** (`v0.10.0`): SLO-breach alert
   evaluation + issue record, probe HTTP server, live OTel metrics/logs (behind
   the extra), engine self-telemetry; alert conformance.
-  Next: `PLAN-011` (chain orchestration runtime), then GA (`v1.0.0`).
+- `plans/PLAN-011_chain-orchestration.md` — **DONE** (`v0.11.0`): `run_chain`
+  executes multi-IPLAN chains by composing the single-IPLAN loop (chain_order,
+  upstream gating, control checkpoint, identity-free chain ledger); chain
+  conformance. Next: **GA (`v1.0.0`)** — hardening, docs, worked example,
+  packaging/release (see `TODO.md`).
 
 ## What landed (slice 1)
 

@@ -26,7 +26,7 @@ is unchanged. Engines stay isolated (D-0011); chain runtime is copied identicall
 |------------|-------|
 | Task       | IOPS-PLAN-011 |
 | Depends on | `PLAN-001`..`PLAN-010` (DONE); D-0011..D-0015; Roadmap Phase 11 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | GA (`v1.0.0`); multi-tenant control plane (post-v1.0) |
 
 ## Objective

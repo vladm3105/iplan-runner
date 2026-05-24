@@ -53,14 +53,23 @@ def _project(engine: Any, result: Any) -> dict[str, Any]:
         }
         for e in ledger["execution_log"]
     ]
+    saga = {
+        t["task_id"]: {"status": t["status"], "attempts": t.get("attempts", 1)}
+        for t in ledger["saga_journal"]
+    }
     handover = engine.build_handover(ledger, result.gate_result)
     return {
         "tasks": tasks,
         "reconciliation": ledger["reconciliation"],
         "log_events": log_events,
+        "saga": saga,
         "gate": result.gate_result["status"],
         "handover_status": handover["result"]["status"],
     }
+
+
+def _noop_sleep(_seconds: float) -> None:
+    return None
 
 
 def _scenarios() -> list[Path]:
@@ -85,6 +94,8 @@ class ScenarioTest(unittest.TestCase):
                     engine.mock_executor(scenario["mock_outcomes"]),
                     clock=_make_clock(scenario["clock_start"]),
                     ids=_make_ids(),
+                    sleep=_noop_sleep,
+                    max_retries=scenario.get("max_retries", 0),
                 )
                 with self.subTest(engine=engine_id, scenario=scenario_path.parent.name):
                     self.assertEqual(_project(engine, result), expect)

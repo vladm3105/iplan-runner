@@ -62,6 +62,8 @@ def _build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--store", default=_DEFAULT_STORE)
     p_run.add_argument("--actions", help="action script (uses the scripted executor)")
     p_run.add_argument("--workspace", default=".")
+    p_run.add_argument("--land", action="store_true", help="commit changes if green")
+    p_run.add_argument("--branch", default="iops/run")
 
     p_status = sub.add_parser("status", help="list runs or show one run's status")
     p_status.add_argument("ledger_id", nargs="?")
@@ -126,6 +128,17 @@ def main(argv: list[str] | None = None) -> int:
             else engine.default_executor()
         )
         run_result = engine.run(manifest, executor, clock=_default_clock, ids=IdSource())
+        if (
+            args.land
+            and run_result.gate_result["status"] == "passed"
+            and run_result.ledger["reconciliation"]["allowed"]
+        ):
+            run_result = engine.land(
+                run_result.ledger,
+                args.workspace,
+                branch=args.branch,
+                message=f"iops: land {run_result.ledger['ledger_control']['ledger_id']}",
+            )
         saved = save(run_result.ledger, args.store)
         receipt = engine.build_handover(run_result.ledger, run_result.gate_result)
         _emit(

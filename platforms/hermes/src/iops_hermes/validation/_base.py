@@ -19,6 +19,7 @@ SEVERITY: dict[str, str] = {
     "ISOLATION.PATH_OUTSIDE_ROOTS": "error",
     "ISOLATION.EVENT_SCOPE_MISMATCH": "error",
     "HASHCHAIN.BROKEN": "error",
+    "LEDGER.NOT_COMMITTED": "error",
     "CHAIN.ORDER_INVALID": "error",
     "CHAIN.UPSTREAM_UNRECONCILED": "error",
     "CHAIN.LEASE_OVERLAP": "error",

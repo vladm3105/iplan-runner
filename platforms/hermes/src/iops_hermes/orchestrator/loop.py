@@ -12,6 +12,8 @@ from ..executor.base import ExecutionContext, Executor
 from ..gates.runner import run_gate
 from ..ledger.store import append_event
 from ..validation import status_of, validate_intake
+from ..vcs.git import commit_all as git_commit_all
+from ..vcs.git import has_changes as git_has_changes
 from .leases import can_acquire
 from .saga import already_committed, execute_with_retry
 from .state import add_history, set_status, task
@@ -43,8 +45,42 @@ def default_gate() -> dict[str, Any]:
                 ],
             },
             {"id": "GATE-LEDGER-005", "rule_ids": ["HASHCHAIN.BROKEN"]},
+            {"id": "GATE-LEDGER-006", "rule_ids": ["LEDGER.NOT_COMMITTED"]},
         ],
     }
+
+
+def land(
+    ledger: dict[str, Any],
+    workspace: str,
+    *,
+    branch: str,
+    message: str,
+    clock: Callable[[], str],
+    gate: dict[str, Any] | None = None,
+) -> RunResult:
+    """Commit a green run's workspace changes; no-op on a clean tree."""
+    if git_has_changes(workspace):
+        sha = git_commit_all(workspace, branch, message)
+        at = clock()
+        scope = ledger["isolation_scope"]
+        touched = sorted(
+            {
+                p
+                for e in ledger["execution_log"]
+                if e["event_type"] == "file_edited"
+                for p in e.get("touched_paths", [])
+            }
+        )
+        vcs = ledger.setdefault("vcs", {})
+        vcs["branch"] = branch
+        vcs.setdefault("commits", []).append(
+            {"sha": sha, "message": message, "at": at, "touched_paths": touched}
+        )
+        append_event(ledger, _event(scope, "commit", "LANDING", at, touched))
+        ledger["ledger_control"]["requires_landing"] = True
+    gate_result = run_gate(ledger, gate or default_gate())
+    return RunResult(ledger=ledger, gate_result=gate_result)
 
 
 def _init_ledger(manifest: dict[str, Any]) -> dict[str, Any]:

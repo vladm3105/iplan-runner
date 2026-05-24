@@ -1,0 +1,3 @@
+path: docs/x.md
+allowed_roots:
+- src/

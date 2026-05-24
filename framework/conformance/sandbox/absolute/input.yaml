@@ -1,0 +1,3 @@
+path: /etc/passwd
+allowed_roots:
+- src/

@@ -2,9 +2,28 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .persistence import ledger_path, load
+
+
+def _control_path(store_dir: str | Path, ledger_id: str) -> Path:
+    return Path(store_dir) / f".{ledger_id}.control"
+
+
+def set_control(ledger_id: str, state: str, store_dir: str | Path) -> None:
+    Path(store_dir).mkdir(parents=True, exist_ok=True)
+    _control_path(store_dir, ledger_id).write_text(state)
+
+
+def get_control(ledger_id: str, store_dir: str | Path) -> str:
+    path = _control_path(store_dir, ledger_id)
+    return path.read_text().strip() if path.exists() else "running"
+
+
+def store_control(ledger_id: str, store_dir: str | Path) -> Callable[[], str]:
+    """A control callable that reads the store flag (cross-process operator control)."""
+    return lambda: get_control(ledger_id, store_dir)
 
 
 def list_runs(store_dir: str | Path) -> list[str]:

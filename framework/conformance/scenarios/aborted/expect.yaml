@@ -3,11 +3,11 @@ tasks:
     status: completed
     has_evidence: true
   T2:
-    status: completed
-    has_evidence: true
+    status: pending
+    has_evidence: false
 reconciliation:
-  allowed: true
-  pending_tasks: 0
+  allowed: false
+  pending_tasks: 1
   open_blockers: 0
 log_events:
 - event_type: task_started
@@ -20,23 +20,10 @@ log_events:
 - event_type: task_completed
   subject_id: T1
   touched_paths: []
-- event_type: task_started
-  subject_id: T2
-  touched_paths: []
-- event_type: file_edited
-  subject_id: T2
-  touched_paths:
-  - src/b.py
-- event_type: task_completed
-  subject_id: T2
-  touched_paths: []
 saga:
   T1:
     status: committed
     attempts: 1
-  T2:
-    status: committed
-    attempts: 1
-run_state: completed
+run_state: aborted
 gate: passed
-handover_status: completed
+handover_status: aborted

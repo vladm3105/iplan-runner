@@ -25,8 +25,11 @@ from .intake.reader import ingest_iplan
 from .ledger.store import append_event
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
+from .ledger.index import set_control
+from .orchestrator.control import resolve_blocker as _resolve_blocker
 from .orchestrator.loop import RunResult, default_gate
 from .orchestrator.loop import land as _land
+from .orchestrator.loop import resume as _resume
 from .orchestrator.loop import run as _run
 from .security.authz import authorize as _authorize
 from .security.signing import sign_ledger as _sign_ledger
@@ -119,6 +122,7 @@ class HermesEngine:
         ids: Callable[[str], str],
         sleep: Callable[[float], None] | None = None,
         max_retries: int | None = None,
+        control: Callable[[], str] | None = None,
     ) -> RunResult:
         return _run(
             manifest,
@@ -128,8 +132,52 @@ class HermesEngine:
             sleep=sleep if sleep is not None else time.sleep,
             max_retries=max_retries if max_retries is not None else self._config.max_retries,
             backoff_base=self._config.backoff_base,
+            control=control,
             gate=self.default_gate(),
         )
+
+    def resume(
+        self,
+        manifest: dict[str, Any],
+        ledger: dict[str, Any],
+        executor: Executor,
+        *,
+        clock: Callable[[], str],
+        ids: Callable[[str], str],
+        sleep: Callable[[float], None] | None = None,
+        max_retries: int | None = None,
+        control: Callable[[], str] | None = None,
+    ) -> RunResult:
+        return _resume(
+            manifest,
+            ledger,
+            executor,
+            clock=clock,
+            ids=ids,
+            sleep=sleep if sleep is not None else time.sleep,
+            max_retries=max_retries if max_retries is not None else self._config.max_retries,
+            backoff_base=self._config.backoff_base,
+            control=control,
+            gate=self.default_gate(),
+        )
+
+    def resolve_blocker(
+        self,
+        ledger: dict[str, Any],
+        blocker_id: str,
+        decision: str,
+        actor: dict[str, Any],
+        *,
+        clock: Callable[[], str] | None = None,
+    ) -> dict[str, Any]:
+        at = (clock if clock is not None else _default_clock)()
+        return _resolve_blocker(ledger, blocker_id, decision, actor, at=at)
+
+    def pause(self, ledger_id: str, store_dir: str) -> None:
+        set_control(ledger_id, "paused", store_dir)
+
+    def abort(self, ledger_id: str, store_dir: str) -> None:
+        set_control(ledger_id, "aborted", store_dir)
 
     def authorize(self, actor: dict[str, Any], action: str) -> dict[str, Any]:
         return _authorize(actor, action)

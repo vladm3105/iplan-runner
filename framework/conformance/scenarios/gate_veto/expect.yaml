@@ -21,5 +21,6 @@ saga:
   T1:
     status: committed
     attempts: 1
+run_state: completed
 gate: failed
 handover_status: aborted

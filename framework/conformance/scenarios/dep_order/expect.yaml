@@ -37,5 +37,6 @@ saga:
   T2:
     status: committed
     attempts: 1
+run_state: completed
 gate: passed
 handover_status: completed

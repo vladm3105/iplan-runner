@@ -17,5 +17,6 @@ saga:
   T1:
     status: pending
     attempts: 2
+run_state: completed
 gate: passed
 handover_status: aborted

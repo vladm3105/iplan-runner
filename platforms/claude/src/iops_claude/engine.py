@@ -16,12 +16,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from .budget import Budget
 from .config import Config
 from .effectors.sandbox import classify_path
 from .executor.base import Executor
+from .executor.hostruntime import HostRuntimeExecutor
 from .executor.mock import MockExecutor
 from .executor.scripted import ScriptedExecutor
 from .gates.runner import run_gate
+from .runtime.client import RuntimeClient
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
 from .ledger.store import append_event
@@ -100,6 +103,14 @@ class ClaudeEngine:
         self, spec: dict[str, Any] | None = None, workspace: str | Path = "."
     ) -> Executor:
         return ScriptedExecutor(spec, workspace, self._config.secrets)
+
+    def host_executor(
+        self,
+        client: RuntimeClient,
+        workspace: str | Path = ".",
+        budget: Budget | None = None,
+    ) -> Executor:
+        return HostRuntimeExecutor(client, workspace, budget)
 
     def default_executor(self) -> Executor:
         return MockExecutor()

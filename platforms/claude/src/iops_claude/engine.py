@@ -28,6 +28,7 @@ from .ledger.store import append_event
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
 from .orchestrator.loop import RunResult, default_gate
+from .orchestrator.loop import land as _land
 from .orchestrator.loop import run as _run
 from .validation import (
     Finding,
@@ -118,6 +119,24 @@ class ClaudeEngine:
             sleep=sleep if sleep is not None else time.sleep,
             max_retries=max_retries if max_retries is not None else self._config.max_retries,
             backoff_base=self._config.backoff_base,
+            gate=self.default_gate(),
+        )
+
+    def land(
+        self,
+        ledger: dict[str, Any],
+        workspace: str,
+        *,
+        branch: str,
+        message: str = "iops landing",
+        clock: Callable[[], str] | None = None,
+    ) -> RunResult:
+        return _land(
+            ledger,
+            workspace,
+            branch=branch,
+            message=message,
+            clock=clock if clock is not None else _default_clock,
             gate=self.default_gate(),
         )
 

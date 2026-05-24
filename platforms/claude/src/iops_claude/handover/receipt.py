@@ -25,6 +25,13 @@ def build_handover_receipt(
     gate_passed = gate_result.get("status") == "passed"
     status = "completed" if (gate_passed and reconciled and not has_open) else "aborted"
 
+    commits = ledger.get("vcs", {}).get("commits", [])
+    commit = (
+        {"sha": commits[-1]["sha"], "branch": ledger.get("vcs", {}).get("branch")}
+        if commits
+        else None
+    )
+
     return {
         "metadata": {
             "schema_version": "1.0",
@@ -38,6 +45,7 @@ def build_handover_receipt(
             "ledger_ref": ledger_ref,
             "gate_status": "passed" if gate_passed else "failed",
             "audit_report_ref": (audit_report or {}).get("audit_control", {}).get("report_id"),
+            "commit": commit,
             "created_at": clock(),
         },
         "result": {"status": status, "reconciled": reconciled},

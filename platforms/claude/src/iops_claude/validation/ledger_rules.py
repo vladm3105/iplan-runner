@@ -144,4 +144,9 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
             finding("HASHCHAIN.BROKEN", "execution_log hash chain is inconsistent")
         )
 
+    if control.get("requires_landing") and not document.get("vcs", {}).get("commits"):
+        findings.append(
+            finding("LEDGER.NOT_COMMITTED", "requires_landing but no vcs commit recorded")
+        )
+
     return findings

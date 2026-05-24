@@ -31,6 +31,7 @@ class RegistryTest(unittest.TestCase):
             self.reg["vectors_root"],
             self.reg["intake_samples_root"],
             self.reg["scenarios_root"],
+            self.reg["sandbox_root"],
         ]
         for rel in paths:
             with self.subTest(path=rel):

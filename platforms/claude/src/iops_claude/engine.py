@@ -33,6 +33,8 @@ from .monitoring.alerts import evaluate_alerts as _evaluate_alerts
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
 from .ledger.index import set_control
+from .orchestrator.chain import ChainResult
+from .orchestrator.chain import run_chain as _run_chain
 from .orchestrator.control import resolve_blocker as _resolve_blocker
 from .orchestrator.loop import RunResult, default_gate
 from .orchestrator.loop import land as _land
@@ -179,6 +181,24 @@ class ClaudeEngine:
     ) -> dict[str, Any]:
         at = (clock if clock is not None else _default_clock)()
         return _resolve_blocker(ledger, blocker_id, decision, actor, at=at)
+
+    def run_chain(
+        self,
+        chain: dict[str, Any],
+        iplans: dict[str, dict[str, Any]],
+        executor_for: Callable[[str], Executor],
+        *,
+        clock: Callable[[], str],
+        ids: Callable[[str], str],
+        sleep: Callable[[float], None] | None = None,
+        control: Callable[[], str] | None = None,
+    ) -> ChainResult:
+        return _run_chain(
+            chain, iplans, executor_for,
+            clock=clock, ids=ids,
+            sleep=sleep if sleep is not None else time.sleep,
+            control=control, gate=self.default_gate(),
+        )
 
     def pause(self, ledger_id: str, store_dir: str) -> None:
         set_control(ledger_id, "paused", store_dir)

@@ -6,6 +6,7 @@ drift without touching engine core.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 
 
@@ -21,3 +22,9 @@ class Config:
     secrets: list[str] = field(default_factory=list)
     max_retries: int = 0
     backoff_base: float = 0.0
+    signing_key: str | None = None
+
+
+def secrets_from_env(prefix: str = "IOPS_SECRET_") -> list[str]:
+    """Collect secret values from environment variables named `<prefix>*`."""
+    return [value for name, value in os.environ.items() if name.startswith(prefix) and value]

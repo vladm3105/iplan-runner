@@ -25,6 +25,9 @@ from .monitoring.provider import MonitoringProvider, NoOpProvider
 from .orchestrator.loop import RunResult, default_gate
 from .orchestrator.loop import land as _land
 from .orchestrator.loop import run as _run
+from .security.authz import authorize as _authorize
+from .security.signing import sign_ledger as _sign_ledger
+from .security.signing import verify_ledger as _verify_ledger
 from .validation import (
     Finding,
     status_of,
@@ -117,6 +120,15 @@ class HermesEngine:
             gate=self.default_gate(),
         )
 
+    def authorize(self, actor: dict[str, Any], action: str) -> dict[str, Any]:
+        return _authorize(actor, action)
+
+    def sign_ledger(self, ledger: dict[str, Any], key: str | None = None) -> dict[str, Any]:
+        return _sign_ledger(ledger, key if key is not None else (self._config.signing_key or ""))
+
+    def verify_ledger(self, ledger: dict[str, Any], key: str | None = None) -> bool:
+        return _verify_ledger(ledger, key if key is not None else (self._config.signing_key or ""))
+
     def land(
         self,
         ledger: dict[str, Any],
@@ -125,8 +137,13 @@ class HermesEngine:
         branch: str,
         message: str = "iops landing",
         clock: Callable[[], str] | None = None,
+        actor: dict[str, Any] | None = None,
     ) -> RunResult:
-        return _land(
+        if actor is not None:
+            decision = _authorize(actor, "land")
+            if not decision["allowed"]:
+                raise PermissionError(f"authz denied land: {decision['reason']}")
+        result = _land(
             ledger,
             workspace,
             branch=branch,
@@ -134,6 +151,9 @@ class HermesEngine:
             clock=clock if clock is not None else _default_clock,
             gate=self.default_gate(),
         )
+        if self._config.signing_key:
+            _sign_ledger(result.ledger, self._config.signing_key)
+        return result
 
     def build_handover(
         self,

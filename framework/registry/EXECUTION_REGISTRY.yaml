@@ -47,6 +47,7 @@ protocol_docs:
   - "framework/execution/RUN_MODEL.md"
   - "framework/execution/LEASE_MODEL.md"
   - "framework/execution/CONTROL_MODEL.md"
+  - "framework/execution/CHAIN_MODEL.md"
   - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
   - "framework/engines/EXECUTOR-CONTRACT.md"
   - "framework/intake/INTAKE_CONTRACT.md"
@@ -69,6 +70,7 @@ signing_root: "framework/conformance/signing"
 authz_root: "framework/conformance/authz"
 budget_root: "framework/conformance/budget"
 alert_root: "framework/conformance/alert"
+chains_root: "framework/conformance/chains"
 
 engines:
   - id: hermes

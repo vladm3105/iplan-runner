@@ -1,0 +1,8 @@
+budget:
+  max_tokens: 1000
+  max_cost_usd: 1.0
+  max_wall_s: 60
+usage:
+  tokens: 500
+  cost_usd: 0.5
+  wall_s: 30

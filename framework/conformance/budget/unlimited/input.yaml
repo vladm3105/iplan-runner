@@ -1,0 +1,5 @@
+budget: {}
+usage:
+  tokens: 999999
+  cost_usd: 999.0
+  wall_s: 99999

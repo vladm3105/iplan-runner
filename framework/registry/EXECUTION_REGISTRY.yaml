@@ -49,11 +49,14 @@ protocol_docs:
   - "framework/engines/EXECUTOR-CONTRACT.md"
   - "framework/intake/INTAKE_CONTRACT.md"
   - "framework/handover/HANDOVER_CONTRACT.md"
+  - "framework/effectors/SANDBOX_CONTRACT.md"
+  - "framework/effectors/EVIDENCE_CONTRACT.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"
 intake_samples_root: "framework/conformance/intake_samples"
 scenarios_root: "framework/conformance/scenarios"
+sandbox_root: "framework/conformance/sandbox"
 
 engines:
   - id: hermes

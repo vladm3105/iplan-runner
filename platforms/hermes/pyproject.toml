@@ -15,6 +15,8 @@ otel = [
   "opentelemetry-sdk>=1.20",
   "opentelemetry-exporter-otlp>=1.20",
 ]
+anthropic = ["anthropic>=0.40"]
+litellm = ["litellm>=1.40"]
 dev = ["pytest>=7", "ruff", "mypy"]
 
 [project.scripts]

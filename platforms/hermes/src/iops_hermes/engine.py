@@ -11,12 +11,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from .budget import Budget
 from .config import Config
 from .effectors.sandbox import classify_path
+from .executor.api import ApiExecutor
 from .executor.base import Executor
 from .executor.mock import MockExecutor
 from .executor.scripted import ScriptedExecutor
 from .gates.runner import run_gate
+from .model.client import ModelClient
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
 from .ledger.store import append_event
@@ -95,6 +98,14 @@ class HermesEngine:
         self, spec: dict[str, Any] | None = None, workspace: str | Path = "."
     ) -> Executor:
         return ScriptedExecutor(spec, workspace, self._config.secrets)
+
+    def api_executor(
+        self,
+        client: ModelClient,
+        workspace: str | Path = ".",
+        budget: Budget | None = None,
+    ) -> Executor:
+        return ApiExecutor(client, workspace, budget, self._config.secrets)
 
     def default_executor(self) -> Executor:
         return MockExecutor()

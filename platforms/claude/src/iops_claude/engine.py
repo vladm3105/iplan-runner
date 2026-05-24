@@ -16,8 +16,10 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import Config
+from .effectors.sandbox import classify_path
 from .executor.base import Executor
 from .executor.mock import MockExecutor
+from .executor.scripted import ScriptedExecutor
 from .gates.runner import run_gate
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
@@ -72,17 +74,27 @@ class ClaudeEngine:
             "handover": True,
             "run": True,
             "persist": True,
+            "effect": True,
+            "evidence": True,
             "executor": "hooks",
         }
 
     def ingest_iplan(self, path: str | Path) -> dict[str, Any]:
         return ingest_iplan(path, self._config)
 
+    def classify_path(self, path: str, allowed_roots: list[str]) -> dict[str, Any]:
+        return classify_path(path, allowed_roots)
+
     def default_gate(self) -> dict[str, Any]:
         return default_gate()
 
     def mock_executor(self, outcomes: dict[str, Any] | None = None) -> Executor:
         return MockExecutor(outcomes)
+
+    def scripted_executor(
+        self, spec: dict[str, Any] | None = None, workspace: str | Path = "."
+    ) -> Executor:
+        return ScriptedExecutor(spec, workspace, self._config.secrets)
 
     def default_executor(self) -> Executor:
         return MockExecutor()

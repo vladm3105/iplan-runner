@@ -30,7 +30,11 @@
   commits a green+reconciled run to a git branch, records it in the ledger,
   `LEDGER.NOT_COMMITTED` (requires_landing-gated) lets the gate require
   committed + green; handover commit field; `run --land`.
-  Next: `PLAN-007` (security & ledger integrity).
+- `plans/PLAN-007_security-ledger-integrity.md` — **DONE** (`v0.7.0`): security
+  model + authenticated ledger (`sign_ledger`/`verify_ledger`, HMAC over canonical
+  event), role-based `authorize`, realpath sandbox hardening; signing/authz
+  vectors. Agent-first auth direction recorded in D-0015 (provider integration is
+  a later phase). Next: `PLAN-008` (config, secrets & live executors).
 
 ## What landed (slice 1)
 

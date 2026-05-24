@@ -27,7 +27,7 @@ is real I/O, per-engine tested. The run loop is untouched — signing is a separ
 |------------|-------|
 | Task       | IOPS-PLAN-007 |
 | Depends on | `PLAN-001`..`PLAN-006` (DONE); D-0011..D-0014; Roadmap Phase 7 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | `PLAN-008` (live executors run under authz + sign their ledgers); `PLAN-009` (operator approval uses authz) |
 
 ## Objective

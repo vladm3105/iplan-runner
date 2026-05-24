@@ -6,6 +6,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-24
+
+### Added
+
+- Security model (`framework/security/SECURITY_MODEL.md`): authenticated ledger,
+  layered authorization, agent-first identity (D-0015), untrusted-output
+  principle, threat model.
+- Authenticated ledger — `sign_ledger`/`verify_ledger` (HMAC-SHA256 over the
+  canonical full event); `iops-<engine> verify --key`.
+- Role-based `authorize(actor, action)` (L2 RBAC); `land(actor=...)` authorizes
+  and signs when a key is configured.
+- Sandbox realpath hardening (symlink-escape defense) in `apply_write`;
+  `Config.signing_key` + `secrets_from_env`.
+- Signing + authz golden vectors + cross-engine conformance.
+
 ## [0.6.0] - 2026-05-24
 
 ### Added

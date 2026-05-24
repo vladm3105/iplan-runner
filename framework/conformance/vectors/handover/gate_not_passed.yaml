@@ -1,0 +1,18 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan-handover-receipt
+  framework: iops
+  last_updated: '2026-05-23'
+  tags:
+  - handover-receipt
+handover_control:
+  receipt_id: RECEIPT-LEDGER-IPLAN-001
+  source_iplan: IPLAN-001
+  source_iplan_version: 1.2.0
+  ledger_ref: LEDGER-IPLAN-001
+  gate_status: failed
+  audit_report_ref: AUDIT-001
+  created_at: '2026-05-23T12:00:00Z'
+result:
+  status: completed
+  reconciled: true

@@ -50,6 +50,7 @@ protocol_docs:
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"
+intake_samples_root: "framework/conformance/intake_samples"
 
 engines:
   - id: hermes

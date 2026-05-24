@@ -53,6 +53,7 @@ protocol_docs:
   - "framework/effectors/SANDBOX_CONTRACT.md"
   - "framework/effectors/EVIDENCE_CONTRACT.md"
   - "framework/vcs/LANDING_CONTRACT.md"
+  - "framework/security/SECURITY_MODEL.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"
@@ -60,6 +61,8 @@ intake_samples_root: "framework/conformance/intake_samples"
 scenarios_root: "framework/conformance/scenarios"
 sandbox_root: "framework/conformance/sandbox"
 leases_root: "framework/conformance/leases"
+signing_root: "framework/conformance/signing"
+authz_root: "framework/conformance/authz"
 
 engines:
   - id: hermes

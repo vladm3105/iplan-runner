@@ -152,6 +152,30 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
+### D-0015 - Auth: OIDC identity + pluggable, layered authorization - 2026-05-24
+
+Identity and authorization are **provider-agnostic and pluggable**, matching the
+engine (D-0013) and monitoring-exporter (D-0006) ethos — no lock-in.
+
+- **Authn:** the framework verifies a standard **OIDC/OAuth2 JWT** and extracts a
+  `Principal` (`{id, role, client_id, project_id, claims}`); any IdP plugs in.
+  Agent/service actors use OAuth2 client-credentials or **SPIFFE/SPIRE**.
+- **Authz is layered (defense in depth)** behind a pluggable `Authorizer` PDP; a
+  decision must pass every applicable layer:
+  - **L1 Tenant** (`client_id`/`project_id`/`allowed_roots`) — framework, enforced.
+  - **L2 RBAC** (role → action) — framework (`authorize`, PLAN-007).
+  - **L3 ReBAC** (resource/relationship graph) — external (OpenFGA / SpiceDB).
+  - **L4 ABAC / policy-as-code** (context: risk, budget, approval thresholds) —
+    external (OPA/Rego or Cedar).
+- **Recommended provider:** **Keycloak** (self-hosted, open-source: OIDC + roles
+  + groups + fine-grained Authorization Services, covering L0–L2 and much of
+  L3/L4); or the **Ory** stack (Kratos + Hydra + Keto). Managed alternatives:
+  Auth0/Okta (+ FGA), AWS Cognito + Verified Permissions (Cedar), Azure Entra ID.
+- The built-in RBAC `authorize` is the **default** `Authorizer`; external engines
+  implement the same interface. Full authn/authz wiring is a later phase; PLAN-007
+  ships the inner-layer primitives (RBAC + ledger signing) the model builds on.
+  See `PLAN-007` "Auth / identity provider recommendation".
+
 ### D-0014 - Project structure conventions - 2026-05-23
 
 Conventions for growing the repo across the roadmap, to keep additions purely

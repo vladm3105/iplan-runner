@@ -11,12 +11,16 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .config import Config
+from .executor.base import Executor
+from .executor.mock import MockExecutor
 from .gates.runner import run_gate
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
 from .ledger.store import append_event
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
+from .orchestrator.loop import RunResult, default_gate
+from .orchestrator.loop import run as _run
 from .validation import (
     Finding,
     status_of,
@@ -61,11 +65,32 @@ class HermesEngine:
             "monitor": True,
             "intake": True,
             "handover": True,
+            "run": True,
+            "persist": True,
             "executor": "api",
         }
 
     def ingest_iplan(self, path: str | Path) -> dict[str, Any]:
         return ingest_iplan(path, self._config)
+
+    def default_gate(self) -> dict[str, Any]:
+        return default_gate()
+
+    def mock_executor(self, outcomes: dict[str, Any] | None = None) -> Executor:
+        return MockExecutor(outcomes)
+
+    def default_executor(self) -> Executor:
+        return MockExecutor()
+
+    def run(
+        self,
+        manifest: dict[str, Any],
+        executor: Executor,
+        *,
+        clock: Callable[[], str],
+        ids: Callable[[str], str],
+    ) -> RunResult:
+        return _run(manifest, executor, clock=clock, ids=ids, gate=self.default_gate())
 
     def build_handover(
         self,

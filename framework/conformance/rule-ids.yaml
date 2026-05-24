@@ -63,6 +63,10 @@ rules:
     category: "IPLAN-007"
     severity: error
     description: "execution_log sequence, previous_event_hash, or event_hash is inconsistent."
+  - id: "LEDGER.NOT_COMMITTED"
+    category: "IPLAN-007"
+    severity: error
+    description: "ledger_control.requires_landing is true but no vcs commit is recorded."
 
   # --- Chain (IPLAN-008) ---
   - id: "CHAIN.ORDER_INVALID"

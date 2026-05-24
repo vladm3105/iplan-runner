@@ -29,6 +29,7 @@ conformance compares the rule-ID set + status across engines (D-0012).
 | `ISOLATION.PATH_OUTSIDE_ROOTS` | IPLAN-007 | error | event touched a path outside allowed_roots |
 | `ISOLATION.EVENT_SCOPE_MISMATCH` | IPLAN-007 | error | event client/project differs from ledger scope |
 | `HASHCHAIN.BROKEN` | IPLAN-007 | error | execution_log hash chain inconsistent |
+| `LEDGER.NOT_COMMITTED` | IPLAN-007 | error | requires_landing set but no vcs commit recorded |
 | `CHAIN.ORDER_INVALID` | IPLAN-008 | error | IPLAN ordered at/before a dependency |
 | `CHAIN.UPSTREAM_UNRECONCILED` | IPLAN-008 | error | depends on an unreconciled upstream |
 | `CHAIN.LEASE_OVERLAP` | IPLAN-008 | error | cross-plan leases on one resource overlap |

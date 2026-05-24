@@ -39,5 +39,8 @@ gate_rules:
   - id: "GATE-LEDGER-005"
     name: "Execution log hash chain intact"
     rule_ids: ["HASHCHAIN.BROKEN"]
+  - id: "GATE-LEDGER-006"
+    name: "Landed work is committed"
+    rule_ids: ["LEDGER.NOT_COMMITTED"]
 
 gate_results: []                 # populated by the gate runner

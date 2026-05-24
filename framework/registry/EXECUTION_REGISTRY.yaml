@@ -52,6 +52,7 @@ protocol_docs:
   - "framework/handover/HANDOVER_CONTRACT.md"
   - "framework/effectors/SANDBOX_CONTRACT.md"
   - "framework/effectors/EVIDENCE_CONTRACT.md"
+  - "framework/vcs/LANDING_CONTRACT.md"
 
 rule_catalog: "framework/conformance/rule-ids.yaml"
 vectors_root: "framework/conformance/vectors"

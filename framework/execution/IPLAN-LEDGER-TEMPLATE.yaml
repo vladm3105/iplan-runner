@@ -22,6 +22,7 @@ ledger_control:
   source_iplan_last_updated: "2026-05-20"
   source_iplan_checksum: "sha256:3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"
   status: "completed"            # planned | in_progress | completed | blocked
+  requires_landing: false        # when true, a commit is required (LEDGER.NOT_COMMITTED)
 
 # Every transaction is bound to this scope; touched paths must fall inside roots.
 isolation_scope:
@@ -106,5 +107,11 @@ execution_log:
     touched_paths: ["src/foo.py"]
     client_id: "client-a"
     project_id: "project-x"
+
+# Landing record (PLAN-006). When `requires_landing` is true, `commits` must be
+# non-empty (LEDGER.NOT_COMMITTED). SHAs are real git object ids.
+vcs:
+  branch: "iops/iplan-001"
+  commits: []
 
 audit_snapshots: []

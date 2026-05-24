@@ -28,6 +28,8 @@ from .runtime.client import RuntimeClient
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
 from .ledger.store import append_event
+from .monitoring.alerts import build_issue as _build_issue
+from .monitoring.alerts import evaluate_alerts as _evaluate_alerts
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
 from .ledger.index import set_control
@@ -266,6 +268,14 @@ class ClaudeEngine:
 
     def instrument(self, manifest: dict[str, Any]) -> None:
         self._provider = get_provider(_SERVICE_NAME)
+
+    def evaluate_alerts(
+        self, manifest: dict[str, Any], samples: dict[str, float]
+    ) -> list[dict[str, Any]]:
+        return _evaluate_alerts(manifest, samples)
+
+    def build_issue(self, alert: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
+        return _build_issue(alert, manifest)
 
     # --- AGENT_UPDATE_PROTOCOL ------------------------------------------------
 

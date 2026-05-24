@@ -46,6 +46,7 @@ protocol_docs:
   - "framework/execution/STATE_MODEL.md"
   - "framework/execution/RUN_MODEL.md"
   - "framework/execution/LEASE_MODEL.md"
+  - "framework/execution/CONTROL_MODEL.md"
   - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
   - "framework/engines/EXECUTOR-CONTRACT.md"
   - "framework/intake/INTAKE_CONTRACT.md"

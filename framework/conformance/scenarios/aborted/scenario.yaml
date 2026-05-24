@@ -1,0 +1,47 @@
+clock_start: '2026-05-24T10:00:00Z'
+control:
+- running
+- aborted
+mock_outcomes:
+  T1:
+    outcome: success
+    touched_paths:
+    - src/a.py
+    evidence: &id001
+      kind: test
+      summary: ok
+      location: ci://1
+  T2:
+    outcome: success
+    touched_paths:
+    - src/b.py
+    evidence: *id001
+intake:
+  metadata:
+    schema_version: '1.0'
+    document_type: iplan-intake
+    framework: iops
+  intake_control:
+    source_iplan: IPLAN-001
+    source_iplan_version: 1.0.0
+    source_iplan_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    exec_ready_score: 92
+    approved: true
+  isolation_scope:
+    client_id: client-a
+    project_id: project-x
+    allowed_roots:
+    - src/
+  task_graph:
+  - task_id: T1
+    title: T1
+    depends_on: []
+    acceptance:
+      criteria:
+      - ok
+  - task_id: T2
+    title: T2
+    depends_on: []
+    acceptance:
+      criteria:
+      - ok

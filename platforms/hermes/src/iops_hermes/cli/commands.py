@@ -89,6 +89,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_resolve.add_argument("--store", default=_DEFAULT_STORE)
     p_resolve.add_argument("--role", default="operator")
 
+    p_chain = sub.add_parser("run-chain", help="execute a chain of IPLANs")
+    p_chain.add_argument("chain_file")
+
     return parser
 
 
@@ -209,6 +212,21 @@ def main(argv: list[str] | None = None) -> int:
         save(ledger, args.store)
         _emit({"ledger_id": args.ledger_id, "blocker_id": args.blocker_id, "decision": args.decision})
         return 0
+
+    if args.command == "run-chain":
+        spec = _load(args.chain_file)
+        chain_result = engine.run_chain(
+            spec["chain"], spec["iplans"], lambda _iplan_id: engine.default_executor(),
+            clock=_default_clock, ids=IdSource(),
+        )
+        ledger = chain_result.chain_ledger
+        _emit({
+            "chain_id": ledger["chain_control"]["chain_id"],
+            "execution_order": ledger["execution_order"],
+            "iplan_chain": {n["iplan_id"]: n["reconciled"] for n in ledger["iplan_chain"]},
+            "chain_reconciliation": ledger["chain_reconciliation"],
+        })
+        return 0 if ledger["chain_reconciliation"]["allowed"] else 1
 
     return 2
 

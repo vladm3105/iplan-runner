@@ -6,9 +6,14 @@ package and the framework spec, never another engine (strict isolation, D-0011).
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable
 
+from .config import Config
 from .gates.runner import run_gate
+from .handover.receipt import build_handover_receipt
+from .intake.reader import ingest_iplan
 from .ledger.store import append_event
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
@@ -17,6 +22,8 @@ from .validation import (
     status_of,
     validate_audit,
     validate_chain,
+    validate_handover,
+    validate_intake,
     validate_ledger,
     validate_monitoring,
 )
@@ -26,14 +33,22 @@ _DISPATCH: dict[str, Callable[[dict[str, Any]], list[Finding]]] = {
     "iplan-chain-ledger": validate_chain,
     "iplan-audit-report": validate_audit,
     "iplan-monitoring-manifest": validate_monitoring,
+    "iplan-intake": validate_intake,
+    "iplan-handover-receipt": validate_handover,
 }
 
 _SERVICE_NAME = "iops-hermes"
 
 
+def _default_clock() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 class HermesEngine:
     def __init__(self) -> None:
         self._provider: MonitoringProvider = NoOpProvider()
+        self._config = Config()
+        self._clock: Callable[[], str] = _default_clock
 
     def engine_id(self) -> str:
         return "hermes"
@@ -44,8 +59,23 @@ class HermesEngine:
             "gate": True,
             "audit": True,
             "monitor": True,
+            "intake": True,
+            "handover": True,
             "executor": "api",
         }
+
+    def ingest_iplan(self, path: str | Path) -> dict[str, Any]:
+        return ingest_iplan(path, self._config)
+
+    def build_handover(
+        self,
+        ledger: dict[str, Any],
+        gate_result: dict[str, Any],
+        audit_report: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        return build_handover_receipt(
+            ledger, gate_result, audit_report, clock=self._clock
+        )
 
     def validate(self, document: dict[str, Any]) -> dict[str, Any]:
         document_type = document.get("metadata", {}).get("document_type")

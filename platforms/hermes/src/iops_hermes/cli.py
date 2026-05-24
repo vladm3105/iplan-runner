@@ -45,6 +45,13 @@ def main(argv: list[str] | None = None) -> int:
     p_monitor.add_argument("manifest")
     p_monitor.add_argument("samples", nargs="?")
 
+    p_intake = sub.add_parser("intake", help="ingest + validate an SDD IPLAN")
+    p_intake.add_argument("iplan")
+
+    p_handover = sub.add_parser("handover", help="build + validate a handover receipt")
+    p_handover.add_argument("ledger")
+    p_handover.add_argument("gate")
+
     args = parser.parse_args(argv)
     engine = HermesEngine()
 
@@ -73,6 +80,20 @@ def main(argv: list[str] | None = None) -> int:
         samples = _load(args.samples) if args.samples else {}
         _emit(evaluate_slos(manifest, samples))
         return 0
+
+    if args.command == "intake":
+        manifest = engine.ingest_iplan(args.iplan)
+        validation = engine.validate(manifest)
+        _emit({"manifest": manifest, "validation": validation})
+        return 0 if validation["status"] != "fail" else 1
+
+    if args.command == "handover":
+        ledger = _load(args.ledger)
+        gate_result = engine.run_gate(ledger, _load(args.gate))
+        receipt = engine.build_handover(ledger, gate_result)
+        validation = engine.validate(receipt)
+        _emit({"receipt": receipt, "validation": validation})
+        return 0 if validation["status"] != "fail" else 1
 
     return 2
 

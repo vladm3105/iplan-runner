@@ -1,0 +1,11 @@
+key: test-key
+event:
+  sequence: 1
+  previous_event_hash: null
+  event_hash: sha256:abc
+  event_type: task_started
+  subject_id: T1
+  at: '2026-05-24T10:00:00Z'
+  touched_paths: []
+  client_id: c
+  project_id: p

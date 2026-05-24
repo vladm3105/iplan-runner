@@ -1,0 +1,12 @@
+key: test-key
+event:
+  sequence: 2
+  previous_event_hash: sha256:abc
+  event_hash: sha256:def
+  event_type: file_edited
+  subject_id: T1
+  at: '2026-05-24T10:01:00Z'
+  touched_paths:
+  - src/a.py
+  client_id: c
+  project_id: p

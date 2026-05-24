@@ -1,0 +1,4 @@
+actor:
+  id: a1
+  role: agent
+action: run

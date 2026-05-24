@@ -27,7 +27,7 @@ additive `run_state` projection field.
 |------------|-------|
 | Task       | IOPS-PLAN-009 |
 | Depends on | `PLAN-001`..`PLAN-008` (DONE); D-0011..D-0015; Roadmap Phase 9 |
-| Status     | IN REVIEW - 2026-05-24 |
+| Status     | DONE - 2026-05-24 |
 | Feeds      | observability-driven issue loop (post-v1.0); the SDD approval boundary |
 
 ## Objective

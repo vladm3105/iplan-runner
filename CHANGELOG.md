@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-24
+
+### Added
+
+- Operator control (`framework/execution/CONTROL_MODEL.md`): an injected
+  between-task `control` checkpoint + `ledger_control.run_state`
+  (`running`/`paused`/`aborted`/`completed`).
+- `resume(manifest, ledger, ...)` continues a paused or crashed run from its
+  persisted ledger via idempotency (no special recovery path).
+- `resolve_blocker(... decision, actor)` (`approve`/`reject`/`override`) —
+  operator-authorized + recorded in the signed ledger; `override` resets the task
+  to pending. `pause`/`abort`/`resume`/`resolve` CLI over the store.
+- `aborted` control scenario + `run_state` in the scenario projection.
+
 ## [0.8.0] - 2026-05-24
 
 ### Added

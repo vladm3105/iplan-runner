@@ -38,7 +38,12 @@
   secrets (`load_config`), resource governance (`Budget`/`check`), and the first
   live executors — hermes `ApiExecutor` (autonomous) + claude `HostRuntimeExecutor`
   (governor), the A/B divergence (D-0013); offline stub-tested, real clients
-  integration-only. Next: `PLAN-009` (human-in-the-loop & operator control).
+  integration-only.
+- `plans/PLAN-009_hitl-operator-control.md` — **DONE** (`v0.9.0`): operator
+  control (pause/abort between tasks + `run_state`), `resume` (paused/crashed via
+  idempotency), `resolve_blocker` (approve/reject/override, operator-authorized +
+  signed); pause/abort/resume/resolve CLI; `aborted` scenario.
+  Next: `PLAN-010` (monitoring runtime) — the last numbered phase before GA.
 
 ## What landed (slice 1)
 

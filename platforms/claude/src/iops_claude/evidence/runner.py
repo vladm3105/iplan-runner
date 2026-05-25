@@ -1,4 +1,5 @@
 """Run a task's acceptance checks, capturing redacted evidence."""
+
 from __future__ import annotations
 
 from pathlib import Path

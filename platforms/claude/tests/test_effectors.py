@@ -1,13 +1,13 @@
 """Effectors, evidence runner, redaction, ScriptedExecutor (Claude)."""
+
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import pytest
 import yaml
-
 from iops_claude import ClaudeEngine
 from iops_claude.effectors.apply import apply_write
 from iops_claude.effectors.commands import run_command
@@ -21,9 +21,13 @@ SANDBOX = ROOT / "framework" / "conformance" / "sandbox"
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},
-    "intake_control": {"source_iplan": "IPLAN-001", "source_iplan_version": "1.0.0",
-                       "source_iplan_checksum": "sha256:" + "a" * 64,
-                       "exec_ready_score": 92, "approved": True},
+    "intake_control": {
+        "source_iplan": "IPLAN-001",
+        "source_iplan_version": "1.0.0",
+        "source_iplan_checksum": "sha256:" + "a" * 64,
+        "exec_ready_score": 92,
+        "approved": True,
+    },
     "isolation_scope": {"client_id": "c", "project_id": "p", "allowed_roots": ["src/"]},
     "task_graph": [{"task_id": "T1", "title": "a", "depends_on": [], "acceptance": {"criteria": ["x"]}}],
 }
@@ -73,9 +77,7 @@ def test_scripted_executor_end_to_end(tmp_path: Path) -> None:
             "checks": [{"name": "ok", "command": ["python", "-c", "import sys; sys.exit(0)"]}],
         }
     }
-    result = engine.run(
-        MANIFEST, engine.scripted_executor(spec, tmp_path), clock=_clock(), ids=IdSource()
-    )
+    result = engine.run(MANIFEST, engine.scripted_executor(spec, tmp_path), clock=_clock(), ids=IdSource())
     t1 = result.ledger["task_ledger"][0]
     assert t1["status"] == "completed"
     assert t1["evidence_refs"]
@@ -87,8 +89,6 @@ def test_scripted_executor_end_to_end(tmp_path: Path) -> None:
 def test_scripted_executor_sandbox_denied(tmp_path: Path) -> None:
     engine = ClaudeEngine()
     spec = {"T1": {"actions": [{"type": "write", "path": "../evil.py", "content": "x"}]}}
-    result = engine.run(
-        MANIFEST, engine.scripted_executor(spec, tmp_path), clock=_clock(), ids=IdSource()
-    )
+    result = engine.run(MANIFEST, engine.scripted_executor(spec, tmp_path), clock=_clock(), ids=IdSource())
     assert result.ledger["task_ledger"][0]["status"] == "blocked"
     assert not (tmp_path.parent / "evil.py").exists()

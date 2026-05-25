@@ -1,4 +1,5 @@
 """Deterministic mock executor scripted by per-task outcomes (or sequences)."""
+
 from __future__ import annotations
 
 from typing import Any

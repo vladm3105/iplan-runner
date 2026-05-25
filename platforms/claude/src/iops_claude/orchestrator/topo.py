@@ -1,4 +1,5 @@
 """Deterministic topological ordering of a task graph."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -6,9 +7,7 @@ from typing import Any
 
 def topo_order(task_graph: list[dict[str, Any]]) -> list[str]:
     """Return task_ids in dependency order, stable tie-break by task_id."""
-    deps: dict[str, set[str]] = {
-        str(t["task_id"]): set(t.get("depends_on", [])) for t in task_graph
-    }
+    deps: dict[str, set[str]] = {str(t["task_id"]): set(t.get("depends_on", [])) for t in task_graph}
     remaining = set(deps)
     done: set[str] = set()
     order: list[str] = []

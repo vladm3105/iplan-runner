@@ -3,10 +3,12 @@
 Follows framework/execution/RUN_MODEL.md exactly so independent engines produce
 byte-identical ledgers under injected clock + ids.
 """
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from ..executor.base import ExecutionContext, Executor
 from ..gates.runner import run_gate
@@ -65,18 +67,11 @@ def land(
         at = clock()
         scope = ledger["isolation_scope"]
         touched = sorted(
-            {
-                p
-                for e in ledger["execution_log"]
-                if e["event_type"] == "file_edited"
-                for p in e.get("touched_paths", [])
-            }
+            {p for e in ledger["execution_log"] if e["event_type"] == "file_edited" for p in e.get("touched_paths", [])}
         )
         vcs = ledger.setdefault("vcs", {})
         vcs["branch"] = branch
-        vcs.setdefault("commits", []).append(
-            {"sha": sha, "message": message, "at": at, "touched_paths": touched}
-        )
+        vcs.setdefault("commits", []).append({"sha": sha, "message": message, "at": at, "touched_paths": touched})
         append_event(ledger, _event(scope, "commit", "LANDING", at, touched))
         ledger["ledger_control"]["requires_landing"] = True
     gate_result = run_gate(ledger, gate or default_gate())
@@ -127,9 +122,7 @@ def _init_ledger(manifest: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _event(
-    scope: dict[str, Any], event_type: str, task_id: str, at: str, paths: list[str]
-) -> dict[str, Any]:
+def _event(scope: dict[str, Any], event_type: str, task_id: str, at: str, paths: list[str]) -> dict[str, Any]:
     return {
         "event_type": event_type,
         "subject_id": task_id,
@@ -221,9 +214,7 @@ def _run_task(
             append_event(ledger, _event(scope, "file_edited", task_id, clock(), [path]))
         if result.evidence is not None:
             evidence_id = ids("EV")
-            ledger["execution_evidence"].append(
-                {"evidence_id": evidence_id, "task_id": task_id, **result.evidence}
-            )
+            ledger["execution_evidence"].append({"evidence_id": evidence_id, "task_id": task_id, **result.evidence})
             task(ledger, task_id)["evidence_refs"].append(evidence_id)
             task(ledger, task_id)["acceptance"]["result"] = "pass"
         completed_at = clock()
@@ -234,9 +225,7 @@ def _run_task(
     else:
         if result.touched_paths:
             executor.compensate(result.touched_paths)
-            append_event(
-                ledger, _event(scope, "compensation", task_id, clock(), result.touched_paths)
-            )
+            append_event(ledger, _event(scope, "compensation", task_id, clock(), result.touched_paths))
             txn["status"] = "compensated"
         _escalate(ledger, task_id, result.reason or "execution failed", ids, clock())
 
@@ -344,9 +333,17 @@ def run(
         raise ValueError("intake manifest failed validation")
     ledger = _init_ledger(manifest)
     return _drive(
-        ledger, manifest, executor, completed=set(), clock=clock, ids=ids, sleep=sleep,
-        max_retries=max_retries, backoff_base=backoff_base,
-        control=control or _running, gate=gate,
+        ledger,
+        manifest,
+        executor,
+        completed=set(),
+        clock=clock,
+        ids=ids,
+        sleep=sleep,
+        max_retries=max_retries,
+        backoff_base=backoff_base,
+        control=control or _running,
+        gate=gate,
     )
 
 
@@ -363,12 +360,18 @@ def resume(
     control: Callable[[], str] | None = None,
     gate: dict[str, Any] | None = None,
 ) -> RunResult:
-    completed = {
-        str(t["task_id"]) for t in ledger.get("task_ledger", []) if t["status"] == "completed"
-    }
+    completed = {str(t["task_id"]) for t in ledger.get("task_ledger", []) if t["status"] == "completed"}
     ledger["ledger_control"]["run_state"] = "running"
     return _drive(
-        ledger, manifest, executor, completed=completed, clock=clock, ids=ids, sleep=sleep,
-        max_retries=max_retries, backoff_base=backoff_base,
-        control=control or _running, gate=gate,
+        ledger,
+        manifest,
+        executor,
+        completed=completed,
+        clock=clock,
+        ids=ids,
+        sleep=sleep,
+        max_retries=max_retries,
+        backoff_base=backoff_base,
+        control=control or _running,
+        gate=gate,
     )

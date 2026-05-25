@@ -1,4 +1,5 @@
 """Undo partial writes during saga compensation (workspace-contained)."""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -1,4 +1,5 @@
 """Read-only reader for a source SDD IPLAN reference."""
+
 from __future__ import annotations
 
 import hashlib

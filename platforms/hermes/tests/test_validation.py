@@ -1,11 +1,11 @@
 """Replay the golden vectors through the Hermes engine."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
-import yaml
 import pytest
-
+import yaml
 from iops_hermes import HermesEngine
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -22,11 +22,7 @@ def _cases() -> list[tuple[str, Path]]:
 @pytest.mark.parametrize("name,expect_path", _cases(), ids=lambda c: c if isinstance(c, str) else "")
 def test_vector(name: str, expect_path: Path) -> None:
     expected = yaml.safe_load(expect_path.read_text())
-    document = yaml.safe_load(
-        expect_path.with_name(expect_path.name.replace(".expect.yaml", ".yaml")).read_text()
-    )
+    document = yaml.safe_load(expect_path.with_name(expect_path.name.replace(".expect.yaml", ".yaml")).read_text())
     result = HermesEngine().validate(document)
     assert result["status"] == expected["status"], name
-    assert {f["rule_id"] for f in result["findings"]} == set(
-        expected.get("rule_ids") or []
-    ), name
+    assert {f["rule_id"] for f in result["findings"]} == set(expected.get("rule_ids") or []), name

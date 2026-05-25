@@ -1,4 +1,5 @@
 """Registry integrity + spec-version parity."""
+
 from __future__ import annotations
 
 import unittest
@@ -11,9 +12,7 @@ class RegistryTest(unittest.TestCase):
         self.reg = _spec.registry()
 
     def test_spec_version_matches_framework(self) -> None:
-        self.assertEqual(
-            self.reg["metadata"]["spec_version"], _spec.framework_version()
-        )
+        self.assertEqual(self.reg["metadata"]["spec_version"], _spec.framework_version())
 
     def test_artifact_ids_unique(self) -> None:
         ids = [a["id"] for a in self.reg["artifacts"]]

@@ -1,4 +1,5 @@
 """Intake reader + handover builder (beyond vector replay)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -37,9 +38,7 @@ def test_handover_builder_is_deterministic() -> None:
         "task_ledger": [{"task_id": "T1", "status": "completed"}],
         "reconciliation": {"allowed": True},
     }
-    receipt = build_handover_receipt(
-        ledger, {"status": "passed"}, clock=lambda: "2026-05-24T00:00:00Z"
-    )
+    receipt = build_handover_receipt(ledger, {"status": "passed"}, clock=lambda: "2026-05-24T00:00:00Z")
     assert receipt["handover_control"]["receipt_id"] == "RECEIPT-LEDGER-IPLAN-001"
     assert receipt["handover_control"]["created_at"] == "2026-05-24T00:00:00Z"
     assert receipt["result"]["status"] == "completed"

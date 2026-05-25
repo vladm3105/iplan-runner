@@ -1,16 +1,17 @@
 """Replay execution scenarios: per-engine projection + cross-engine differential."""
+
 from __future__ import annotations
 
 import copy
 import itertools
 import unittest
-from datetime import datetime, timedelta, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
-
-import yaml
+from typing import Any
 
 import _spec
+import yaml
 
 
 def _normalize(ledger: dict[str, Any]) -> dict[str, Any]:
@@ -24,7 +25,7 @@ def _normalize(ledger: dict[str, Any]) -> dict[str, Any]:
 
 
 def _make_clock(start: str) -> Callable[[], str]:
-    base = datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    base = datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     counter = itertools.count()
     return lambda: (base + timedelta(seconds=next(counter))).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -42,8 +43,7 @@ def _make_ids() -> Callable[[str], str]:
 def _project(engine: Any, result: Any) -> dict[str, Any]:
     ledger = result.ledger
     tasks = {
-        t["task_id"]: {"status": t["status"], "has_evidence": bool(t["evidence_refs"])}
-        for t in ledger["task_ledger"]
+        t["task_id"]: {"status": t["status"], "has_evidence": bool(t["evidence_refs"])} for t in ledger["task_ledger"]
     }
     log_events = [
         {
@@ -53,10 +53,7 @@ def _project(engine: Any, result: Any) -> dict[str, Any]:
         }
         for e in ledger["execution_log"]
     ]
-    saga = {
-        t["task_id"]: {"status": t["status"], "attempts": t.get("attempts", 1)}
-        for t in ledger["saga_journal"]
-    }
+    saga = {t["task_id"]: {"status": t["status"], "attempts": t.get("attempts", 1)} for t in ledger["saga_journal"]}
     handover = engine.build_handover(ledger, result.gate_result)
     return {
         "tasks": tasks,

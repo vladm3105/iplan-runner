@@ -4,6 +4,7 @@ Imported lazily via importlib so the engine builds and tests run without the
 OTel SDK installed. Absent it (or on any wiring error), the no-op provider is
 returned so the contract and SLO evaluation still work offline.
 """
+
 from __future__ import annotations
 
 import importlib

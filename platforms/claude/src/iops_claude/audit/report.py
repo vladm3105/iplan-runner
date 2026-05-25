@@ -1,4 +1,5 @@
 """Build a version-comparison audit report from two ledgers."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -18,9 +19,7 @@ def _task_ids(ledger: dict[str, Any]) -> set[str]:
     return {str(t.get("task_id")) for t in ledger.get("task_ledger", [])}
 
 
-def build_audit_report(
-    baseline: dict[str, Any], comparison: dict[str, Any]
-) -> dict[str, Any]:
+def build_audit_report(baseline: dict[str, Any], comparison: dict[str, Any]) -> dict[str, Any]:
     base_tasks = _task_ids(baseline)
     comp_tasks = _task_ids(comparison)
     added = sorted(comp_tasks - base_tasks)

@@ -1,16 +1,17 @@
+# pre-commit
+.cache/
+
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
-*.egg
-build/
-dist/
-.venv/
-venv/
+.eggs/
 
-# Tooling caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Temporary
+tmp/
+*.log

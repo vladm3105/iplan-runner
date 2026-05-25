@@ -1,4 +1,5 @@
 """Contract artifacts parse and match the registry."""
+
 from __future__ import annotations
 
 import unittest

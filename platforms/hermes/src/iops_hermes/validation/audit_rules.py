@@ -1,4 +1,5 @@
 """Audit-report validation (category IPLAN-009)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -21,12 +22,8 @@ def validate_audit(document: dict[str, Any]) -> list[Finding]:
             )
         )
 
-    baseline_ok = baseline.get("source_iplan_version") and baseline.get(
-        "source_iplan_checksum"
-    )
-    comparison_ok = comparison.get("source_iplan_version") and comparison.get(
-        "source_iplan_checksum"
-    )
+    baseline_ok = baseline.get("source_iplan_version") and baseline.get("source_iplan_checksum")
+    comparison_ok = comparison.get("source_iplan_version") and comparison.get("source_iplan_checksum")
 
     if not (baseline_ok and comparison_ok):
         findings.append(

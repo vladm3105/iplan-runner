@@ -4,8 +4,9 @@ Composes the single-IPLAN run loop; one injected clock/ids threads the chain.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from ..executor.base import Executor
 from .loop import RunResult, _running

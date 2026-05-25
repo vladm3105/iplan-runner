@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from iops_claude.effectors.apply import apply_write
 from iops_claude.security.authz import authorize
 from iops_claude.security.signing import sign_event, sign_ledger, verify_ledger

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from iops_hermes.budget import Budget, check
 from iops_hermes.config import load_config, secrets_from_env
 

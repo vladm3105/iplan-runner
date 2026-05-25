@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any, Callable
+from typing import Any
 
 
 def probe_server(

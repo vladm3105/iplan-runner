@@ -17,10 +17,7 @@ def evaluate_slos(manifest: dict[str, Any], samples: dict[str, float]) -> list[d
         objective = slo.get("objective")
         value = samples.get(ref) if ref is not None else None
         met: bool | None
-        if value is None or objective is None:
-            met = None
-        else:
-            met = value >= objective
+        met = None if value is None or objective is None else value >= objective
         results.append(
             {
                 "id": slo.get("id"),

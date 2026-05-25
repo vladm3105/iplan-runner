@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from iops_claude.monitoring.alerts import build_issue, evaluate_alerts
 from iops_claude.monitoring.probes import probe_server
 from iops_claude.monitoring.telemetry import emit_run_telemetry

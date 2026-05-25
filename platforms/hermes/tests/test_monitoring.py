@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from iops_hermes.monitoring.alerts import build_issue, evaluate_alerts
 from iops_hermes.monitoring.probes import probe_server
 from iops_hermes.monitoring.telemetry import emit_run_telemetry

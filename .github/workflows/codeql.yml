@@ -32,6 +32,11 @@ jobs:
           build-mode: none   # Python is interpreted — no build step
 
       - name: Perform CodeQL analysis
+        # Advisory until code scanning is enabled on the repo (private repos need
+        # GitHub Advanced Security). The scan still runs; only the SARIF upload is
+        # rejected, and continue-on-error keeps that rejection from blocking
+        # merges. Drop this line once code scanning is enabled to restore the gate.
+        continue-on-error: true
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:python"

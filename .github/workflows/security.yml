@@ -44,10 +44,18 @@ jobs:
         with:
           fetch-depth: 0   # full history so the scan covers the whole diff range
 
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+      # Run the gitleaks binary directly. The v2 action wraps the same scanner
+      # with org-license / API-token machinery that fails on pull_request events
+      # here; the scanner engine itself is clean. `detect` scans full git history
+      # and exits non-zero on any finding.
+      - name: Install gitleaks
         env:
-          # Required so the action can enumerate PR commits via the API on
-          # pull_request events (push events scan local git and need no token).
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_VERSION: "8.21.2"
+        run: |
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan git history
+        run: gitleaks detect --source . --redact --no-banner --verbose

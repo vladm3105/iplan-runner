@@ -1,5 +1,6 @@
 """Pluggable model transport. Stub is offline/deterministic; real clients are
 import-guarded behind extras and are integration-only (need credentials)."""
+
 from __future__ import annotations
 
 import importlib

@@ -1,4 +1,5 @@
 """Probe HTTP server serving the manifest's health/readiness/startup paths."""
+
 from __future__ import annotations
 
 import json
@@ -7,9 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
 
-def probe_server(
-    manifest: dict[str, Any], health: Callable[[], dict[str, Any]] | None = None
-) -> HTTPServer:
+def probe_server(manifest: dict[str, Any], health: Callable[[], dict[str, Any]] | None = None) -> HTTPServer:
     health_fn = health or (lambda: {"status": "ok"})
     probes = manifest.get("probes", {})
     paths = {p for p in probes.values() if isinstance(p, str)}

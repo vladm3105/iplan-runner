@@ -1,4 +1,5 @@
 """hermes ApiExecutor over a StubModelClient (autonomous, offline)."""
+
 from __future__ import annotations
 
 import itertools
@@ -13,9 +14,13 @@ from iops_hermes.model.client import StubModelClient
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},
-    "intake_control": {"source_iplan": "IPLAN-001", "source_iplan_version": "1.0.0",
-                       "source_iplan_checksum": "sha256:" + "a" * 64,
-                       "exec_ready_score": 92, "approved": True},
+    "intake_control": {
+        "source_iplan": "IPLAN-001",
+        "source_iplan_version": "1.0.0",
+        "source_iplan_checksum": "sha256:" + "a" * 64,
+        "exec_ready_score": 92,
+        "approved": True,
+    },
     "isolation_scope": {"client_id": "c", "project_id": "p", "allowed_roots": ["src/"]},
     "task_graph": [{"task_id": "T1", "title": "do", "depends_on": [], "acceptance": {"criteria": ["x"]}}],
 }
@@ -37,10 +42,12 @@ def _run(engine: HermesEngine, client: StubModelClient, tmp: Path, budget: Budge
 
 def test_api_executor_applies_model_actions(tmp_path: Path) -> None:
     engine = HermesEngine()
-    response = json.dumps({
-        "actions": [{"type": "write", "path": "src/a.py", "content": "x\n"}],
-        "checks": [{"name": "ok", "command": ["python", "-c", "import sys; sys.exit(0)"]}],
-    })
+    response = json.dumps(
+        {
+            "actions": [{"type": "write", "path": "src/a.py", "content": "x\n"}],
+            "checks": [{"name": "ok", "command": ["python", "-c", "import sys; sys.exit(0)"]}],
+        }
+    )
     result = _run(engine, StubModelClient(response, {"tokens": 5}), tmp_path)
     assert result.ledger["task_ledger"][0]["status"] == "completed"
     assert (tmp_path / "src" / "a.py").exists()

@@ -1,4 +1,5 @@
 """Engine self-telemetry: emit the run's own signals (distinct from product SLOs)."""
+
 from __future__ import annotations
 
 from typing import Any

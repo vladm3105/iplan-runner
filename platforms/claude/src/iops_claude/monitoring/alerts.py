@@ -1,4 +1,5 @@
 """SLO-breach-driven alert evaluation + issue record (see MONITORING_RUNTIME.md)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -6,9 +7,7 @@ from typing import Any
 from .slo import evaluate_slos
 
 
-def evaluate_alerts(
-    manifest: dict[str, Any], samples: dict[str, float]
-) -> list[dict[str, Any]]:
+def evaluate_alerts(manifest: dict[str, Any], samples: dict[str, float]) -> list[dict[str, Any]]:
     by_id = {r["id"]: r for r in evaluate_slos(manifest, samples)}
     alerts: list[dict[str, Any]] = []
     for rule in manifest.get("alert_rules", []):

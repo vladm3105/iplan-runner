@@ -1,4 +1,5 @@
 """Autonomous executor: a model proposes the actions (hermes A-style, D-0013)."""
+
 from __future__ import annotations
 
 import json
@@ -16,7 +17,7 @@ def build_prompt(task: dict[str, Any]) -> str:
     return (
         f"Task {task.get('task_id')}: {task.get('title')}\n"
         f"Acceptance: {task.get('acceptance')}\n"
-        "Respond with JSON {\"actions\": [...], \"checks\": [...]}."
+        'Respond with JSON {"actions": [...], "checks": [...]}.'
     )
 
 

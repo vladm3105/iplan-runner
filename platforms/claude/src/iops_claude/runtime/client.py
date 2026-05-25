@@ -1,5 +1,6 @@
 """Pluggable host-runtime transport. Stub is offline/deterministic; the real
 Claude Code hook adapter is integration-only (environment-specific)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

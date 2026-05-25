@@ -1,4 +1,5 @@
 """Ledger signing, authz, realpath sandbox hardening (Claude)."""
+
 from __future__ import annotations
 
 import os
@@ -33,10 +34,28 @@ def test_sign_verify_roundtrip_and_tamper() -> None:
     from iops_claude.ledger.store import append_event
 
     ledger: dict = {"execution_log": []}
-    append_event(ledger, {"event_type": "task_started", "subject_id": "T1", "at": "t0",
-                          "touched_paths": [], "client_id": "c", "project_id": "p"})
-    append_event(ledger, {"event_type": "file_edited", "subject_id": "T1", "at": "t1",
-                          "touched_paths": ["src/a.py"], "client_id": "c", "project_id": "p"})
+    append_event(
+        ledger,
+        {
+            "event_type": "task_started",
+            "subject_id": "T1",
+            "at": "t0",
+            "touched_paths": [],
+            "client_id": "c",
+            "project_id": "p",
+        },
+    )
+    append_event(
+        ledger,
+        {
+            "event_type": "file_edited",
+            "subject_id": "T1",
+            "at": "t1",
+            "touched_paths": ["src/a.py"],
+            "client_id": "c",
+            "project_id": "p",
+        },
+    )
 
     sign_ledger(ledger, "k")
     assert verify_ledger(ledger, "k") is True

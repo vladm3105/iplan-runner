@@ -75,38 +75,23 @@ ruff check platforms                                   # clean
 mypy --strict platforms/hermes/src platforms/claude/src  # clean
 ```
 
-## Repo CI — install manually (App lacks `workflows` permission)
+## Repo CI — committed (`.github/workflows/`)
 
-The automation token cannot push files under `.github/workflows/`. Add this
-workflow via the GitHub web UI (**Actions → New workflow → set up a workflow
-yourself**) or commit it from a context with `workflows` permission. Save as
-`.github/workflows/ci.yml`:
+CI now lives in the repo (the earlier `workflows`-permission block no longer
+applies — the workflow files pushed cleanly). Modeled on the SDD repo's CI,
+adapted to the two-engine strict-isolation layout:
 
-```yaml
-name: CI
-on:
-  push:
-    branches: ["**"]
-  pull_request:
-jobs:
-  verify:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install engines (editable, with dev extras)
-        run: pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"
-      - name: Conformance (vector replay + isolation + parity)
-        run: python -m unittest discover -s tests/conformance -v
-      - name: Engine tests
-        run: pytest platforms/hermes platforms/claude -q
-      - name: Lint
-        run: ruff check platforms
-      - name: Types
-        run: mypy --strict platforms/hermes/src platforms/claude/src
-```
+- `ci.yml` — `conformance` (unittest suite: vectors + isolation + spec parity),
+  `engines` (per-engine pytest matrix: hermes/claude × py3.11/3.12, via
+  `python -m pytest`), and `lint` (`ruff check platforms` + `mypy --strict`).
+- `codeql.yml` — Python SAST on push/PR to `main` + weekly schedule.
+- `security.yml` — `pip-audit` dependency audit + `gitleaks` secret scan.
+- `.github/dependabot.yml` — weekly pip (both engines + conformance) +
+  github-actions version updates.
+
+CodeQL is `main`-scoped, so it runs on PRs into `main` (not on feature-branch
+pushes). Possible follow-up: a diff-aware spec-version bump gate like SDD's
+`chg-gate.yml` (static parity is already covered by the conformance job).
 
 ## Backlog (post slice 1)
 

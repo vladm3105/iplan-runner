@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformance:
+    name: Conformance (vectors + isolation + spec parity)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Both engines must be importable: the suite replays the golden vectors
+      # against every registered engine and runs the cross-engine differential.
+      - name: Install engines (editable, dev extras)
+        run: pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"
+
+      - name: Conformance suite
+        run: python -m unittest discover -s tests/conformance -v
+
+  engines:
+    name: Engine tests (${{ matrix.engine }} / py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [hermes, claude]
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Strict isolation (D-0011): each engine installs only itself.
+      - name: Install ${{ matrix.engine }} (editable, dev extras)
+        run: pip install -e "./platforms/${{ matrix.engine }}[dev]"
+
+      - name: pytest
+        run: python -m pytest "platforms/${{ matrix.engine }}" -q
+
+  lint:
+    name: Lint + types (ruff, mypy --strict)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install engines (editable, dev extras)
+        run: pip install -e "./platforms/hermes[dev]" -e "./platforms/claude[dev]"
+
+      - name: Ruff
+        run: ruff check platforms
+
+      - name: Mypy (strict)
+        run: mypy --strict platforms/hermes/src platforms/claude/src

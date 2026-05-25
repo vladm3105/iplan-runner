@@ -4,6 +4,7 @@ Deterministic: the only derived field is the byte sha256 checksum. The field
 mapping is configurable (Config) so SDD schema drift is absorbed here, not in the
 engine core, and the framework takes no dependency on the SDD repo.
 """
+
 from __future__ import annotations
 
 import hashlib

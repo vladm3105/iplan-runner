@@ -1,11 +1,11 @@
 """Cross-engine differential: all engines agree on every vector (D-0012)."""
+
 from __future__ import annotations
 
 import unittest
 
-import yaml
-
 import _spec
+import yaml
 
 
 class DifferentialTest(unittest.TestCase):

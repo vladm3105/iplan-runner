@@ -5,12 +5,14 @@ framework/intake/INTAKE_CONTRACT.md; override fields to absorb SDD IPLAN schema
 drift without touching engine core. Secrets come from the environment only
 (see framework/config/CONFIG_CONTRACT.md).
 """
+
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import yaml  # type: ignore[import-untyped]
 
@@ -30,17 +32,13 @@ class Config:
     signing_key: str | None = None
 
 
-def secrets_from_env(
-    prefix: str = "IOPS_SECRET_", env: Mapping[str, str] | None = None
-) -> list[str]:
+def secrets_from_env(prefix: str = "IOPS_SECRET_", env: Mapping[str, str] | None = None) -> list[str]:
     """Collect secret values from environment variables named `<prefix>*`."""
     environ = env if env is not None else os.environ
     return [v for k, v in environ.items() if k.startswith(prefix) and v]
 
 
-def load_config(
-    path: str | Path | None = None, env: Mapping[str, str] | None = None
-) -> Config:
+def load_config(path: str | Path | None = None, env: Mapping[str, str] | None = None) -> Config:
     """Merge a YAML file (non-secret defaults) + env (overrides, secrets)."""
     environ = env if env is not None else os.environ
     data: dict[str, Any] = {}

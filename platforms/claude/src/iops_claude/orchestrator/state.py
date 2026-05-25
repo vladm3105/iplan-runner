@@ -1,4 +1,5 @@
 """Task-state transitions over a ledger."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -16,9 +17,7 @@ def set_status(ledger: dict[str, Any], task_id: str, new_status: str) -> None:
     task(ledger, task_id)["status"] = new_status
 
 
-def add_history(
-    ledger: dict[str, Any], task_id: str, from_status: str, to_status: str, at: str
-) -> None:
+def add_history(ledger: dict[str, Any], task_id: str, from_status: str, to_status: str, at: str) -> None:
     ledger["execution_history"].append(
         {
             "at": at,

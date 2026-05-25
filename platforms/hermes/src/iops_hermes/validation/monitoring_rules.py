@@ -1,4 +1,5 @@
 """Monitoring-manifest validation (category MON-001)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -18,10 +19,7 @@ def validate_monitoring(document: dict[str, Any]) -> list[Finding]:
             )
         )
 
-    metrics = {
-        m.get("name")
-        for m in document.get("signals", {}).get("otel", {}).get("metrics", [])
-    }
+    metrics = {m.get("name") for m in document.get("signals", {}).get("otel", {}).get("metrics", [])}
     missing_target = False
     unresolved_ref = False
     for slo in document.get("slos", []):
@@ -41,11 +39,7 @@ def validate_monitoring(document: dict[str, Any]) -> list[Finding]:
         )
 
     probes = document.get("probes", {})
-    if not (
-        probes.get("health") and probes.get("readiness") and probes.get("startup")
-    ):
-        findings.append(
-            finding("MON.PROBE_MISSING", "a health/readiness/startup probe is missing")
-        )
+    if not (probes.get("health") and probes.get("readiness") and probes.get("startup")):
+        findings.append(finding("MON.PROBE_MISSING", "a health/readiness/startup probe is missing"))
 
     return findings

@@ -1,4 +1,5 @@
 """Apply a file write through the sandbox (raises before any effect if denied)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,9 +7,7 @@ from pathlib import Path
 from .sandbox import classify_path
 
 
-def apply_write(
-    path: str, content: str, workspace: str | Path, allowed_roots: list[str]
-) -> str:
+def apply_write(path: str, content: str, workspace: str | Path, allowed_roots: list[str]) -> str:
     decision = classify_path(path, allowed_roots)
     if not decision["allowed"]:
         raise PermissionError(f"sandbox denied {path}: {decision['reason']}")

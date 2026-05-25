@@ -1,4 +1,5 @@
 """Pure path-jail decision (see framework/effectors/SANDBOX_CONTRACT.md)."""
+
 from __future__ import annotations
 
 import posixpath

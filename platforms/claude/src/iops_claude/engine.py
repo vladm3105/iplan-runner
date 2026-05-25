@@ -9,12 +9,14 @@ framework spec, never another engine (strict isolation, D-0011).
 Slice 1 exercises these methods programmatically; live Claude Code hook wiring is
 a follow-up (see HOOK_INTEGRATION_POINTS in the framework spec).
 """
+
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .budget import Budget
 from .config import Config
@@ -24,15 +26,14 @@ from .executor.hostruntime import HostRuntimeExecutor
 from .executor.mock import MockExecutor
 from .executor.scripted import ScriptedExecutor
 from .gates.runner import run_gate
-from .runtime.client import RuntimeClient
 from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
+from .ledger.index import set_control
 from .ledger.store import append_event
 from .monitoring.alerts import build_issue as _build_issue
 from .monitoring.alerts import evaluate_alerts as _evaluate_alerts
 from .monitoring.otel import get_provider
 from .monitoring.provider import MonitoringProvider, NoOpProvider
-from .ledger.index import set_control
 from .orchestrator.chain import ChainResult
 from .orchestrator.chain import run_chain as _run_chain
 from .orchestrator.control import resolve_blocker as _resolve_blocker
@@ -40,6 +41,7 @@ from .orchestrator.loop import RunResult, default_gate
 from .orchestrator.loop import land as _land
 from .orchestrator.loop import resume as _resume
 from .orchestrator.loop import run as _run
+from .runtime.client import RuntimeClient
 from .security.authz import authorize as _authorize
 from .security.signing import sign_ledger as _sign_ledger
 from .security.signing import verify_ledger as _verify_ledger
@@ -67,7 +69,7 @@ _SERVICE_NAME = "iops-claude"
 
 
 def _default_clock() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 class ClaudeEngine:
@@ -106,9 +108,7 @@ class ClaudeEngine:
     def mock_executor(self, outcomes: dict[str, Any] | None = None) -> Executor:
         return MockExecutor(outcomes)
 
-    def scripted_executor(
-        self, spec: dict[str, Any] | None = None, workspace: str | Path = "."
-    ) -> Executor:
+    def scripted_executor(self, spec: dict[str, Any] | None = None, workspace: str | Path = ".") -> Executor:
         return ScriptedExecutor(spec, workspace, self._config.secrets)
 
     def host_executor(
@@ -194,10 +194,14 @@ class ClaudeEngine:
         control: Callable[[], str] | None = None,
     ) -> ChainResult:
         return _run_chain(
-            chain, iplans, executor_for,
-            clock=clock, ids=ids,
+            chain,
+            iplans,
+            executor_for,
+            clock=clock,
+            ids=ids,
             sleep=sleep if sleep is not None else time.sleep,
-            control=control, gate=self.default_gate(),
+            control=control,
+            gate=self.default_gate(),
         )
 
     def pause(self, ledger_id: str, store_dir: str) -> None:
@@ -247,9 +251,7 @@ class ClaudeEngine:
         gate_result: dict[str, Any],
         audit_report: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        return build_handover_receipt(
-            ledger, gate_result, audit_report, clock=self._clock
-        )
+        return build_handover_receipt(ledger, gate_result, audit_report, clock=self._clock)
 
     def validate(self, document: dict[str, Any]) -> dict[str, Any]:
         document_type = document.get("metadata", {}).get("document_type")
@@ -259,18 +261,13 @@ class ClaudeEngine:
         findings = validator(document)
         return {
             "status": status_of(findings),
-            "findings": [
-                {"rule_id": f.rule_id, "severity": f.severity, "message": f.message}
-                for f in findings
-            ],
+            "findings": [{"rule_id": f.rule_id, "severity": f.severity, "message": f.message} for f in findings],
         }
 
     def run_gate(self, ledger: dict[str, Any], gate: dict[str, Any]) -> dict[str, Any]:
         return run_gate(ledger, gate)
 
-    def record_transaction(
-        self, ledger: dict[str, Any], txn: dict[str, Any]
-    ) -> dict[str, Any]:
+    def record_transaction(self, ledger: dict[str, Any], txn: dict[str, Any]) -> dict[str, Any]:
         ledger.setdefault("saga_journal", []).append(txn)
         event = {
             "event_type": txn.get("action", "transaction"),
@@ -289,9 +286,7 @@ class ClaudeEngine:
     def instrument(self, manifest: dict[str, Any]) -> None:
         self._provider = get_provider(_SERVICE_NAME)
 
-    def evaluate_alerts(
-        self, manifest: dict[str, Any], samples: dict[str, float]
-    ) -> list[dict[str, Any]]:
+    def evaluate_alerts(self, manifest: dict[str, Any], samples: dict[str, float]) -> list[dict[str, Any]]:
         return _evaluate_alerts(manifest, samples)
 
     def build_issue(self, alert: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
@@ -304,15 +299,11 @@ class ClaudeEngine:
         ledger.setdefault("agent_leases", [])
         return ledger
 
-    def acquire_lease(
-        self, ledger: dict[str, Any], lease: dict[str, Any]
-    ) -> dict[str, Any]:
+    def acquire_lease(self, ledger: dict[str, Any], lease: dict[str, Any]) -> dict[str, Any]:
         ledger.setdefault("agent_leases", []).append(lease)
         return ledger
 
-    def record_touched_file(
-        self, ledger: dict[str, Any], task_id: str, path: str, at: str
-    ) -> dict[str, Any]:
+    def record_touched_file(self, ledger: dict[str, Any], task_id: str, path: str, at: str) -> dict[str, Any]:
         scope = ledger.get("isolation_scope", {})
         append_event(
             ledger,
@@ -327,17 +318,13 @@ class ClaudeEngine:
         )
         return ledger
 
-    def record_evidence(
-        self, ledger: dict[str, Any], evidence: dict[str, Any]
-    ) -> dict[str, Any]:
+    def record_evidence(self, ledger: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
         ledger.setdefault("execution_evidence", []).append(evidence)
         return ledger
 
     def reconcile(self, ledger: dict[str, Any]) -> dict[str, Any]:
         tasks = ledger.get("task_ledger", [])
-        pending = sum(
-            1 for t in tasks if t.get("status") in ("pending", "in_progress")
-        )
+        pending = sum(1 for t in tasks if t.get("status") in ("pending", "in_progress"))
         open_blockers = len(ledger.get("blockers", []))
         ledger["reconciliation"] = {
             "allowed": pending == 0 and open_blockers == 0,

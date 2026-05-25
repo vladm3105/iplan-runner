@@ -1,7 +1,9 @@
 """Saga helpers: bounded retry, backoff, idempotency (see SAGA_EXECUTION_MODEL)."""
+
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..executor.base import ExecutionContext, Executor, ExecutorResult
 

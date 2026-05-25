@@ -1,9 +1,10 @@
 """Run loop, topo order, persistence (Claude)."""
+
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from iops_claude import ClaudeEngine
 from iops_claude.executor.base import IdSource
@@ -85,8 +86,7 @@ def test_gate_veto_on_missing_evidence() -> None:
 
 def test_persistence_roundtrip(tmp_path: Path) -> None:
     engine = ClaudeEngine()
-    outcomes = {"T1": {"outcome": "success", "evidence": EVIDENCE},
-                "T2": {"outcome": "success", "evidence": EVIDENCE}}
+    outcomes = {"T1": {"outcome": "success", "evidence": EVIDENCE}, "T2": {"outcome": "success", "evidence": EVIDENCE}}
     result = engine.run(MANIFEST, engine.mock_executor(outcomes), clock=_clock(), ids=IdSource())
     path = save(result.ledger, tmp_path)
     assert path == ledger_path(tmp_path, "LEDGER-IPLAN-001")

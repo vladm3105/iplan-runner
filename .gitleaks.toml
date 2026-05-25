@@ -1,0 +1,3 @@
+# Gitleaks allowlist for .secrets.baseline (detect-secrets artifact)
+[allowlist]
+  paths = [".secrets.baseline"]

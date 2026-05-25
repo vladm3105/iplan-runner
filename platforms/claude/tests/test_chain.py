@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable
+from collections.abc import Callable
 
 from iops_claude import ClaudeEngine
 from iops_claude.executor.base import IdSource

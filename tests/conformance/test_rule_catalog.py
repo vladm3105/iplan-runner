@@ -1,11 +1,11 @@
 """Rule catalog is well-formed and fully covered by vectors (both directions)."""
+
 from __future__ import annotations
 
 import unittest
 
-import yaml
-
 import _spec
+import yaml
 
 
 class RuleCatalogTest(unittest.TestCase):

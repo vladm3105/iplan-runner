@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 import yaml
-
 from iops_hermes.effectors.apply import apply_write
 from iops_hermes.security.authz import authorize
 from iops_hermes.security.signing import sign_event, sign_ledger, verify_ledger

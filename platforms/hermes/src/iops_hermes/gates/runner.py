@@ -3,6 +3,7 @@
 Each GATE-LEDGER-NNN rule references the validator rule IDs it depends on; the
 gate fails if any referenced rule fired during ledger validation.
 """
+
 from __future__ import annotations
 
 from typing import Any

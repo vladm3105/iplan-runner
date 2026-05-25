@@ -1,10 +1,10 @@
 """End-to-end ledger lifecycle for the Claude engine."""
+
 from __future__ import annotations
 
 from pathlib import Path
 
 import yaml
-
 from iops_claude import ClaudeEngine
 from iops_claude.audit.report import build_audit_report
 from iops_claude.iplan import read_iplan_ref
@@ -21,9 +21,7 @@ def _load(rel: str) -> dict:
 
 def test_source_iplan_binding(tmp_path: Path) -> None:
     iplan = tmp_path / "IPLAN-001.yaml"
-    iplan.write_text(
-        "document_control:\n  iplan_id: IPLAN-001\n  version: 1.2.0\n"
-    )
+    iplan.write_text("document_control:\n  iplan_id: IPLAN-001\n  version: 1.2.0\n")
     ref = read_iplan_ref(iplan)
     assert ref["id"] == "IPLAN-001"
     assert ref["version"] == "1.2.0"
@@ -49,9 +47,7 @@ def test_ledger_lifecycle_and_gate() -> None:
     assert verify_chain(ledger["execution_log"]) is True
     assert engine.validate(ledger)["status"] == "pass"
 
-    gate = yaml.safe_load(
-        (ROOT / "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml").read_text()
-    )
+    gate = yaml.safe_load((ROOT / "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml").read_text())
     assert engine.run_gate(ledger, gate)["status"] == "passed"
 
 
@@ -118,7 +114,5 @@ def test_agent_update_protocol_produces_gate_passing_ledger() -> None:
     assert ledger["reconciliation"]["allowed"] is True
     assert engine.validate(ledger)["status"] == "pass"
 
-    gate = yaml.safe_load(
-        (ROOT / "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml").read_text()
-    )
+    gate = yaml.safe_load((ROOT / "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml").read_text())
     assert engine.run_gate(ledger, gate)["status"] == "passed"

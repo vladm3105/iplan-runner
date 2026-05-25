@@ -1,12 +1,12 @@
 """Cross-engine path-jail decision parity (framework/conformance/sandbox)."""
+
 from __future__ import annotations
 
 import unittest
 from pathlib import Path
 
-import yaml
-
 import _spec
+import yaml
 
 
 def _cases() -> list[Path]:

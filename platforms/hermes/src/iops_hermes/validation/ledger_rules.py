@@ -1,4 +1,5 @@
 """Execution-ledger validation (category IPLAN-007)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -9,10 +10,7 @@ from ._base import Finding, finding
 
 
 def _leases_overlap(a: dict[str, Any], b: dict[str, Any]) -> bool:
-    return (
-        str(a.get("acquired_at")) < str(b.get("expires_at"))
-        and str(b.get("acquired_at")) < str(a.get("expires_at"))
-    )
+    return str(a.get("acquired_at")) < str(b.get("expires_at")) and str(b.get("acquired_at")) < str(a.get("expires_at"))
 
 
 def validate_ledger(document: dict[str, Any]) -> list[Finding]:
@@ -20,9 +18,7 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
 
     control = document.get("ledger_control", {})
     if not (
-        control.get("source_iplan")
-        and control.get("source_iplan_version")
-        and control.get("source_iplan_checksum")
+        control.get("source_iplan") and control.get("source_iplan_version") and control.get("source_iplan_checksum")
     ):
         findings.append(
             finding(
@@ -32,11 +28,7 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
         )
 
     scope = document.get("isolation_scope", {})
-    scope_ok = bool(
-        scope.get("client_id")
-        and scope.get("project_id")
-        and scope.get("allowed_roots")
-    )
+    scope_ok = bool(scope.get("client_id") and scope.get("project_id") and scope.get("allowed_roots"))
     if not scope_ok:
         findings.append(
             finding(
@@ -88,9 +80,7 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
             leases_by_task.setdefault(str(lease.get("task_id")), []).append(lease)
     for task_id, leases in leases_by_task.items():
         overlap = any(
-            _leases_overlap(leases[i], leases[j])
-            for i in range(len(leases))
-            for j in range(i + 1, len(leases))
+            _leases_overlap(leases[i], leases[j]) for i in range(len(leases)) for j in range(i + 1, len(leases))
         )
         if overlap:
             findings.append(
@@ -102,8 +92,7 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
 
     reconciliation = document.get("reconciliation", {})
     if reconciliation.get("allowed") and (
-        int(reconciliation.get("pending_tasks", 0) or 0) > 0
-        or int(reconciliation.get("open_blockers", 0) or 0) > 0
+        int(reconciliation.get("pending_tasks", 0) or 0) > 0 or int(reconciliation.get("open_blockers", 0) or 0) > 0
     ):
         findings.append(
             finding(
@@ -140,13 +129,9 @@ def validate_ledger(document: dict[str, Any]) -> list[Finding]:
             )
 
     if not verify_chain(document.get("execution_log", [])):
-        findings.append(
-            finding("HASHCHAIN.BROKEN", "execution_log hash chain is inconsistent")
-        )
+        findings.append(finding("HASHCHAIN.BROKEN", "execution_log hash chain is inconsistent"))
 
     if control.get("requires_landing") and not document.get("vcs", {}).get("commits"):
-        findings.append(
-            finding("LEDGER.NOT_COMMITTED", "requires_landing but no vcs commit recorded")
-        )
+        findings.append(finding("LEDGER.NOT_COMMITTED", "requires_landing but no vcs commit recorded"))
 
     return findings

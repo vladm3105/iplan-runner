@@ -1,4 +1,5 @@
 """Monitoring provider interface + a no-op default (no OTel dependency)."""
+
 from __future__ import annotations
 
 from typing import Any, Protocol

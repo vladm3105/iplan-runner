@@ -1,11 +1,11 @@
 """Replay every golden vector through every importable engine."""
+
 from __future__ import annotations
 
 import unittest
 
-import yaml
-
 import _spec
+import yaml
 
 
 class VectorReplayTest(unittest.TestCase):
@@ -24,13 +24,9 @@ class VectorReplayTest(unittest.TestCase):
                 with self.subTest(engine=engine_id, vector=document_path.stem):
                     result = engine.validate(document)
                     self.assertEqual(result["status"], expected["status"])
-                    self.assertEqual(
-                        {f["rule_id"] for f in result["findings"]}, expected_rules
-                    )
+                    self.assertEqual({f["rule_id"] for f in result["findings"]}, expected_rules)
                     for finding in result["findings"]:
-                        self.assertEqual(
-                            finding["severity"], self.severity[finding["rule_id"]]
-                        )
+                        self.assertEqual(finding["severity"], self.severity[finding["rule_id"]])
 
 
 if __name__ == "__main__":

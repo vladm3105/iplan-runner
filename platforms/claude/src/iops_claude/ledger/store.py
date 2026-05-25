@@ -1,4 +1,5 @@
 """Append-only ledger store with a hash-chained execution log."""
+
 from __future__ import annotations
 
 import hashlib

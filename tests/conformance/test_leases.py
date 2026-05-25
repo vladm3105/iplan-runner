@@ -1,13 +1,13 @@
 """Cross-engine lease can_acquire decision parity (framework/conformance/leases)."""
+
 from __future__ import annotations
 
 import importlib
 import unittest
 from pathlib import Path
 
-import yaml
-
 import _spec
+import yaml
 
 
 def _cases() -> list[Path]:

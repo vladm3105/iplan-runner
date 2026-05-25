@@ -1,4 +1,5 @@
 """Engine spec parity + strict isolation (no cross-engine imports)."""
+
 from __future__ import annotations
 
 import unittest

@@ -1,4 +1,5 @@
 """Reader parity: every engine normalizes the same IPLAN identically (D-0012)."""
+
 from __future__ import annotations
 
 import unittest

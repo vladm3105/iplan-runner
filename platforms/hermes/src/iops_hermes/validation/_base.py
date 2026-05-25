@@ -4,6 +4,7 @@ The severity map mirrors framework/conformance/rule-ids.yaml. Strict isolation
 (D-0011) means this engine carries its own copy; conformance asserts it matches
 the catalog.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

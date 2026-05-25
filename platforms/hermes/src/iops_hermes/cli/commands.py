@@ -1,4 +1,5 @@
 """``iops-hermes`` command handlers."""
+
 from __future__ import annotations
 
 import argparse
@@ -146,9 +147,7 @@ def main(argv: list[str] | None = None) -> int:
             _emit({"validation": validation})
             return 1
         executor = (
-            engine.scripted_executor(_load(args.actions), args.workspace)
-            if args.actions
-            else engine.default_executor()
+            engine.scripted_executor(_load(args.actions), args.workspace) if args.actions else engine.default_executor()
         )
         run_result = engine.run(manifest, executor, clock=_default_clock, ids=IdSource())
         if (
@@ -197,13 +196,21 @@ def main(argv: list[str] | None = None) -> int:
         ledger = load(ledger_path(args.store, ledger_id))
         set_control(ledger_id, "running", args.store)
         resumed = engine.resume(
-            manifest, ledger, engine.default_executor(),
-            clock=_default_clock, ids=IdSource(),
+            manifest,
+            ledger,
+            engine.default_executor(),
+            clock=_default_clock,
+            ids=IdSource(),
             control=store_control(ledger_id, args.store),
         )
         save(resumed.ledger, args.store)
-        _emit({"ledger_id": ledger_id, "run_state": resumed.ledger["ledger_control"]["run_state"],
-               "gate": resumed.gate_result["status"]})
+        _emit(
+            {
+                "ledger_id": ledger_id,
+                "run_state": resumed.ledger["ledger_control"]["run_state"],
+                "gate": resumed.gate_result["status"],
+            }
+        )
         return 0 if resumed.gate_result["status"] == "passed" else 1
 
     if args.command == "resolve":
@@ -216,16 +223,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "run-chain":
         spec = _load(args.chain_file)
         chain_result = engine.run_chain(
-            spec["chain"], spec["iplans"], lambda _iplan_id: engine.default_executor(),
-            clock=_default_clock, ids=IdSource(),
+            spec["chain"],
+            spec["iplans"],
+            lambda _iplan_id: engine.default_executor(),
+            clock=_default_clock,
+            ids=IdSource(),
         )
         ledger = chain_result.chain_ledger
-        _emit({
-            "chain_id": ledger["chain_control"]["chain_id"],
-            "execution_order": ledger["execution_order"],
-            "iplan_chain": {n["iplan_id"]: n["reconciled"] for n in ledger["iplan_chain"]},
-            "chain_reconciliation": ledger["chain_reconciliation"],
-        })
+        _emit(
+            {
+                "chain_id": ledger["chain_control"]["chain_id"],
+                "execution_order": ledger["execution_order"],
+                "iplan_chain": {n["iplan_id"]: n["reconciled"] for n in ledger["iplan_chain"]},
+                "chain_reconciliation": ledger["chain_reconciliation"],
+            }
+        )
         return 0 if ledger["chain_reconciliation"]["allowed"] else 1
 
     return 2

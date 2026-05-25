@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 import itertools
-from typing import Callable
+from collections.abc import Callable
 
 import pytest
-
 from iops_hermes import HermesEngine
 from iops_hermes.executor.base import IdSource
 

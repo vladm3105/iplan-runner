@@ -1,4 +1,5 @@
 """Real git operations for landing (no remote / push)."""
+
 from __future__ import annotations
 
 import subprocess

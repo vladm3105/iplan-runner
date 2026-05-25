@@ -2,6 +2,7 @@
 
 Composes the single-IPLAN run loop; one injected clock/ids threads the chain.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -79,8 +80,12 @@ def run_chain(
             reconciled[iplan_id] = False
             continue
         result: RunResult = _run(
-            iplans[iplan_id], executor_for(iplan_id),
-            clock=clock, ids=ids, sleep=sleep, gate=gate,
+            iplans[iplan_id],
+            executor_for(iplan_id),
+            clock=clock,
+            ids=ids,
+            sleep=sleep,
+            gate=gate,
         )
         sub_ledgers[iplan_id] = result.ledger
         reconciled[iplan_id] = bool(result.ledger["reconciliation"]["allowed"])

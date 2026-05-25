@@ -1,4 +1,5 @@
 """Role-based authorization (L2; see framework/security/SECURITY_MODEL.md)."""
+
 from __future__ import annotations
 
 from typing import Any

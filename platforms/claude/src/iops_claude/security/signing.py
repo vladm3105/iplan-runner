@@ -1,4 +1,5 @@
 """Authenticated ledger: HMAC-SHA256 over the canonical full event."""
+
 from __future__ import annotations
 
 import hashlib

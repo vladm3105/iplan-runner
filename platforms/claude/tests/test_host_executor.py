@@ -1,4 +1,5 @@
 """claude HostRuntimeExecutor over a StubRuntimeClient (governor, offline)."""
+
 from __future__ import annotations
 
 import itertools
@@ -10,9 +11,13 @@ from iops_claude.runtime.client import RuntimeResult, StubRuntimeClient
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},
-    "intake_control": {"source_iplan": "IPLAN-001", "source_iplan_version": "1.0.0",
-                       "source_iplan_checksum": "sha256:" + "a" * 64,
-                       "exec_ready_score": 92, "approved": True},
+    "intake_control": {
+        "source_iplan": "IPLAN-001",
+        "source_iplan_version": "1.0.0",
+        "source_iplan_checksum": "sha256:" + "a" * 64,
+        "exec_ready_score": 92,
+        "approved": True,
+    },
     "isolation_scope": {"client_id": "c", "project_id": "p", "allowed_roots": ["src/"]},
     "task_graph": [{"task_id": "T1", "title": "do", "depends_on": [], "acceptance": {"criteria": ["x"]}}],
 }

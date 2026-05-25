@@ -1,19 +1,20 @@
 """Cross-engine chain-orchestration parity (framework/conformance/chains)."""
+
 from __future__ import annotations
 
 import itertools
 import unittest
-from datetime import datetime, timedelta, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
-
-import yaml
+from typing import Any
 
 import _spec
+import yaml
 
 
 def _make_clock(start: str) -> Callable[[], str]:
-    base = datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    base = datetime.strptime(start, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     counter = itertools.count()
     return lambda: (base + timedelta(seconds=next(counter))).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -35,9 +36,7 @@ def _noop_sleep(_seconds: float) -> None:
 def _project(chain_ledger: dict[str, Any]) -> dict[str, Any]:
     return {
         "execution_order": chain_ledger["execution_order"],
-        "iplan_chain": {
-            n["iplan_id"]: {"reconciled": n["reconciled"]} for n in chain_ledger["iplan_chain"]
-        },
+        "iplan_chain": {n["iplan_id"]: {"reconciled": n["reconciled"]} for n in chain_ledger["iplan_chain"]},
         "chain_reconciliation": chain_ledger["chain_reconciliation"],
         "chain_status": chain_ledger["chain_control"]["status"],
     }
@@ -61,10 +60,17 @@ class ChainTest(unittest.TestCase):
             ledgers = []
             for engine_id, engine in self.engines.items():
                 outcomes = scenario["mock_outcomes"]
-                executor_for = lambda iid, e=engine: e.mock_executor(outcomes.get(iid, {}))
+
+                def executor_for(iid: str, e: Any = engine, o: Any = outcomes) -> Any:
+                    return e.mock_executor(o.get(iid, {}))
+
                 result = engine.run_chain(
-                    scenario["chain"], scenario["iplans"], executor_for,
-                    clock=_make_clock(scenario["clock_start"]), ids=_make_ids(), sleep=_noop_sleep,
+                    scenario["chain"],
+                    scenario["iplans"],
+                    executor_for,
+                    clock=_make_clock(scenario["clock_start"]),
+                    ids=_make_ids(),
+                    sleep=_noop_sleep,
                 )
                 with self.subTest(engine=engine_id, scenario=scenario_path.parent.name):
                     self.assertEqual(_project(result.chain_ledger), expect)

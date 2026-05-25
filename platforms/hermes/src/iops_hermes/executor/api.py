@@ -1,4 +1,5 @@
 """Autonomous executor: a model proposes the actions (hermes A-style, D-0013)."""
+
 from __future__ import annotations
 
 import json

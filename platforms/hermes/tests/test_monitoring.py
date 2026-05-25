@@ -1,4 +1,5 @@
 """Monitoring runtime: alerts, issue record, probe server, self-telemetry (Hermes)."""
+
 from __future__ import annotations
 
 import json
@@ -19,7 +20,7 @@ ALERT = ROOT / "framework/conformance/alert"
 def test_evaluate_alerts_matches_vectors(case: str) -> None:
     inp = yaml.safe_load((ALERT / case / "input.yaml").read_text())
     expect = yaml.safe_load((ALERT / case / "expect.yaml").read_text())
-    assert {"alerts": evaluate_alerts(inp["manifest"], inp["samples"])} == expect
+    assert expect == {"alerts": evaluate_alerts(inp["manifest"], inp["samples"])}
 
 
 def test_build_issue_binds_identity() -> None:
@@ -35,6 +36,7 @@ def test_probe_server_serves_health() -> None:
     manifest = {"probes": {"health": "/healthz", "readiness": "/readyz", "startup": "/startupz"}}
     server = probe_server(manifest, lambda: {"status": "ok"})
     import threading
+
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -64,12 +66,15 @@ def test_emit_run_telemetry() -> None:
         def start_span(self, name: str, attributes: dict) -> None: ...
         def record_metric(self, name: str, value: float) -> None:
             recorded.append((name, value))
+
         def log(self, name: str, severity: str, body: str) -> None: ...
 
-    ledger = {"task_ledger": [
-        {"task_id": "T1", "status": "completed"},
-        {"task_id": "T2", "status": "blocked"},
-    ]}
+    ledger = {
+        "task_ledger": [
+            {"task_id": "T1", "status": "completed"},
+            {"task_id": "T2", "status": "blocked"},
+        ]
+    }
     emit_run_telemetry(_Provider(), ledger)
     metrics = dict(recorded)
     assert metrics["iplan.tasks.completed"] == 1

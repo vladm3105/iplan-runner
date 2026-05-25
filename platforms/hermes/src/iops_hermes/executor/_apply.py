@@ -3,6 +3,7 @@
 Shared by ScriptedExecutor (pre-written spec) and ApiExecutor (model-generated
 spec) — both produce the same typed action schema (SECURITY_MODEL: output is data).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -24,14 +25,13 @@ def apply_task_spec(
     for action in spec.get("actions", []):
         try:
             if action["type"] == "write":
-                touched.append(
-                    apply_write(action["path"], action.get("content", ""), workspace, allowed_roots)
-                )
+                touched.append(apply_write(action["path"], action.get("content", ""), workspace, allowed_roots))
             elif action["type"] == "command":
                 outcome = run_command(action["cmd"], workspace)
                 if outcome["exit_code"] != 0:
                     return ExecutorResult(
-                        outcome="failure", touched_paths=touched,
+                        outcome="failure",
+                        touched_paths=touched,
                         reason=f"command failed: {action['cmd']}",
                     )
         except PermissionError as exc:
@@ -49,7 +49,5 @@ def apply_task_spec(
         "location": "workspace",
     }
     if not result["passed"]:
-        return ExecutorResult(
-            outcome="failure", touched_paths=touched, evidence=evidence, reason="checks failed"
-        )
+        return ExecutorResult(outcome="failure", touched_paths=touched, evidence=evidence, reason="checks failed")
     return ExecutorResult(outcome="success", touched_paths=touched, evidence=evidence)

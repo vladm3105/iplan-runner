@@ -9,7 +9,9 @@ on:
     - cron: "30 2 * * 1"   # weekly, Monday 02:30 UTC
 
 permissions:
+  actions: read            # read workflow-run metadata (diff-informed analysis)
   contents: read
+  packages: read           # pull CodeQL query packs
   security-events: write   # upload results to the Security tab
 
 concurrency:

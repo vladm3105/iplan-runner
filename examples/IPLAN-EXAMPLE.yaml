@@ -1,0 +1,29 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan
+document_control:
+  iplan_id: IPLAN-EXAMPLE
+  version: 1.0.0
+exec_ready:
+  score: 95
+  approved: true
+isolation_scope:
+  client_id: acme
+  project_id: greeting-service
+  allowed_roots:
+  - src/
+  - tests/
+tasks:
+- task_id: T1
+  title: Add the greeting module
+  depends_on: []
+  acceptance:
+    criteria:
+    - src/greeting.py exposes greet()
+- task_id: T2
+  title: Add the greeting test
+  depends_on:
+  - T1
+  acceptance:
+    criteria:
+    - greet() returns the expected message

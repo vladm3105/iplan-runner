@@ -10,15 +10,16 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
   metrics/logs, alert → issue record, product-monitoring vs engine self-telemetry.
 - [x] **PLAN-011 — Chain orchestration runtime** (`v0.11.0`): `run_chain` executes
   multi-IPLAN chains (order, upstream gating, chain reconciliation).
-- [ ] **PLAN-012 / GA** (`v1.0.0`): end-to-end hardening, full security review,
-  docs, a worked example (committed + green + monitored on both engines),
-  packaging / release / distribution.
+- [x] **PLAN-012 / GA** (`v1.0.0`): end-to-end hardening, security review, docs,
+  worked example + per-engine acceptance (committed + green + monitored + signed
+  on both engines); `framework/` contract declared stable under SemVer. LICENSE +
+  packaging stay deferred (below).
 
 ## Parallel / cross-cutting (not version-gated)
 
-- [ ] **Repo CI** — workflow YAML is in `plans/HANDOFF.md`; the automation App
-  lacks `workflows` permission, so add it via the GitHub UI (Actions → new
-  workflow) or a context with that permission.
+- [x] **Repo CI** — `.github/workflows/`: CI (conformance + engine matrix +
+  ruff/mypy), CodeQL (advisory until code scanning is enabled), pip-audit +
+  gitleaks, and pre-commit; plus Dependabot. Merged via PRs #1 / #6 / #7.
 - [ ] **`LICENSE` + `CONTRIBUTING`** (G13).
 
 ## Deferred / integration-only (not in CI)

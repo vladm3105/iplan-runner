@@ -6,6 +6,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-27
+
+GA — consolidation and proof; no new contract or runtime. From this release the
+`framework/` contract is **stable under SemVer** (breaking contract changes bump
+the major version; the conformance suite is the gate).
+
+### Added
+
+- Worked end-to-end example (`examples/`): an approved SDD-IPLAN + action script
+  (real writes + checks) + monitoring manifest, with a CLI walkthrough.
+- Per-engine acceptance test (`platforms/*/tests/test_acceptance.py`) driving the
+  full pipeline on the example to **committed + green + monitored + signed** on
+  both engines (offline, deterministic).
+- Security review (`docs/SECURITY_REVIEW.md`, per-threat mitigation + its test;
+  residual risks named) + `SECURITY.md` disclosure policy.
+- Getting-started guide (`docs/GETTING_STARTED.md`); README capability set +
+  contract-stability statement.
+
+### Notes
+
+- **Out of scope** (owner-deferred, tracked in `TODO.md`): `LICENSE`,
+  packaging / distribution. Residual: full auth wiring (D-0015), ledger schema
+  migration (G10), live-executor integration coverage.
+
 ## [0.11.0] - 2026-05-24
 
 ### Added

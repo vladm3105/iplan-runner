@@ -1,4 +1,5 @@
 """Resource budget + pure enforcement decision (see RESOURCE_GOVERNANCE.md)."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

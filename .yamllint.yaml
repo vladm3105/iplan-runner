@@ -1,6 +1,10 @@
 extends: default
 
 rules:
+  # The conformance vector/scenario corpus uses mixed sequence indentation;
+  # validity is enforced by check-yaml + the conformance suite, so style-only
+  # indentation is not gated here.
+  indentation: disable
   line-length:
     max: 120
     level: warning

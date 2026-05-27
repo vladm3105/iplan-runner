@@ -4,6 +4,7 @@ Claude B-style (D-0013): the host runtime does the work; this executor records
 what changed and enforces scope — a runtime that touches a path outside
 allowed_roots is rejected (the engine governs the runtime).
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -46,13 +47,12 @@ class HostRuntimeExecutor:
 
         if not result.success:
             return ExecutorResult(
-                outcome="failure", touched_paths=list(result.changed_files),
+                outcome="failure",
+                touched_paths=list(result.changed_files),
                 reason="host runtime reported failure",
             )
         evidence = {"kind": "runtime", "summary": result.output[:200], "location": "workspace"}
-        return ExecutorResult(
-            outcome="success", touched_paths=list(result.changed_files), evidence=evidence
-        )
+        return ExecutorResult(outcome="success", touched_paths=list(result.changed_files), evidence=evidence)
 
     def compensate(self, touched_paths: list[str]) -> None:
         return None  # the host runtime owns its workspace; compensation is its concern

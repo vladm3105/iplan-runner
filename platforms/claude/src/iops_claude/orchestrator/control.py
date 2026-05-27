@@ -1,4 +1,5 @@
 """Operator blocker resolution (see framework/execution/CONTROL_MODEL.md)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,9 +21,7 @@ def resolve_blocker(
     if not verdict["allowed"]:
         raise PermissionError(f"authz denied {decision}: {verdict['reason']}")
 
-    blocker = next(
-        (b for b in ledger.get("blockers", []) if b.get("blocker_id") == blocker_id), None
-    )
+    blocker = next((b for b in ledger.get("blockers", []) if b.get("blocker_id") == blocker_id), None)
     task_id = blocker.get("task_id") if blocker else None
 
     ledger.setdefault("resolutions", []).append(
@@ -30,9 +29,7 @@ def resolve_blocker(
     )
 
     if decision == "override" and blocker is not None:
-        ledger["blockers"] = [
-            b for b in ledger["blockers"] if b.get("blocker_id") != blocker_id
-        ]
+        ledger["blockers"] = [b for b in ledger["blockers"] if b.get("blocker_id") != blocker_id]
         for entry in ledger.get("task_ledger", []):
             if entry["task_id"] == task_id:
                 entry["status"] = "pending"

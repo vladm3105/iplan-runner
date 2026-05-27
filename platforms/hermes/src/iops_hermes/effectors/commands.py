@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import subprocess
+import subprocess  # nosec B404 - sandboxed command runner; list-form, no shell
 from pathlib import Path
 from typing import Any
 
 
 def run_command(cmd: list[str], workspace: str | Path) -> dict[str, Any]:
-    proc = subprocess.run(
+    proc = subprocess.run(  # nosec - list-form args, no shell; commands are plan-scoped
         cmd,
         cwd=str(workspace),
         capture_output=True,

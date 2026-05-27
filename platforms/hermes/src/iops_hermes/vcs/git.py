@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import subprocess
+import subprocess  # nosec B404 - git landing; fixed argv, list-form, no shell
 from pathlib import Path
 
 
 def _git(workspace: str | Path, *args: str) -> str:
-    proc = subprocess.run(
+    proc = subprocess.run(  # nosec - fixed git argv, list-form, no shell
         ["git", "-C", str(workspace), *args],
         check=True,
         capture_output=True,

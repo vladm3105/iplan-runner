@@ -1,4 +1,5 @@
 """Budget decisions + config loading (Claude)."""
+
 from __future__ import annotations
 
 from pathlib import Path

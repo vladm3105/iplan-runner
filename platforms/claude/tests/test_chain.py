@@ -1,4 +1,5 @@
 """Chain orchestration: order, linear, upstream block, control (Claude)."""
+
 from __future__ import annotations
 
 import itertools
@@ -15,16 +16,21 @@ CHAIN = {
         {"iplan_id": "IPLAN-001", "order": 1, "depends_on": []},
         {"iplan_id": "IPLAN-002", "order": 2, "depends_on": ["IPLAN-001"]},
     ],
-    "execution_tiers": [], "cross_plan_leases": [],
+    "execution_tiers": [],
+    "cross_plan_leases": [],
 }
 
 
 def _manifest(source: str) -> dict:
     return {
         "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},
-        "intake_control": {"source_iplan": source, "source_iplan_version": "1.0.0",
-                           "source_iplan_checksum": "sha256:" + "a" * 64,
-                           "exec_ready_score": 92, "approved": True},
+        "intake_control": {
+            "source_iplan": source,
+            "source_iplan_version": "1.0.0",
+            "source_iplan_checksum": "sha256:" + "a" * 64,
+            "exec_ready_score": 92,
+            "approved": True,
+        },
         "isolation_scope": {"client_id": "c", "project_id": "p", "allowed_roots": ["src/"]},
         "task_graph": [{"task_id": "T1", "title": "do", "depends_on": [], "acceptance": {"criteria": ["x"]}}],
     }
@@ -58,10 +64,11 @@ def test_chain_order() -> None:
 
 def test_chain_linear_reconciles() -> None:
     engine = ClaudeEngine()
-    outcomes = {"IPLAN-001": {"T1": {"outcome": "success", "evidence": EV}},
-                "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}}}
-    result = engine.run_chain(CHAIN, IPLANS, _exec_for(outcomes),
-                              clock=_clock(), ids=IdSource(), sleep=_noop_sleep)
+    outcomes = {
+        "IPLAN-001": {"T1": {"outcome": "success", "evidence": EV}},
+        "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}},
+    }
+    result = engine.run_chain(CHAIN, IPLANS, _exec_for(outcomes), clock=_clock(), ids=IdSource(), sleep=_noop_sleep)
     flags = {n["iplan_id"]: n["reconciled"] for n in result.chain_ledger["iplan_chain"]}
     assert flags == {"IPLAN-001": True, "IPLAN-002": True}
     assert result.chain_ledger["chain_reconciliation"]["allowed"] is True
@@ -69,10 +76,11 @@ def test_chain_linear_reconciles() -> None:
 
 def test_chain_upstream_block() -> None:
     engine = ClaudeEngine()
-    outcomes = {"IPLAN-001": {"T1": {"outcome": "failure", "reason": "boom"}},
-                "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}}}
-    result = engine.run_chain(CHAIN, IPLANS, _exec_for(outcomes),
-                              clock=_clock(), ids=IdSource(), sleep=_noop_sleep)
+    outcomes = {
+        "IPLAN-001": {"T1": {"outcome": "failure", "reason": "boom"}},
+        "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}},
+    }
+    result = engine.run_chain(CHAIN, IPLANS, _exec_for(outcomes), clock=_clock(), ids=IdSource(), sleep=_noop_sleep)
     flags = {n["iplan_id"]: n["reconciled"] for n in result.chain_ledger["iplan_chain"]}
     assert flags == {"IPLAN-001": False, "IPLAN-002": False}
     assert "IPLAN-002" not in result.sub_ledgers  # not run (upstream unreconciled)
@@ -81,10 +89,18 @@ def test_chain_upstream_block() -> None:
 
 def test_chain_control_abort() -> None:
     engine = ClaudeEngine()
-    outcomes = {"IPLAN-001": {"T1": {"outcome": "success", "evidence": EV}},
-                "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}}}
-    result = engine.run_chain(CHAIN, IPLANS, _exec_for(outcomes),
-                              clock=_clock(), ids=IdSource(), sleep=_noop_sleep,
-                              control=_control(["running", "aborted"]))
+    outcomes = {
+        "IPLAN-001": {"T1": {"outcome": "success", "evidence": EV}},
+        "IPLAN-002": {"T1": {"outcome": "success", "evidence": EV}},
+    }
+    result = engine.run_chain(
+        CHAIN,
+        IPLANS,
+        _exec_for(outcomes),
+        clock=_clock(),
+        ids=IdSource(),
+        sleep=_noop_sleep,
+        control=_control(["running", "aborted"]),
+    )
     assert "IPLAN-001" in result.sub_ledgers
     assert "IPLAN-002" not in result.sub_ledgers

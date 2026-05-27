@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 120
-target-version = "py312"
+target-version = "py311"  # engines require-python >=3.11; avoid py312-only rewrites
 
 [tool.ruff.lint]
 select = [
@@ -22,5 +22,6 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.bandit]
-exclude_dirs = ["framework", "business", "iplanic", "iops-framework", "operations"]
+# Product source only; tests use asserts (B101) and controlled subprocess/urllib.
+exclude_dirs = ["tests"]
 skips = ["B101", "B311"]

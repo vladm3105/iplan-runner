@@ -154,16 +154,17 @@ the evidence runner (Phase 4) and **committed** by landing/VCS integration
 
 - Execute multi-IPLAN chains (tiers, cross-plan leases, chain reconciliation) —
   today chains are only validated.
-- Status: **planned** — `plans/PLAN-011`.
+- Status: **done** — `plans/PLAN-011` (`v0.11.0`).
 
 ### Phase 12 — Execution engine GA  → `v1.0.0`
 
 - End-to-end hardening, full security review, docs, and a worked example driving
   an IPLAN to a **committed + green**, gate-passing, monitored result on both
-  engines.
-- **Packaging / release / distribution** (container + library, versioned,
-  published).
-- Status: **planned**.
+  engines — proven by the per-engine acceptance test.
+- The `framework/` contract is declared **stable under SemVer**.
+- **Packaging / release / distribution** and `LICENSE`: owner-deferred (out of
+  GA; tracked in `TODO.md`).
+- Status: **done** — `plans/PLAN-012` (`v1.0.0`).
 
 ## Tracked items
 

@@ -3,11 +3,20 @@
 > Sessions run in ephemeral containers. **Only committed + pushed work
 > survives.** Keep this file current before stopping or switching context.
 
-## Current state - 2026-05-23
+## Current state - 2026-05-27
 
-- Branch: `claude/iplan-execution-framework-jc03k`
-- Phase: **PLAN-001 implemented** (SDD workflow: plan → 4 review passes →
-  implement → verify → land).
+- Phase: **GA — `v1.0.0` (PLAN-012 DONE).** All 12 phases complete; the
+  `framework/` contract is declared **stable under SemVer**.
+- GA added: worked example (`examples/`), per-engine end-to-end acceptance
+  (`platforms/*/tests/test_acceptance.py` — committed + green + monitored +
+  signed on both engines), security review (`docs/SECURITY_REVIEW.md` +
+  `SECURITY.md`), getting-started (`docs/GETTING_STARTED.md`), README + CHANGELOG
+  `[1.0.0]`. Out (owner-deferred): LICENSE, packaging/distribution.
+- Repo CI is committed (CI / CodeQL / security / pre-commit + Dependabot;
+  PRs #1/#6/#7); pre-commit is enforced.
+- Branch (historical): `claude/iplan-execution-framework-jc03k`.
+- Phase 1 baseline: **PLAN-001 implemented** (SDD workflow: plan → 4 review
+  passes → implement → verify → land).
 - Repo decisions captured in `plans/DECISIONS.md` (D-0001..D-0012; D-0007
   superseded by D-0011).
 - `plans/PLAN-001_iplan-execution-ledger-runtime.md` — **DONE** (`v0.1.0`).

@@ -1,0 +1,35 @@
+# Action script for the ScriptedExecutor: task_id -> {actions, checks}.
+# Each task writes real files into the (sandboxed) workspace, then runs a
+# deterministic check command (list-form, no shell) that must exit 0.
+T1:
+  actions:
+  - type: write
+    path: src/greeting.py
+    content: |
+      def greet(name: str) -> str:
+          return f"hello, {name}"
+  checks:
+  - name: greeting-importable
+    command:
+    - python
+    - -c
+    - import sys; sys.path.insert(0, "src"); import greeting; sys.exit(0 if hasattr(greeting, "greet") else 1)
+T2:
+  actions:
+  - type: write
+    path: tests/test_greeting.py
+    content: |
+      import sys
+
+      sys.path.insert(0, "src")
+      from greeting import greet
+
+
+      def test_greet() -> None:
+          assert greet("world") == "hello, world"
+  checks:
+  - name: greeting-behaves
+    command:
+    - python
+    - -c
+    - import sys; sys.path.insert(0, "src"); import greeting; sys.exit(0 if greeting.greet("world") == "hello, world" else 1)

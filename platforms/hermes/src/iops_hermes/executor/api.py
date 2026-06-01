@@ -17,7 +17,7 @@ def build_prompt(task: dict[str, Any]) -> str:
     return (
         f"Task {task.get('task_id')}: {task.get('title')}\n"
         f"Acceptance: {task.get('acceptance')}\n"
-        "Respond with JSON {\"actions\": [...], \"checks\": [...]}."
+        'Respond with JSON {"actions": [...], "checks": [...]}.'
     )
 
 

@@ -82,5 +82,9 @@ Runtime internals may still evolve within the contract.
 | `docs/` | Getting-started guide + security review |
 | `plans/` | Development plans + decisions |
 
-See `CLAUDE.md` for the development workflow and `plans/DECISIONS.md` for
-architecture rationale.
+See `CLAUDE.md` for the development workflow, [`CONTRIBUTING.md`](CONTRIBUTING.md)
+for how to contribute, and `plans/DECISIONS.md` for architecture rationale.
+
+## License
+
+Apache License 2.0 — see [`LICENSE`](LICENSE).

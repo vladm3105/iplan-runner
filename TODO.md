@@ -20,7 +20,7 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
 - [x] **Repo CI** — `.github/workflows/`: CI (conformance + engine matrix +
   ruff/mypy), CodeQL (advisory until code scanning is enabled), pip-audit +
   gitleaks, and pre-commit; plus Dependabot. Merged via PRs #1 / #6 / #7.
-- [ ] **`LICENSE` + `CONTRIBUTING`** (G13).
+- [x] **`LICENSE` + `CONTRIBUTING`** (G13): Apache-2.0.
 
 ## Deferred / integration-only (not in CI)
 

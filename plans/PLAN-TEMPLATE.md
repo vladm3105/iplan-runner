@@ -4,6 +4,11 @@
 > `aidoc-flow-framework`: **plan → review (≥2 passes) → implement → verify →
 > land**. A plan needs at least two review passes recorded in `## Review log`
 > before it may be implemented; harden until a pass finds nothing.
+>
+> **Size the plan to the problem.** ~N fixes for N discovered issues, not N
+> speculative features. A plan should be good enough to do what it's for, not a
+> "perfect plan to do everything." If a review pass surfaces more gaps than the
+> original problem had, the surplus is speculative scope — cut it.
 
 **Goal:** <one-sentence outcome>
 
@@ -86,7 +91,9 @@ Expected:
 
 > At least **two** passes before implementation. Each pass: re-read the whole
 > plan, list findings, fold fixes back into the sections above. Stop when a pass
-> finds nothing.
+> finds nothing. **If a pass produces findings beyond the original problem's
+> issue count, treat the surplus as speculative scope and cut it rather than
+> folding it in.**
 
 ### Pass 1 - <ISO-8601>
 

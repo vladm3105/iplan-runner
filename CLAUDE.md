@@ -31,7 +31,10 @@ See `plans/DECISIONS.md` for the architecture decisions (D-0001..D-0012).
 **plan → review (≥2 passes) → implement → verify → land.**
 
 1. Plan into `plans/` before touching code. A plan needs ≥2 review passes
-   recorded in its `## Review log` before implementation.
+   recorded in its `## Review log` before implementation. **Size the plan to
+   the problem:** ~N fixes for N discovered issues, not N speculative features.
+   If a review pass surfaces more gaps than the original problem had, the
+   surplus is speculative scope — cut it.
 2. Implement one task per commit (conventional prefix: `feat`/`fix`/`test`/
    `docs`/`chore`/`refactor`).
 3. Verify before calling anything done (see below).

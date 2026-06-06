@@ -18,7 +18,9 @@ Captured in `CLAUDE.md`; in short:
 
 1. **Plan first.** Drop a plan into `plans/` (start from
    `plans/PLAN-TEMPLATE.md`); it must pass **≥2 review passes** in its
-   `## Review log` before implementation.
+   `## Review log` before implementation. **Size the plan to the problem** —
+   ~N fixes for N discovered issues, not N speculative features. If a review
+   pass surfaces more gaps than the original problem had, cut the surplus.
 2. **One task per commit** (conventional prefixes: `feat` / `fix` / `test` /
    `docs` / `chore` / `refactor`).
 3. **Verify before calling anything done** (see below).

@@ -3,6 +3,124 @@
 > Sessions run in ephemeral containers. **Only committed + pushed work
 > survives.** Keep this file current before stopping or switching context.
 
+## Current state - 2026-06-07
+
+**Post-GA. Direction reframed: IOPS is a remote executor for Iplanic.**
+
+### What's merged on `main` since GA
+
+- `v1.0.0` GA (PR #8, PLAN-012 DONE): `examples/`, per-engine acceptance
+  (`platforms/*/tests/test_acceptance.py`), `docs/SECURITY_REVIEW.md` +
+  `SECURITY.md`, `docs/GETTING_STARTED.md`, contract-stability statement.
+- `LICENSE` (Apache-2.0 canonical text) + `CONTRIBUTING.md` (PR #10). G13 done.
+- pip-audit CI fix: `python -m pip install --upgrade pip` before audit so
+  `PYSEC-2026-196` against the runner's bundled pip stops blocking all PRs.
+- Plan-sizing rule (PR #11) encoded in `CLAUDE.md`, `plans/PLAN-TEMPLATE.md`
+  (preamble + review-log instructions), and `CONTRIBUTING.md`. New plans must
+  be sized to the problem; surplus surfaced by a review pass is speculative
+  scope and must be cut.
+- CI is fully wired and green: conformance + engine matrix (hermes/claude ×
+  py3.11/3.12) + ruff + mypy --strict + pre-commit + pip-audit + gitleaks;
+  CodeQL is advisory (`continue-on-error`) until code scanning is enabled on
+  the repo. Dependabot weekly. All version markers at `1.0.0`.
+
+### Strategic clarification (the architecture has three layers, not two)
+
+```
+SDD (aidoc-flow-framework)    -> authors the IPLAN (Layer 8 document)
+Iplanic (aidoc-flow-iplanic)  -> hosted execution control plane:
+                                 plan lifecycle, order, executor assignment,
+                                 signed logs, evidence, knowledge graph.
+                                 NOT the executor.
+IOPS (this repo)              -> remote AI execution worker: hermes / claude
+                                 connect to Iplanic over A2A + MCP + signed
+                                 log-ingestion contracts.
+```
+
+Iplanic's IPLAN-STANDARD.md (read into a prior chat turn from the Iplanic repo
+`docs/standards/IPLAN-STANDARD.md`) defines the plan + chain + remote-executor
+model. **IOPS does NOT define the IPLAN handoff** — Iplanic does. IOPS's job
+is to become a conformant remote executor.
+
+When plugged into Iplanic: IOPS's `run_chain` is unused (Iplanic owns chain
+orchestration), the engine completion gate becomes advisory (Iplanic owns the
+completion gate), and the HMAC-signed ledger events become the basis for
+signed log-ingestion upstream. Standalone IOPS still works unchanged.
+
+### Concrete IOPS ↔ Iplanic mapping (from reading IPLAN-STANDARD.md)
+
+| Concern | Iplanic standard | IOPS today |
+|---|---|---|
+| What IOPS consumes | Runtime task payload from `IPLAN-TASK-TEMPLATE.yaml` (binds intent to `task_id`/`run_id`/`executor_id`/lease/grants/`executor_work`/`executor_context`/reporting/failure-handling) | `iplan-intake` manifest — different shape; no payload-mode intake yet |
+| ID granularity | `step_id` → `work_order_id` → `todo_id` + runtime `task_id` | Flat `task_id` |
+| Context model | `executor_context` block: repo, workspace write scope, knowledge refs, MCP tools, secrets policy, forbidden paths; "executor must not infer missing context" | `isolation_scope.allowed_roots` + `Config.secrets` (subset) |
+| Signed events | Streamed to Iplanic's signed log-ingestion endpoint | HMAC-signed in the engine ledger; no upstream ingestion |
+| Completion authority | Iplanic — "executor self-reporting is not enough" | Engine-local gate (correct standalone; advisory when plugged in) |
+| Lease / grants | Iplanic-minted (lease expiry, grants in payload) | Engine-local leases |
+| Failure handling | Per-payload instructions from Iplanic | Engine saga (retry/compensate) |
+| Chain orchestration | Iplanic owns it | IOPS has `run_chain` — unused when plugged into Iplanic |
+| TMP-IPLAN | First-class artifact (source + return handoffs, `return_gate`) | Unsupported |
+| Plan-vs-state separation | Approved plan canonical; must not be mutated; execution state separate | IOPS already separates intake from ledger ✓ |
+
+What aligns well already: HMAC ledger → signed log-ingestion; hermes MCP tool
+surface → MCP connector role; sandbox + allowed_roots → subset of
+`executor_context`; per-task evidence runner; read-only-intake principle.
+
+### Blocking — what the next session needs before drafting PLAN-013
+
+The Iplanic repo (`vladm3105/aidoc-flow-iplanic`) is **private** to my GitHub
+MCP scope and unauthenticated raw reads return 404. To draft a non-speculative
+PLAN-013 (per the plan-sizing rule), the next session needs the **byte-level
+contracts**, not just the prose standard:
+
+1. `docs/standards/templates/IPLAN-TASK-TEMPLATE.yaml` — the actual runtime
+   task-payload shape IOPS must consume. **Most important.**
+2. `schemas/remote-executor.*` — executor registration contract.
+3. `schemas/execution-event.*` — the signed event format IOPS must emit
+   upstream.
+4. `docs/PROTOCOLS.md` — concrete A2A / MCP / log-ingestion roles.
+5. `docs/standards/IPLAN-DEFINITIONS.md` + `IPLAN-MANAGEMENT.md` — shared
+   terminology and lifecycle rules (so we don't misuse `EXEC-Ready`, statuses,
+   handoffs, comparison terms).
+
+Options to unblock: paste these files into chat (fastest if Iplanic stays
+private), or widen the Claude Code on the web environment's MCP repo scope to
+include `vladm3105/aidoc-flow-iplanic`, or make the relevant Iplanic paths
+public.
+
+### Next step — PLAN-013 (narrowly scoped, per the plan-sizing rule)
+
+Title: **Iplanic remote-executor conformance.**
+
+In:
+
+- (a) Payload-mode intake — consume Iplanic's task payload (`IPLAN-TASK-TEMPLATE.yaml`)
+  in addition to the existing `iplan-intake` manifest; map payload IDs
+  (`step_id`/`work_order_id`/`todo_id`) onto the engine's task model.
+- (b) Signed log-ingestion — emit HMAC-signed engine ledger events to
+  Iplanic's execution-event endpoint per the `execution-event` schema.
+- (c) `executor_context` honoring — extend the sandbox to read forbidden
+  paths, MCP-tool allowlist, and secrets policy from the payload rather than
+  engine config; "executor must not infer missing context."
+- (d) Conformance vectors at the boundary — golden vectors proving payload
+  acceptance, event emission shape, and context enforcement.
+
+Out (explicit speculative-scope cuts):
+
+- TMP-IPLAN support (add later if needed).
+- Reworking `run_chain` for Iplanic's tier/sequence chain model (Iplanic owns
+  chain orchestration when plugged in; standalone `run_chain` stays).
+- Full D-0015 auth wiring (already its own deferred item).
+- Changes to SDD or Iplanic repos.
+
+### Branch / PR pattern
+
+Established and working: branch off latest `origin/main` (don't reuse
+historical `claude/iplan-execution-framework-jc03k`), commit per task,
+PR into `main`, subscribe via `mcp__github__subscribe_pr_activity` if needed.
+CodeQL upload remains advisory until code scanning is enabled on the repo;
+SARIF rejection there is expected and does not block merges.
+
 ## Current state - 2026-05-27
 
 - Phase: **GA — `v1.0.0` (PLAN-012 DONE).** All 12 phases complete; the

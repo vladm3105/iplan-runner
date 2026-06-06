@@ -28,8 +28,11 @@ jobs:
 
       # Audit the resolved runtime closure of both engines (base deps only;
       # the optional otel/anthropic/litellm extras are integration-only).
+      # Upgrade pip first: the hosted runner's bundled pip may itself carry an
+      # advisory (e.g. PYSEC-2026-196 in pip 26.1.1) that pip-audit would flag.
       - name: Install engines + pip-audit
         run: |
+          python -m pip install --upgrade pip
           pip install -e ./platforms/hermes -e ./platforms/claude
           pip install pip-audit
 

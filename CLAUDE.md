@@ -38,7 +38,16 @@ See `plans/DECISIONS.md` for the architecture decisions (D-0001..D-0012).
 2. Implement one task per commit (conventional prefix: `feat`/`fix`/`test`/
    `docs`/`chore`/`refactor`).
 3. Verify before calling anything done (see below).
-4. Update `plans/HANDOFF.md` before stopping — **only committed + pushed work
+4. **Update docs with code.** Any PR that touches `framework/` or
+   `platforms/<engine>/src/` (or an engine's `pyproject.toml` /
+   `FRAMEWORK_SPEC_VERSION`) must update `CHANGELOG.md` in the same PR —
+   an `[Unreleased]` entry is enough; a release header on a version cut. Also
+   update `plans/HANDOFF.md`, `TODO.md`, `ROADMAP.md`, `README.md`, and
+   `docs/**` as their content is affected. CI gates the `CHANGELOG.md`
+   requirement (`.github/workflows/docs-gate.yml` → `tests/chg/docs_gate.py`);
+   include `[no-changelog]` in a commit message when the change is genuinely
+   not user-facing (internal refactor, pure test, CI-only).
+5. Update `plans/HANDOFF.md` before stopping — **only committed + pushed work
    survives** the ephemeral container.
 
 ## Durable conventions

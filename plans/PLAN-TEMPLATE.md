@@ -93,18 +93,30 @@ Expected:
 |---|------|------------|
 | R1 | <risk> | <mitigation> |
 
+## Claim ledger
+
+> Every load-bearing claim (file path, signature, field/key, event/enum value,
+> behavioral assertion) cites the `file:line` you actually read. `UNVERIFIED`
+> rows must be resolved before the plan is ready.
+> `.claude/skills/verified-planning/check_plan.py` checks each citation resolves.
+
+| # | Claim | Symbol | Citation |
+|---|-------|--------|----------|
+| 1 | <claim> | `<symbol>` | <path>:<line> |
+
 ## Review log
 
-> At least **two** passes before implementation. Each pass: re-read the whole
-> plan, list findings, fold fixes back into the sections above. Stop when a pass
-> finds nothing. **If a pass produces findings beyond the original problem's
-> issue count, treat the surplus as speculative scope and cut it rather than
-> folding it in.**
+> At least **two** passes before implementation; **at least one MUST be an
+> independent fresh-context review** (dispatch the `Agent` tool — author
+> self-review does not count). Each pass: re-read the whole plan, list findings,
+> fold fixes back in. The final pass must state **zero findings**. **If a pass
+> produces findings beyond the original problem's issue count, treat the surplus
+> as speculative scope and cut it rather than folding it in.**
 
 ### Pass 1 - <ISO-8601>
 
 - <finding → how the plan was changed>
 
-### Pass 2 - <ISO-8601>
+### Pass 2 - <ISO-8601> - independent
 
-- <finding, or "no new findings">
+- <findings from the fresh-context reviewer, or "no new findings">

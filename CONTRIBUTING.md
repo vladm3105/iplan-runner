@@ -57,6 +57,12 @@ pip-audit, and gitleaks.
 - Include a brief `## Summary` and a `## Test plan` (what you ran, what passed).
 - For contract changes: link the relevant plan + bump `framework/VERSION`,
   registry `spec_version`, and both engines' `FRAMEWORK_SPEC_VERSION` together.
+- **Update docs with code.** If the PR touches `framework/` or an engine's
+  `src/`, `pyproject.toml`, or `FRAMEWORK_SPEC_VERSION`, update `CHANGELOG.md`
+  in the same PR (`[Unreleased]` is enough). Also update `plans/HANDOFF.md`,
+  `TODO.md`, `ROADMAP.md`, `README.md`, and `docs/**` as their content is
+  affected. CI gates the `CHANGELOG.md` requirement; include `[no-changelog]`
+  in a commit message when the change is genuinely not user-facing.
 
 ## Security
 

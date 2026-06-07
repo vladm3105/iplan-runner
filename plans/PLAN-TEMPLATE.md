@@ -9,6 +9,12 @@
 > speculative features. A plan should be good enough to do what it's for, not a
 > "perfect plan to do everything." If a review pass surfaces more gaps than the
 > original problem had, the surplus is speculative scope — cut it.
+>
+> **Docs travel with code.** If the plan changes user-facing behavior, include
+> a `CHANGELOG.md` update (and any affected `README.md` / `ROADMAP.md` /
+> `plans/HANDOFF.md` / `TODO.md` / `docs/**`) as part of the last task. CI
+> gates the `CHANGELOG.md` requirement on PRs touching `framework/` or an
+> engine's `src/`.
 
 **Goal:** <one-sentence outcome>
 

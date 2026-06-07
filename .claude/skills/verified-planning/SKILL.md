@@ -44,14 +44,20 @@ load-bearing findings**. Only then is the plan ready / may the PR open.
 ## 3. Run the gate
 
 Before declaring ready: `python .claude/skills/verified-planning/check_plan.py
-<plan>`. It verifies the citations resolve and the Review log is structured. The
-script checks *form and citation-resolution*; it cannot check that the review was
-genuinely independent or that the ledger is complete — that is step 2's job. Fix
-anything it flags. (The gate resolves cited paths relative to the plan's own repo
-root — the nearest `.git` ancestor — so cite paths relative to that repo.)
+<plan>`. On success it prints `ok <plan> — verified N citation(s), M review
+pass(es)`. It checks *form and citation-resolution*; it cannot check that the
+review was genuinely independent or that the ledger is complete — that is step
+2's job. Fix anything it flags.
+
+- **Scaffold a new plan:** `check_plan.py --init <plan>` appends the
+  `## Claim ledger` + `## Review log` sections (idempotent).
+- **Cite paths relative to the plan's own repo root** (nearest `.git` ancestor).
+  For **cross-repo** citations (a sibling repo), add `--root <dir>` — citations
+  resolve against the plan's repo first, then each `--root` in order.
 
 ## What "ready" means
 
 Claim ledger has zero `UNVERIFIED` rows and the gate passes; the Review log has
-≥2 passes, ≥1 independent, and the final pass states zero findings. This layers
-on top of `superpowers:writing-plans` — it does not replace it.
+≥2 passes, ≥1 independent, and the final pass states zero findings — end it with
+an explicit `**Result:** ready` line (or "no new/further/load-bearing findings").
+This layers on top of `superpowers:writing-plans` — it does not replace it.

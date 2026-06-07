@@ -21,4 +21,7 @@
 
 ### Pass 2 - <ISO-date> - independent
 
-- <findings from the fresh-context reviewer, or "no new findings">
+- <findings from the fresh-context reviewer; fold each fix back in>
+
+> When the final independent pass is clean, end it with an explicit marker the
+> gate recognizes unambiguously: **Result:** ready — no further findings.

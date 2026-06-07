@@ -159,6 +159,18 @@ immediately.
 - Forcing the PLAN convention onto repos that don't use formal plans.
 - Changing `superpowers:writing-plans` (we layer on top, not fork it).
 
+## Enhancements (2026-06-07, post-merge)
+
+- **Robust green-final detection** — replaced the brittle phrase-regex (which
+  false-rejected "no load-bearing findings") with a bounded adjective list + an
+  explicit `**Result:** ready` marker; tightened to avoid false-matching "no fix
+  for these findings".
+- **Cross-repo citations** — `check_plan.py --root <dir>` (repeatable) resolves
+  citations against the plan's repo root *then* each extra root, so sibling-repo
+  claims can be gated instead of hand-excluded.
+- **Ledger UX** — success prints `verified N citation(s), M review pass(es)`;
+  `--init <plan>` scaffolds the ledger + review sections (idempotent).
+
 ## Resolved decisions
 
 - **No central source; each repo independent.** Master = `~/.claude/skills/

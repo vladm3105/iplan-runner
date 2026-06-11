@@ -8,8 +8,10 @@ so it is the parity surface (golden vectors + cross-engine differential, D-0012)
 ## Decision
 
 ```
-classify_path(path: str, allowed_roots: list[str]) -> {allowed: bool, reason: str}
+classify_path(path: str, allowed_roots: list[str], forbidden_paths: list[str] = ()) -> {allowed: bool, reason: str}
 ```
+
+`forbidden_paths` is optional (default empty), so existing callers are unchanged.
 
 Algorithm (lexical; POSIX):
 
@@ -17,16 +19,23 @@ Algorithm (lexical; POSIX):
 2. Let `p = normpath(path)`. If `p == ".."` or `p` starts with `"../"` → deny,
    reason `SANDBOX.ESCAPE`.
 3. For each root `R`, let `r = normpath(R)`. If `p == r` or `p` starts with
-   `r + "/"` → allow, reason `SANDBOX.OK`.
+   `r + "/"` (the positive jail): if `p == f` or `p` starts with `f + "/"` for any
+   forbidden `f = normpath(F)` → deny, reason `SANDBOX.FORBIDDEN`; otherwise →
+   allow, reason `SANDBOX.OK`.
 4. Otherwise → deny, reason `SANDBOX.OUTSIDE_ROOTS`.
+
+`SANDBOX.FORBIDDEN` is checked **after** the positive jail, so `SANDBOX.ESCAPE`
+(step 1–2) and `SANDBOX.OUTSIDE_ROOTS` (step 4) still take precedence — a path is
+`FORBIDDEN` only when it is inside an allowed root **and** under a forbidden prefix.
 
 ## Reason codes
 
 | Code | Meaning |
 |------|---------|
-| `SANDBOX.OK` | Path is within an allowed root; the effect may proceed. |
+| `SANDBOX.OK` | Path is within an allowed root and not under a forbidden prefix; the effect may proceed. |
 | `SANDBOX.OUTSIDE_ROOTS` | Relative, non-escaping, but not under any allowed root. |
 | `SANDBOX.ESCAPE` | Absolute path, or escapes the workspace via `..`. |
+| `SANDBOX.FORBIDDEN` | Inside an allowed root but at/under a `forbidden_paths` prefix. |
 
 These are **decision outputs**, not document-validation findings — they are not
 in `framework/conformance/rule-ids.yaml` (which is for `validate()` findings).

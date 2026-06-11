@@ -1,0 +1,32 @@
+# Vendored mirror of the Iplanic execution-event — the EMITTED REQUIRED FIELDS.
+#
+#   source repo:    iplanic (sibling)
+#   source schema:  schemas/execution-event.schema.json
+#   schema_version: 1.2-draft
+#   pinned commit:  bf3b9b6
+#
+# Every event IOPS emits must carry exactly these required fields; `signature`
+# carries exactly {key_id, algorithm, value} (additionalProperties:false). The
+# conformance check asserts emitted events match this required-field set.
+# `received_at` is set = `occurred_at` offline; Iplanic overwrites it on ingest.
+
+required:
+  - org_id
+  - project_id
+  - iplan_id
+  - plan_version_id
+  - run_id
+  - task_id
+  - step_id
+  - executor_id
+  - trace_id
+  - event_id
+  - idempotency_key
+  - event_type
+  - occurred_at
+  - received_at
+  - status
+  - artifact_refs
+  - signature
+
+signature_keys: [key_id, algorithm, value]

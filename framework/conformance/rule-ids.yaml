@@ -9,7 +9,7 @@
 
 metadata:
   schema_version: "1.0"
-  spec_version: "0.1.0"
+  spec_version: "0.2.0"
 
 categories:
   IPLAN-007: "Execution ledger validation"
@@ -18,6 +18,7 @@ categories:
   MON-001: "Monitoring manifest validation"
   INTAKE-001: "IPLAN intake manifest validation"
   HANDOVER-001: "Handover receipt validation"
+  REMOTE-001: "Iplanic remote-executor task-payload validation"
 
 severities: [error, warning]
 
@@ -161,3 +162,17 @@ rules:
     category: "HANDOVER-001"
     severity: error
     description: "result.status is completed but reconciled is not true."
+
+  # --- Iplanic remote-executor payload (REMOTE-001) ---
+  - id: "REMOTE.PAYLOAD_IDS_MISSING"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload is missing a required identity field (org_id, project_id, run_id, step_id, or executor_id)."
+  - id: "REMOTE.PAYLOAD_NO_TODOS"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload work_order has no todos."
+  - id: "REMOTE.PAYLOAD_CONTEXT_MISSING"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload is missing context_package (repository / forbidden_paths cannot be inferred)."

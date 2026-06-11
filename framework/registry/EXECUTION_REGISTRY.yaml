@@ -6,7 +6,7 @@
 
 metadata:
   framework: "AI Doc Flow IOps"
-  spec_version: "1.0.0"
+  spec_version: "1.1.0"
   template_policy: unified_yaml
 
 artifacts:
@@ -53,6 +53,7 @@ protocol_docs:
   - "framework/intake/INTAKE_CONTRACT.md"
   - "framework/handover/HANDOVER_CONTRACT.md"
   - "framework/effectors/SANDBOX_CONTRACT.md"
+  - "framework/remote/REMOTE_EXECUTOR_CONTRACT.md"
   - "framework/effectors/EVIDENCE_CONTRACT.md"
   - "framework/vcs/LANDING_CONTRACT.md"
   - "framework/security/SECURITY_MODEL.md"
@@ -67,6 +68,10 @@ scenarios_root: "framework/conformance/scenarios"
 sandbox_root: "framework/conformance/sandbox"
 leases_root: "framework/conformance/leases"
 signing_root: "framework/conformance/signing"
+remote_root: "framework/conformance/remote"
+remote_mirrors:
+  - "framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml"
+  - "framework/remote/EXECUTION-EVENT-TEMPLATE.yaml"
 authz_root: "framework/conformance/authz"
 budget_root: "framework/conformance/budget"
 alert_root: "framework/conformance/alert"

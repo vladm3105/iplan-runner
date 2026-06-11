@@ -169,6 +169,25 @@ vectors (`framework/remote/iplanic-vectors/`, version-pinned) and reproduces the
 byte-for-byte. `sign` returns the hex `value`; the consumer assembles the event
 `signature` object. PLAN-013's event emission consumes this signer. (PLAN-014.)
 
+### D-0016 - Additive Iplanic remote-executor contract (vendored, transport-agnostic) - 2026-06-11
+
+IOPS becomes a **conformant remote executor for Iplanic** additively: a second
+intake front door (`ingest_task_payload`) maps Iplanic's task payload to the same
+`iplan-intake` manifest the run loop already consumes, and event emission
+(`to_execution_events`) projects the existing signed ledger into Iplanic's
+`execution-event` shape. The standalone run loop, ledger, gate, saga, and evidence
+runner are **unchanged**.
+
+Iplanic's schemas are **never imported**: the consumed payload subset and the
+emitted event required-field list are **vendored, version-pinned mirrors** under
+`framework/remote/` (drift surfaces as a failing conformance vector, not a runtime
+dependency). Emission is **offline / in-memory**; a live HTTP POST to Iplanic
+ingestion is integration-only (PLAN-008 boundary). Signing uses the
+`iplan-canonical-json` signer (D-0017). The sandbox `classify_path` gains an
+optional `forbidden_paths` arg + `SANDBOX.FORBIDDEN` reason (checked after the
+positive jail; existing callers unchanged). New rule category `REMOTE-001` with
+`REMOTE.PAYLOAD_*`. (PLAN-013.)
+
 ### D-0015 - Auth: agent-first (M2M/A2A) identity + pluggable, layered authorization - 2026-05-24
 
 IPLAN is **agent-first**: actors are agents/machines (engines, sub-agents, CI)

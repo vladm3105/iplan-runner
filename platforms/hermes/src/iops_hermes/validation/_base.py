@@ -42,6 +42,9 @@ SEVERITY: dict[str, str] = {
     "HANDOVER.STATUS_INVALID": "error",
     "HANDOVER.GATE_NOT_PASSED": "error",
     "HANDOVER.NOT_RECONCILED": "error",
+    "REMOTE.PAYLOAD_IDS_MISSING": "error",
+    "REMOTE.PAYLOAD_NO_TODOS": "error",
+    "REMOTE.PAYLOAD_CONTEXT_MISSING": "error",
 }
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -12,9 +13,12 @@ import yaml  # type: ignore[import-untyped]
 from ..audit.report import build_audit_report
 from ..engine import ClaudeEngine, _default_clock
 from ..executor.base import IdSource
+from ..intake.payload import ingest_task_payload
+from ..ledger.events import to_execution_events
 from ..ledger.index import list_runs, set_control, status, store_control
 from ..ledger.persistence import ledger_path, load, save
 from ..monitoring.slo import evaluate_slos
+from ..validation.payload_rules import validate_payload
 
 _DEFAULT_STORE = ".iops/ledgers"
 
@@ -51,8 +55,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_monitor.add_argument("manifest")
     p_monitor.add_argument("samples", nargs="?")
 
-    p_intake = sub.add_parser("intake", help="ingest + validate an SDD IPLAN")
-    p_intake.add_argument("iplan")
+    p_intake = sub.add_parser("intake", help="ingest + validate an SDD IPLAN or an Iplanic task payload")
+    p_intake.add_argument("iplan", nargs="?")
+    p_intake.add_argument("--payload", help="ingest an Iplanic remote task payload instead")
+
+    p_emit = sub.add_parser("emit-events", help="project a signed ledger into Iplanic execution-events")
+    p_emit.add_argument("ledger")
+    p_emit.add_argument("--payload", required=True)
+    p_emit.add_argument("--key-env", default="IOPS_SIGNING_KEY")
+    p_emit.add_argument("--key-id", default=None)
 
     p_handover = sub.add_parser("handover", help="build + validate a handover receipt")
     p_handover.add_argument("ledger")
@@ -127,10 +138,27 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "intake":
+        if args.payload:
+            manifest = ingest_task_payload(args.payload)
+            findings = validate_payload(_load(args.payload))
+            _emit({"manifest": manifest, "findings": [f.rule_id for f in findings]})
+            return 0 if not findings else 1
+        if not args.iplan:
+            _emit({"error": "intake requires an IPLAN path or --payload"})
+            return 1
         manifest = engine.ingest_iplan(args.iplan)
         validation = engine.validate(manifest)
         _emit({"manifest": manifest, "validation": validation})
         return 0 if validation["status"] != "fail" else 1
+
+    if args.command == "emit-events":
+        payload = _load(args.payload)
+        ledger = _load(args.ledger)
+        key = os.environ.get(args.key_env, "")
+        key_id = args.key_id or payload.get("executor_id") or "default"
+        events = to_execution_events(ledger, payload, key=key.encode(), key_id=key_id, ids=IdSource())
+        _emit({"events": events})
+        return 0
 
     if args.command == "handover":
         ledger = _load(args.ledger)

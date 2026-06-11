@@ -13,7 +13,7 @@ a follow-up (see HOOK_INTEGRATION_POINTS in the framework spec).
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -99,8 +99,8 @@ class ClaudeEngine:
     def ingest_iplan(self, path: str | Path) -> dict[str, Any]:
         return ingest_iplan(path, self._config)
 
-    def classify_path(self, path: str, allowed_roots: list[str]) -> dict[str, Any]:
-        return classify_path(path, allowed_roots)
+    def classify_path(self, path: str, allowed_roots: list[str], forbidden_paths: Sequence[str] = ()) -> dict[str, Any]:
+        return classify_path(path, allowed_roots, forbidden_paths)
 
     def default_gate(self) -> dict[str, Any]:
         return default_gate()

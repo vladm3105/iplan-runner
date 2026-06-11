@@ -34,7 +34,7 @@ extra), exactly as live executors are (PLAN-008).
 |------------|-------|
 | Task       | IOPS-PLAN-013 |
 | Depends on | `PLAN-001`..`PLAN-012` (DONE); **PLAN-014** (canonical signing — see Re-grounding); D-0011..D-0015; engine ledger event_types (`orchestrator/loop.py`); Iplanic contracts (vendored copies, re-pinned to the frozen standard — see below) |
-| Status     | PLANNED (re-grounded 2026-06-11) - 2026-06-07 |
+| Status     | DONE - 2026-06-11 (re-grounded; implemented) |
 | Feeds      | IOPS plugged into Iplanic as a hosted remote executor; signed log-ingestion upstream |
 
 ## Re-grounding (2026-06-11)
@@ -437,7 +437,7 @@ Expected:
 | 9 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not RFC 8785 JCS, no drop-null, and it signs `received_at`: the conformance gap PLAN-014 closes | `_canonical` | platforms/hermes/src/iops_hermes/security/signing.py:13 |
 | 5 | `ingest_iplan` emits an `iplan-intake` manifest (payload-mode reuses this shape) | `iplan-intake` | platforms/hermes/src/iops_hermes/intake/reader.py:41 |
 | 6 | intake scope validation requires `client_id`/`project_id`/`allowed_roots` | `allowed_roots` | platforms/hermes/src/iops_hermes/validation/intake_rules.py:33 |
-| 7 | next decision number is D-0016 (highest existing decision is D-0015; sections are not in file order) | `D-0015` | plans/DECISIONS.md:172 |
+| 7 | next decision number is D-0016 (highest existing decision is D-0015; sections are not in file order) | `D-0015` | plans/DECISIONS.md:191 |
 | 8 | real `execution_log` event_types: task_started / file_edited / task_completed / task_blocked / commit / compensation | `file_edited` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:214 |
 
 ## Review log

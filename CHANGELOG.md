@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `security/iplanic_signing.py` (both engines): the `iplan-canonical-json` signer
+  for Iplanic `execution-event` emission — RFC 8785 JCS + `sha256` + recursive
+  drop-null, signed payload excluding `{signature, received_at}`, raw-byte HMAC
+  key, and `ed25519` — making IOPS signatures byte-reproducible by Iplanic. The
+  standalone authenticated-ledger signer is unchanged. (PLAN-014, D-0017.)
+- Vendored Iplanic golden vectors (`framework/remote/iplanic-vectors/`,
+  version-pinned) and a cross-engine conformance test reproducing them byte-for-byte
+  (canonical bytes, `sha256`, and `hmac-sha256`/`ed25519` signature values).
+- `rfc8785` and `cryptography` engine dependencies (for the Iplanic signer).
+
 ## [1.0.0] - 2026-05-27
 
 GA — consolidation and proof; no new contract or runtime. From this release the

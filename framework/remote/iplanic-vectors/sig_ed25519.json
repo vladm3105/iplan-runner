@@ -1,0 +1,48 @@
+{
+  "event": {
+    "org_id": "org-1",
+    "project_id": "proj-1",
+    "iplan_id": "IPLAN-01",
+    "plan_version_id": "v1",
+    "run_id": "run-1",
+    "task_id": "T-9",
+    "step_id": "S-1",
+    "executor_id": "exec:abc",
+    "trace_id": "tr-1",
+    "event_id": "ev-1",
+    "idempotency_key": "run-1:ev-1",
+    "event_type": "task.completed",
+    "occurred_at": "2026-06-09T00:00:00Z",
+    "received_at": "2026-06-09T00:00:05Z",
+    "status": "succeeded",
+    "artifact_refs": [],
+    "protocol_plan_id": null,
+    "signature": {
+      "key_id": "k1",
+      "algorithm": "hmac-sha256",
+      "value": "PLACEHOLDER"
+    }
+  },
+  "signing_payload": {
+    "org_id": "org-1",
+    "project_id": "proj-1",
+    "iplan_id": "IPLAN-01",
+    "plan_version_id": "v1",
+    "run_id": "run-1",
+    "task_id": "T-9",
+    "step_id": "S-1",
+    "executor_id": "exec:abc",
+    "trace_id": "tr-1",
+    "event_id": "ev-1",
+    "idempotency_key": "run-1:ev-1",
+    "event_type": "task.completed",
+    "occurred_at": "2026-06-09T00:00:00Z",
+    "status": "succeeded",
+    "artifact_refs": []
+  },
+  "algorithm": "ed25519",
+  "key_id": "k1",
+  "ed25519_seed_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "ed25519_public_hex": "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8",
+  "value": "d2ee4f2de9e580b060a54de9e0589ff38d4fbe2732ae6b5df5766be56bdb53765e8b5ce5ad878cfa0dac4e30eff70bdf4536d7deb1c4f79de21c345a47c56903"
+}

@@ -13,7 +13,7 @@
 |---|---|
 | Task | IOPS-PLAN-014 |
 | Depends on | engine `security/signing.py`; Iplanic `iplan-canonical-json` (frozen — cross-repo note) |
-| Status | PLANNED - 2026-06-11 |
+| Status | DONE - 2026-06-11 |
 | Feeds | PLAN-013 (Iplanic remote-executor conformance) — supplies its canonical signer |
 
 ## Problem

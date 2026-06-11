@@ -1,0 +1,8 @@
+{
+  "input": {
+    "name": "café é ☃",
+    "emoji": "😀"
+  },
+  "canonical": "{\"emoji\":\"😀\",\"name\":\"café é ☃\"}",
+  "sha256": "45bf72755d7bfcc69b5351e4e280c5cf8470cf596e595d9e63f9539b5f70116b"
+}

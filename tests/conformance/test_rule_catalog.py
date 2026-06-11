@@ -29,6 +29,9 @@ class RuleCatalogTest(unittest.TestCase):
         for _, expect in _spec.vector_pairs():
             data = yaml.safe_load(expect.read_text())
             used.update(data.get("rule_ids") or [])
+        # Remote-executor conformance expects (REMOTE-001) live under remote_root.
+        for expect in (_spec.FRAMEWORK / "conformance" / "remote").glob("**/expect.yaml"):
+            used.update((yaml.safe_load(expect.read_text()) or {}).get("rule_ids") or [])
         return used
 
     def test_every_rule_has_a_vector(self) -> None:

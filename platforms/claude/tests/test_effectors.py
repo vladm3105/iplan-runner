@@ -42,7 +42,7 @@ def _clock() -> Callable[[], str]:
 def test_classify_path_vectors(case: str) -> None:
     inp = yaml.safe_load((SANDBOX / case / "input.yaml").read_text())
     expect = yaml.safe_load((SANDBOX / case / "expect.yaml").read_text())
-    assert classify_path(inp["path"], inp["allowed_roots"]) == expect
+    assert classify_path(inp["path"], inp["allowed_roots"], inp.get("forbidden_paths", [])) == expect
 
 
 def test_apply_write_and_denied(tmp_path: Path) -> None:

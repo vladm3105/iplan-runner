@@ -1,4 +1,4 @@
-"""Findings + severities for the Claude validators.
+"""Findings + severities for the Hermes validators.
 
 The severity map mirrors framework/conformance/rule-ids.yaml. Strict isolation
 (D-0011) means this engine carries its own copy; conformance asserts it matches
@@ -42,6 +42,9 @@ SEVERITY: dict[str, str] = {
     "HANDOVER.STATUS_INVALID": "error",
     "HANDOVER.GATE_NOT_PASSED": "error",
     "HANDOVER.NOT_RECONCILED": "error",
+    "REMOTE.PAYLOAD_IDS_MISSING": "error",
+    "REMOTE.PAYLOAD_NO_TODOS": "error",
+    "REMOTE.PAYLOAD_CONTEXT_MISSING": "error",
 }
 
 

@@ -26,7 +26,7 @@ class SandboxTest(unittest.TestCase):
             expect = yaml.safe_load((case / "expect.yaml").read_text())
             decisions = []
             for engine_id, engine in self.engines.items():
-                decision = engine.classify_path(inp["path"], inp["allowed_roots"])
+                decision = engine.classify_path(inp["path"], inp["allowed_roots"], inp.get("forbidden_paths", []))
                 with self.subTest(engine=engine_id, case=case.name):
                     self.assertEqual(decision, expect)
                 decisions.append((decision["allowed"], decision["reason"]))

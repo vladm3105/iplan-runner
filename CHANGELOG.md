@@ -17,6 +17,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   version-pinned) and a cross-engine conformance test reproducing them byte-for-byte
   (canonical bytes, `sha256`, and `hmac-sha256`/`ed25519` signature values).
 - `rfc8785` and `cryptography` engine dependencies (for the Iplanic signer).
+- Iplanic **remote-executor conformance** (PLAN-013, D-0016): a second intake front
+  door `ingest_task_payload` maps the Iplanic task payload to the same
+  `iplan-intake` manifest (run loop unchanged), and `to_execution_events` projects
+  the signed ledger into Iplanic `execution-event`s (consuming the D-0017 signer).
+  Both engines emit byte-identical events; conformance asserts the projection,
+  required-field coverage, and the cross-engine differential.
+- `REMOTE.PAYLOAD_*` payload validation (`validation/payload_rules.py`, category
+  `REMOTE-001`) and the `framework/remote/` contract + vendored consumed-subset /
+  emitted-required-field mirrors.
+- Sandbox `classify_path` gains an optional `forbidden_paths` arg + `SANDBOX.FORBIDDEN`
+  reason (checked after the positive jail; existing callers unchanged).
+- CLI: `intake --payload <file>` and `emit-events <ledger> --payload <file>`.
+- Framework spec `1.1.0`; engines `0.12.0`.
 
 ## [1.0.0] - 2026-05-27
 

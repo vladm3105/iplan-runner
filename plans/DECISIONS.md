@@ -152,6 +152,23 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
+### D-0017 - Adopt `iplan-canonical-json` for Iplanic event signing - 2026-06-11
+
+Iplanic-emitted `execution-event` signatures must be **byte-reproducible by
+Iplanic**, so IOPS adopts Iplanic's normative `iplan-canonical-json` (RFC 8785 JCS
+over `sha256` with recursive drop-null; signed payload excludes `{signature,
+received_at}`; HMAC keyed with **raw bytes**; `ed25519` as well as `hmac-sha256`;
+`value` lowercase hex) for the Iplanic-emission path — a new
+`security/iplanic_signing.py`, copied identically into each engine (D-0011).
+
+The legacy authenticated-ledger signer (`security/signing.py` `sign_event` /
+hash-chain) is **retained unchanged** for the standalone ledger; it HMACs IOPS's
+own `json.dumps` canonical and is **not** byte-reproducible by Iplanic (proven
+against Iplanic's golden `sig_hmac` vector). Conformance vendors Iplanic's golden
+vectors (`framework/remote/iplanic-vectors/`, version-pinned) and reproduces them
+byte-for-byte. `sign` returns the hex `value`; the consumer assembles the event
+`signature` object. PLAN-013's event emission consumes this signer. (PLAN-014.)
+
 ### D-0015 - Auth: agent-first (M2M/A2A) identity + pluggable, layered authorization - 2026-05-24
 
 IPLAN is **agent-first**: actors are agents/machines (engines, sub-agents, CI)

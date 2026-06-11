@@ -39,7 +39,9 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: [--baseline, .secrets.baseline]
+        # Vendored Iplanic golden vectors are deterministic conformance fixtures
+        # (public test hashes/keys, e.g. ed25519 seed = bytes(range(32))), not secrets.
+        args: [--baseline, .secrets.baseline, --exclude-files, 'framework/remote/iplanic-vectors/.*']
 
   - repo: local
     hooks:

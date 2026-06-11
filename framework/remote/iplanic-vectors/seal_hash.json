@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "summary": "done",
+    "run_id": "run-1"
+  },
+  "evidence_manifest": [
+    {
+      "ref": "art-1",
+      "artifact_type": "execution_log",
+      "canonical_hash": {
+        "algorithm": "sha256",
+        "value": "abababababababababababababababababababababababababababababababab"
+      }
+    }
+  ],
+  "sha256": "f209076a4d6b24ac5610534a8f58e95eb998da9af2497139a6a4fb9f2a5f3d3e"
+}

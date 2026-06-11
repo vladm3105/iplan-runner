@@ -1,0 +1,13 @@
+{
+  "input_omit": {
+    "a": 1,
+    "b": "x"
+  },
+  "input_null": {
+    "a": 1,
+    "b": "x",
+    "protocol_plan_id": null
+  },
+  "sha256": "ecf9e98ec0641e23113ff3ce8bdc78d0ddd249886517fd4a7f68cc83d4e65667",
+  "note": "drop-null normalization makes absent == explicit null"
+}

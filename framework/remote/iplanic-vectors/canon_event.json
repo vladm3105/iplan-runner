@@ -1,0 +1,21 @@
+{
+  "input": {
+    "org_id": "org-1",
+    "project_id": "proj-1",
+    "iplan_id": "IPLAN-01",
+    "plan_version_id": "v1",
+    "run_id": "run-1",
+    "task_id": "T-9",
+    "step_id": "S-1",
+    "executor_id": "exec:abc",
+    "trace_id": "tr-1",
+    "event_id": "ev-1",
+    "idempotency_key": "run-1:ev-1",
+    "event_type": "task.completed",
+    "occurred_at": "2026-06-09T00:00:00Z",
+    "status": "succeeded",
+    "artifact_refs": []
+  },
+  "canonical": "{\"artifact_refs\":[],\"event_id\":\"ev-1\",\"event_type\":\"task.completed\",\"executor_id\":\"exec:abc\",\"idempotency_key\":\"run-1:ev-1\",\"iplan_id\":\"IPLAN-01\",\"occurred_at\":\"2026-06-09T00:00:00Z\",\"org_id\":\"org-1\",\"plan_version_id\":\"v1\",\"project_id\":\"proj-1\",\"run_id\":\"run-1\",\"status\":\"succeeded\",\"step_id\":\"S-1\",\"task_id\":\"T-9\",\"trace_id\":\"tr-1\"}",
+  "sha256": "258d88730242a840ef2445e8eaad979fd876b005c4c3337e5084863714b87606"
+}

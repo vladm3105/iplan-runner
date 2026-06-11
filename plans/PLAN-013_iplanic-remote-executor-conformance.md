@@ -33,9 +33,34 @@ extra), exactly as live executors are (PLAN-008).
 | Field      | Value |
 |------------|-------|
 | Task       | IOPS-PLAN-013 |
-| Depends on | `PLAN-001`..`PLAN-012` (DONE); D-0011..D-0015; engine ledger event_types (`orchestrator/loop.py`); Iplanic contracts (vendored copies — see below) |
-| Status     | PLANNED - 2026-06-07 |
+| Depends on | `PLAN-001`..`PLAN-012` (DONE); **PLAN-014** (canonical signing — see Re-grounding); D-0011..D-0015; engine ledger event_types (`orchestrator/loop.py`); Iplanic contracts (vendored copies, re-pinned to the frozen standard — see below) |
+| Status     | PLANNED (re-grounded 2026-06-11) - 2026-06-07 |
 | Feeds      | IOPS plugged into Iplanic as a hosted remote executor; signed log-ingestion upstream |
+
+## Re-grounding (2026-06-11)
+
+This plan was authored **before** the Iplanic IPLAN standard was frozen
+(Iplanic PLAN-001…008, decisions D-0021…D-0028, landed 2026-06-09…06-11). Two
+load-bearing corrections follow; the payload-intake and event-projection
+scaffolding is otherwise unchanged.
+
+1. **Signing is incorrect for conformance and is split to PLAN-014.** The Approach
+   originally reused `security.signing.sign_event` (HMAC over IOPS's own
+   `json.dumps(sort_keys)` canonical form, excluding only `signature`). Iplanic's
+   now-normative `iplan-canonical-json` is **RFC 8785 JCS over `sha256`** with
+   recursive **drop-null** and a signed payload that excludes **`{signature,
+   received_at}`**, keyed with the **raw** key bytes, and supports **ed25519** as
+   well as `hmac-sha256`. The two do **not** match — verified differentially
+   against Iplanic's golden `sig_hmac` vector (IOPS `7ce5…` ≠ Iplanic `bcac…`),
+   and IOPS currently **signs `received_at`**, which Iplanic overwrites at ingest,
+   so the signature would fail verification. Adopting `iplan-canonical-json` is the
+   conformance prerequisite and is its own focused plan, **PLAN-014**; event
+   emission here consumes PLAN-014's canonical signer instead of `sign_event`.
+2. **Conformance validates against Iplanic's golden vectors.** The vendored mirrors
+   are re-pinned to the frozen schemas (`schema_version 1.2-draft`), and the
+   conformance suite vendors and reproduces Iplanic's `canonicalization`,
+   `status_projection`, and `scope_check` vectors — the shared contract — rather
+   than asserting field-presence alone.
 
 ## Objective
 
@@ -155,14 +180,17 @@ ledger event, **dropping the engine's `agent_id`** and using the payload's
 equal to `occurred_at` for the offline emit (Iplanic overwrites it on ingest).
 Because every field comes from the payload + injected ids (never engine
 identity), **both engines emit byte-identical events** → the differential needs
-no normalization. The `signature` reuses `security.signing.sign_event` over the
-canonical event (it already excludes the `signature` key). Note `sign_event`
-returns the **prefixed** string `"hmac-sha256:<hexdigest>"` (see
-`framework/conformance/signing/*/expect.yaml`); the projection **splits on the
-first `:`** to populate the event's `signature` object exactly as the schema
-demands — `{key_id, algorithm: "hmac-sha256", value: <hexdigest>}` — and emits
-**only** those three keys (`execution-event.schema.json` sets
-`additionalProperties: false` on `signature`, and on the event object itself).
+no normalization. The `signature` is produced by **PLAN-014's canonical signer**
+(`iplan-canonical-json`: RFC 8785 JCS + `sha256`, recursive drop-null, signed
+payload excluding `{signature, received_at}`, raw-byte key), **not** the legacy
+`security.signing.sign_event`. It returns the three keys the schema demands —
+`{key_id, algorithm, value}` where `value` is the lowercase-hex signature and
+`algorithm ∈ {hmac-sha256, ed25519}` per the executor's registered key — and emits
+**only** those keys (`execution-event.schema.json` sets `additionalProperties:
+false` on `signature` and on the event object). The legacy `sign_event` (HMAC over
+IOPS's own `json.dumps` canonical, excluding only `signature`) is retained for the
+**standalone** ledger but is not used for Iplanic emission — it is not byte-
+reproducible by Iplanic (see Re-grounding).
 
 **Event-type mapping.** Most events map **directly** from `execution_log`
 entries (each has an `event_type`); the verified full set of appended kinds is
@@ -405,7 +433,8 @@ Expected:
 | 1 | `task_completed` IS an appended execution_log event (maps directly to Iplanic `task.completed`) | `task_completed` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:223 |
 | 2 | acceptance outcome is set on the task entry, not a log event (so `test.*` are derived) | `acceptance` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:219 |
 | 3 | the engine sandbox wrapper takes `(path, allowed_roots)` — must thread `forbidden_paths` | `classify_path` | platforms/hermes/src/iops_hermes/engine.py:97 |
-| 4 | `sign_event` returns the prefixed `hmac-sha256:<hex>` — split to fill the event `signature.value` | `hmac-sha256` | platforms/hermes/src/iops_hermes/security/signing.py:23 |
+| 4 | the legacy `sign_event` HMACs IOPS's own canonical form — retained for the standalone ledger, **not** used for Iplanic emission (PLAN-014 replaces it) | `sign_event` | platforms/hermes/src/iops_hermes/security/signing.py:21 |
+| 9 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not RFC 8785 JCS, no drop-null, and it signs `received_at`: the conformance gap PLAN-014 closes | `_canonical` | platforms/hermes/src/iops_hermes/security/signing.py:13 |
 | 5 | `ingest_iplan` emits an `iplan-intake` manifest (payload-mode reuses this shape) | `iplan-intake` | platforms/hermes/src/iops_hermes/intake/reader.py:41 |
 | 6 | intake scope validation requires `client_id`/`project_id`/`allowed_roots` | `allowed_roots` | platforms/hermes/src/iops_hermes/validation/intake_rules.py:33 |
 | 7 | next decision number is D-0016 (highest existing decision is D-0015; sections are not in file order) | `D-0015` | plans/DECISIONS.md:155 |
@@ -513,3 +542,38 @@ event projection, forbidden_paths sandbox) soundly against the cited code. It
 raised two cosmetic NITs (row-7 wording "ends at D-0015" vs. file order; the
 claude wrapper is `engine.py:102` not `:97`), both fixed. **No further findings**
 — no load-bearing issues remain. Plan is ready.
+
+### Pass 6 - 2026-06-11 - re-grounding against the frozen Iplanic standard
+
+Iplanic's IPLAN standard was frozen after this plan was written (Iplanic
+PLAN-001…008 / D-0021…D-0028). Re-reading the plan against the now-normative
+contracts surfaced **one load-bearing correction** (the rest of the plan holds):
+
+- **[load-bearing] Signing did not match Iplanic.** The Approach reused
+  `security.signing.sign_event` — HMAC over IOPS's own `json.dumps(sort_keys)`
+  canonical, excluding only `signature` and **including `received_at`**. Iplanic's
+  frozen `iplan-canonical-json` is RFC 8785 JCS + `sha256` with recursive drop-null
+  and a signed payload excluding `{signature, received_at}`, keyed with raw bytes,
+  supporting `ed25519` too. Proven non-matching against Iplanic's golden `sig_hmac`
+  vector (`7ce5… ≠ bcac…`); and because IOPS signs `received_at`, which Iplanic
+  overwrites at ingest, the signature would fail verification. → **Folded in:**
+  Re-grounding §1 splits the canonical signer into the focused **PLAN-014**;
+  Approach now consumes it instead of `sign_event`; Claim ledger rows 4/9 record the
+  legacy signer's retained-but-unused role and the divergence.
+- **[load-bearing] Conformance asserted field-presence, not byte-reproduction.**
+  Iplanic now publishes golden vectors (`canonicalization`, `status_projection`,
+  `scope_check`). → Re-grounding §2: the suite vendors and reproduces them; mirrors
+  re-pin to `schema_version 1.2-draft`.
+- Confirmed **already-aligned** (no change): the event-type→status mapping matches
+  Iplanic's published Status Projection; `received_at = occurred_at` offline is
+  admitted by the Clock-Skew Window (skew 0); tenant fields (`org_id`/`project_id`/
+  `executor_id`) populate the scope-check inputs.
+
+A fresh-context independent pass on this re-grounding ran paired with PLAN-014
+(2026-06-11): it confirmed the signing divergence by **running the differential**
+(`7ce5… ≠ bcac…`), verified PLAN-013 rows 4/9 resolve, and confirmed the corrected
+Approach consumes PLAN-014's canonical signer (which it independently verified
+reproduces Iplanic's golden vectors). No load-bearing issues in the re-grounding;
+the only fix landed in PLAN-014 (its `sign` return type).
+
+**Result:** ready (re-grounded; signing consumes PLAN-014).

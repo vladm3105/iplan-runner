@@ -3,4 +3,4 @@
 from .engine import ClaudeEngine
 
 __all__ = ["ClaudeEngine"]
-__version__ = "0.12.0"
+__version__ = "0.13.0"

@@ -1,3 +1,5 @@
+# Valid payload except executor_id is present but not the Iplanic hash form
+# (^exec:[a-z2-7]{16,}$) -> only REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT fires.
 iplan_id: "IPLAN-01"
 plan_version_id: "PV-01"
 org_id: "org-a"
@@ -5,7 +7,7 @@ project_id: "proj-1"
 run_id: "RUN-01"
 step_id: "STEP-001"
 task_id: "TASK-01"
-executor_id: "exec:iopsremote2zqf7kx3a"
+executor_id: "exec:bad"
 protocol_plan_id: null
 protocol_agent_id: null
 work_order:
@@ -14,9 +16,6 @@ work_order:
     - todo_id: "TODO-001"
       description: "implement foo"
       acceptance_criteria: ["tests pass"]
-    - todo_id: "TODO-002"
-      description: "land the change"
-      acceptance_criteria: ["committed"]
 context_package:
   repository: "."
   forbidden_paths: [".git", "secrets"]

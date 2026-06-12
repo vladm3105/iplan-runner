@@ -73,14 +73,16 @@ class RemoteConformanceTest(unittest.TestCase):
             self.assertEqual(eventsets[0], eventsets[1])
 
     def test_reject_payload_emits_expected_rules(self) -> None:
-        case = REMOTE / "reject_context"
-        payload = yaml.safe_load((case / "payload.yaml").read_text())
-        expect = yaml.safe_load((case / "expect.yaml").read_text())
-        for engine_id, pkg in self.engines.items():
-            rules_mod = importlib.import_module(f"{pkg}.validation.payload_rules")
-            findings = rules_mod.validate_payload(payload)
-            with self.subTest(engine=engine_id):
-                self.assertEqual(sorted(f.rule_id for f in findings), expect["rule_ids"])
+        cases = sorted(p.parent for p in REMOTE.glob("reject_*/expect.yaml"))
+        self.assertTrue(cases, "no reject_* conformance vectors found")
+        for case in cases:
+            payload = yaml.safe_load((case / "payload.yaml").read_text())
+            expect = yaml.safe_load((case / "expect.yaml").read_text())
+            for engine_id, pkg in self.engines.items():
+                rules_mod = importlib.import_module(f"{pkg}.validation.payload_rules")
+                findings = rules_mod.validate_payload(payload)
+                with self.subTest(case=case.name, engine=engine_id):
+                    self.assertEqual(sorted(f.rule_id for f in findings), expect["rule_ids"])
 
 
 if __name__ == "__main__":

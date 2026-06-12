@@ -152,6 +152,29 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
+### D-0018 - Re-pin Iplanic mirrors to `1.3-draft`; enforce the `executor_id` hash form - 2026-06-11
+
+Iplanic shipped its first breaking change (PLAN-012 / D-0031): `executor_id` is
+tightened to `^exec:[a-z2-7]{16,}$` (`exec:<base32(sha256(...))>`, §2.1) and the
+schema set is bumped `1.2-draft → 1.3-draft` (commit `fb5f46d`). IOPS pins by commit,
+so its CI stayed green until this deliberate re-pin.
+
+- **Advance the pin** (SOURCE.md + the two `framework/remote/` template headers + the
+  IPLAN-ECOSYSTEM comparison table) from `bf3b9b6`/`1.2-draft` to `fb5f46d`/`1.3-draft`.
+  The vendored canonicalization vectors are **byte-identical** (Iplanic exempted the
+  canon goldens, which keep `exec:abc`), so the signing contract is untouched.
+- **Conform the value:** rewrite IOPS's non-conforming `exec:remote` to the hash form
+  across the accept payload/template/tests and **regenerate** the golden event
+  signatures (`executor_id` is in the signed canonical payload).
+- **Enforce the form:** add `REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT` — a payload whose
+  `executor_id` is present but not the hash form is rejected at intake, mirrored
+  across both engines (D-0011) with a `reject_executor_id` conformance vector. The
+  reject conformance test now discovers all `reject_*` vectors. Without this, IOPS
+  would carry a malformed `executor_id` into a signed, emitted event Iplanic rejects.
+- Additive rule → framework `MINOR` bump `1.1.0 → 1.2.0` (VERSION + registry
+  `spec_version` + both `FRAMEWORK_SPEC_VERSION` markers, parity-gated); engines
+  `0.12.0 → 0.13.0`.
+
 ### D-0017 - Adopt `iplan-canonical-json` for Iplanic event signing - 2026-06-11
 
 Iplanic-emitted `execution-event` signatures must be **byte-reproducible by

@@ -29,7 +29,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Sandbox `classify_path` gains an optional `forbidden_paths` arg + `SANDBOX.FORBIDDEN`
   reason (checked after the positive jail; existing callers unchanged).
 - CLI: `intake --payload <file>` and `emit-events <ledger> --payload <file>`.
+- `REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT` payload validation (both engines): a task
+  payload whose `executor_id` is present but not the Iplanic hash form
+  `^exec:[a-z2-7]{16,}$` is rejected at intake, with a `reject_executor_id`
+  conformance vector (PLAN-015, D-0018).
 - Framework spec `1.1.0`; engines `0.12.0`.
+
+### Changed
+
+- Re-pinned the vendored Iplanic mirrors to `1.3-draft` / commit `fb5f46d` and
+  conformed IOPS's `executor_id` to the hash form `exec:<base32(sha256(...))>`
+  (Iplanic §2.1 / D-0031), regenerating the golden remote-conformance event
+  signatures. The vendored canonicalization vectors are unchanged (byte-identical;
+  Iplanic exempted them). Framework spec `1.1.0 → 1.2.0`; engines `0.12.0 → 0.13.0`.
+  (PLAN-015, D-0018.)
 
 ## [1.0.0] - 2026-05-27
 

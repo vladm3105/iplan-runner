@@ -176,3 +176,7 @@ rules:
     category: "REMOTE-001"
     severity: error
     description: "task payload is missing context_package (repository / forbidden_paths cannot be inferred)."
+  - id: "REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT"
+    category: "REMOTE-001"
+    severity: error
+    description: "executor_id is present but not the Iplanic hash form ^exec:[a-z2-7]{16,}$ (Iplanic §2.1 / D-0031)."

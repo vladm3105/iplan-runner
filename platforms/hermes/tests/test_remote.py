@@ -30,7 +30,7 @@ def test_payload_intake_maps_to_manifest() -> None:
     assert manifest["intake_control"]["approved"] is True
     assert manifest["isolation_scope"]["client_id"] == "org-a"
     assert manifest["isolation_scope"]["forbidden_paths"] == [".git", "secrets"]
-    assert manifest["remote_execution"]["executor_id"] == "exec:remote"
+    assert manifest["remote_execution"]["executor_id"] == "exec:iopsremote2zqf7kx3a"
     assert len(manifest["task_graph"]) == 2
 
 
@@ -45,7 +45,7 @@ def test_event_projection_drops_compensation_and_derives_test() -> None:
         "test.passed",
         "artifact.created",
     ]
-    assert all(e["executor_id"] == "exec:remote" for e in events)
+    assert all(e["executor_id"] == "exec:iopsremote2zqf7kx3a" for e in events)
     assert all(set(e["signature"]) == {"key_id", "algorithm", "value"} for e in events)
 
 

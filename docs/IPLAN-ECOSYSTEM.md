@@ -39,7 +39,7 @@ All three stamp `document_type: iplan-document`, but the shapes differ:
 
 | Aspect          | framework L8 (author)                           | iplanic (manage)                                                | IOPS (execute)                                       |
 | --------------- | ----------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
-| schema_version  | 1.0                                             | 1.2-draft                                                       | intake 1.0                                           |
+| schema_version  | 1.0                                             | 1.3-draft                                                       | intake 1.0                                           |
 | sections        | 6                                               | 13                                                              | 4 (its own `iplan-intake`)                           |
 | unit of work    | `file_manifest` (files)                         | `step → work_order → todo`                                      | flat `task_graph`                                    |
 | executor ctx    | —                                               | `executor_context` (forbidden_paths, mcp_tools, secrets_policy) | `isolation_scope.allowed_roots`                      |

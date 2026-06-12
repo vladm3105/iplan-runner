@@ -6,7 +6,7 @@
 
 metadata:
   framework: "AI Doc Flow IOps"
-  spec_version: "1.1.0"
+  spec_version: "1.2.0"
   template_policy: unified_yaml
 
 artifacts:

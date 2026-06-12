@@ -6,7 +6,7 @@ manifest:
   intake_control:
     source_iplan: IPLAN-01
     source_iplan_version: PV-01
-    source_iplan_checksum: sha256:93afd515b2d6d0f9caeba30db7bfd7d6a92b0dbe1d2748b8fc3ff10fc40690ad
+    source_iplan_checksum: sha256:4736e05ecace31063d900e616ff98d0d85316875903dca433ed852e0f0619585
     approved: true
     exec_ready_score: 90
   isolation_scope:
@@ -30,7 +30,7 @@ manifest:
     task_id: TASK-01
     run_id: RUN-01
     step_id: STEP-001
-    executor_id: exec:remote
+    executor_id: exec:iopsremote2zqf7kx3a
     iplan_id: IPLAN-01
     plan_version_id: PV-01
     org_id: org-a
@@ -46,7 +46,7 @@ events:
   run_id: RUN-01
   task_id: TASK-01
   step_id: STEP-001
-  executor_id: exec:remote
+  executor_id: exec:iopsremote2zqf7kx3a
   trace_id: TR-001
   event_id: EV-001
   idempotency_key: RUN-01:EV-001
@@ -58,7 +58,7 @@ events:
   signature:
     key_id: key-1
     algorithm: hmac-sha256
-    value: 98f730f9a4876b28311a0d3da8b6aaa5a9c1c13cae59de7a2d1e952885c43f26
+    value: 1968d7c49340714902948e459edf79ea988fdb48fa0599db9910880b5956d627
 - org_id: org-a
   project_id: proj-1
   iplan_id: IPLAN-01
@@ -66,7 +66,7 @@ events:
   run_id: RUN-01
   task_id: TASK-01
   step_id: STEP-001
-  executor_id: exec:remote
+  executor_id: exec:iopsremote2zqf7kx3a
   trace_id: TR-002
   event_id: EV-002
   idempotency_key: RUN-01:EV-002
@@ -79,7 +79,7 @@ events:
   signature:
     key_id: key-1
     algorithm: hmac-sha256
-    value: 472f21d34a994c5ebf276af4289722bd37cb76da3f6cced60859d7f2ea1e5a07
+    value: 3562f3a3d2f7e6aba52ca9072065967cb950a97517114edbef987db817411a4c
 - org_id: org-a
   project_id: proj-1
   iplan_id: IPLAN-01
@@ -87,7 +87,7 @@ events:
   run_id: RUN-01
   task_id: TASK-01
   step_id: STEP-001
-  executor_id: exec:remote
+  executor_id: exec:iopsremote2zqf7kx3a
   trace_id: TR-003
   event_id: EV-003
   idempotency_key: RUN-01:EV-003
@@ -99,7 +99,7 @@ events:
   signature:
     key_id: key-1
     algorithm: hmac-sha256
-    value: 6641514da5b43550c50c347081c8a168328867459cd7bd406be8dd84cb2bf5e6
+    value: ca53d37bade93a606a5720528cb96e55ef44a11df87d8e91cdf0ea48c951d50c
 - org_id: org-a
   project_id: proj-1
   iplan_id: IPLAN-01
@@ -107,7 +107,7 @@ events:
   run_id: RUN-01
   task_id: TASK-01
   step_id: STEP-001
-  executor_id: exec:remote
+  executor_id: exec:iopsremote2zqf7kx3a
   trace_id: TR-004
   event_id: EV-004
   idempotency_key: RUN-01:EV-004
@@ -119,7 +119,7 @@ events:
   signature:
     key_id: key-1
     algorithm: hmac-sha256
-    value: 78e9c6f76c96eef46e8d36946780ef2bda42360d536a29f8306390b14e4614ca
+    value: 9e3483ea06f628084dfd44065575144f9a6d2797cbb1f7c002eea0e27a3dea1a
 - org_id: org-a
   project_id: proj-1
   iplan_id: IPLAN-01
@@ -127,7 +127,7 @@ events:
   run_id: RUN-01
   task_id: TASK-01
   step_id: STEP-001
-  executor_id: exec:remote
+  executor_id: exec:iopsremote2zqf7kx3a
   trace_id: TR-005
   event_id: EV-005
   idempotency_key: RUN-01:EV-005
@@ -140,4 +140,4 @@ events:
   signature:
     key_id: key-1
     algorithm: hmac-sha256
-    value: 6c928dae63acbf6db7c36655919739f9a684c7e36673b9908bac58e976630838
+    value: 0f1040906f29aa7e3877910a841029bc9ffa1a4ff9a4a31cee1ae6e2c0164fdd

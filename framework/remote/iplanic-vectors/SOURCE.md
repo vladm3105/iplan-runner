@@ -9,8 +9,8 @@ signature `value`).
 |---|---|
 | Source repo | `iplanic` (sibling) |
 | Source path | `tests/contract/canonicalization/vectors/*.json` |
-| Iplanic `schema_version` | `1.2-draft` |
-| Pinned commit | `bf3b9b6` |
+| Iplanic `schema_version` | `1.3-draft` |
+| Pinned commit | `fb5f46d` |
 | Standard | `docs/standards/IPLAN-CANONICALIZATION.md` (D-0021) |
 
 Re-pin by re-copying and bumping the commit; drift surfaces as a failing

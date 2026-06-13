@@ -1,8 +1,13 @@
-# AI Doc Flow — IOps Framework
+# iplan-runner — OSS IPLAN executor
 
-`aidoc-flow-iops-framework` is the **execution / operations plane** companion to
+`iplan-runner` is the **execution / operations plane** companion to
 [SDD](https://github.com/vladm3105/aidoc-flow-framework) (the control plane). It
 turns an **approved IPLAN** into auditable execution.
+
+> Internal engineering codename: `iops-framework`. Public product brand:
+> `iplan-runner`. Same repo, two names — `iplan-runner` is canonical in
+> docs / brand / customer copy; `iops-framework` appears in engineering-internal
+> references (Python package names, historical plans).
 
 ## The model
 

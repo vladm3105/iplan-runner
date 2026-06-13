@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for working in `aidoc-flow-iops-framework`.
+Guidance for working in `iplan-runner` (engineering codename: `iops-framework`).
 
 ## What this repo is
 

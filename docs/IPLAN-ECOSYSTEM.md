@@ -5,7 +5,7 @@
 > between them, and the known divergence in how each currently defines an IPLAN.
 > An identical copy lives in all three repos (see **Cross-references** below).
 >
-> **You are here: `aidoc-flow-iops-framework` (IOPS) — the IPLAN _executor_.**
+> **You are here: `iplan-runner` (IOPS) — the IPLAN _executor_.**
 
 ## Roles
 
@@ -13,7 +13,7 @@
 | ---------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aidoc-flow-framework` (SDD)       | **Authors** IPLANs  | Layer 8 — turns SPEC/TDD into an approved implementation plan (`IPLAN-NN`). Template: `framework/layers/08_IPLAN/IPLAN-TEMPLATE.yaml`.                                            |
 | `aidoc-flow-iplanic`               | **Manages** IPLANs  | Control plane — import, immutable hash-bound versioning, validation, approval, executor dispatch, completion gate, signed evidence. Standard: `docs/standards/IPLAN-STANDARD.md`. |
-| `aidoc-flow-iops-framework` (IOPS) | **Executes** IPLANs | Remote execution worker — runs the plan, produces an append-only ledger + independent gate + handover receipt, emits signed facts. Intake: `framework/intake/INTAKE_CONTRACT.md`. |
+| `iplan-runner` (IOPS) | **Executes** IPLANs | Remote execution worker — runs the plan, produces an append-only ledger + independent gate + handover receipt, emits signed facts. Intake: `framework/intake/INTAKE_CONTRACT.md`. |
 
 Intended pipeline:
 
@@ -96,4 +96,4 @@ This note is mirrored (identically) in all three repos:
 
 - `aidoc-flow-framework` → `framework/layers/08_IPLAN/IPLAN-ECOSYSTEM.md`
 - `aidoc-flow-iplanic` → `docs/standards/IPLAN-ECOSYSTEM.md`
-- `aidoc-flow-iops-framework` → `docs/IPLAN-ECOSYSTEM.md`  ← _this file_
+- `iplan-runner` → `docs/IPLAN-ECOSYSTEM.md`  ← _this file_

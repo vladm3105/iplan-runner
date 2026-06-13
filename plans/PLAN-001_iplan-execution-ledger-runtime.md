@@ -5,7 +5,7 @@
 > land**. This plan must pass ≥2 review passes (see `## Review log`) and be
 > approved before implementation begins.
 
-**Goal:** Stand up `iplan-runner` (engineering codename `iops-framework`) as the execution/operations-plane
+**Goal:** Stand up `aidoc-flow-iops-framework` as the execution/operations-plane
 companion to SDD: an engine-agnostic execution-ledger + verification-gate +
 monitoring **contract** (`framework/`), and **two fully self-contained reference
 engines** (`platforms/hermes`, `platforms/claude`) that each independently

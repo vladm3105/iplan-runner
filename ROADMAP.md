@@ -1,8 +1,8 @@
-# AI Doc Flow — IOps Framework Roadmap
+# iplan-runner — Roadmap
 
 | Field          | Value |
 |----------------|-------|
-| Project        | `aidoc-flow-iops-framework` — the **execution / operations plane** |
+| Project        | `iplan-runner` *(engineering codename `iops-framework`)* — the **execution / operations plane** |
 | Status         | **Slice 1 complete** — execution-ledger contract + two reference engines (`v0.1.0`) |
 | Working branch | `claude/iplan-execution-framework-jc03k` |
 | Companion      | `aidoc-flow-framework` — the **control plane** (BRD → … → IPLAN) |

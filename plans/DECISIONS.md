@@ -7,7 +7,7 @@ older ones (mark superseded entries, never delete).
 
 ### D-0001 - Repo is a hybrid spec + runtime - 2026-05-23
 
-`aidoc-flow-iops-framework` is a **hybrid**: an engine-agnostic *contract* in
+`iplan-runner` (engineering codename `iops-framework`) is a **hybrid**: an engine-agnostic *contract* in
 `framework/` (portable YAML + Markdown, no code) plus *reference runtimes* in
 `platforms/` (real code), with a shared conformance suite in `tests/`. This
 mirrors `aidoc-flow-framework` so we inherit "the same development approach."

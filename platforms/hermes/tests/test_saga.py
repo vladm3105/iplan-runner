@@ -6,10 +6,10 @@ import itertools
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
-from iops_hermes.orchestrator.leases import can_acquire, lease_state, renew
-from iops_hermes.orchestrator.saga import already_committed
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.orchestrator.leases import can_acquire, lease_state, renew
+from iplan_hermes.orchestrator.saga import already_committed
 
 
 def _noop_sleep(_seconds: float) -> None:

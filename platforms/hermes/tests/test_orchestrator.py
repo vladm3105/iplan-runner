@@ -6,12 +6,12 @@ import itertools
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
-from iops_hermes.ledger.index import list_runs, status
-from iops_hermes.ledger.persistence import ledger_path, load, save
-from iops_hermes.ledger.store import verify_chain
-from iops_hermes.orchestrator.topo import topo_order
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.ledger.index import list_runs, status
+from iplan_hermes.ledger.persistence import ledger_path, load, save
+from iplan_hermes.ledger.store import verify_chain
+from iplan_hermes.orchestrator.topo import topo_order
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},

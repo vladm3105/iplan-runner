@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_claude import ClaudeEngine
+from iplan_claude import ClaudeEngine
 
 ROOT = Path(__file__).resolve().parents[3]
 VECTORS = ROOT / "framework" / "conformance" / "vectors"

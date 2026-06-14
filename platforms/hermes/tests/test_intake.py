@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from iops_hermes import HermesEngine
-from iops_hermes.handover.receipt import build_handover_receipt
-from iops_hermes.intake.reader import ingest_iplan
+from iplan_hermes import HermesEngine
+from iplan_hermes.handover.receipt import build_handover_receipt
+from iplan_hermes.intake.reader import ingest_iplan
 
 ROOT = Path(__file__).resolve().parents[3]
 SAMPLES = ROOT / "framework" / "conformance" / "intake_samples"

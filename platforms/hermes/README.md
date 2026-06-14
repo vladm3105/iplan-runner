@@ -1,6 +1,6 @@
 # Hermes Engine
 
-`iops_hermes` is a fully self-contained reference engine (strict isolation,
+`iplan_hermes` is a fully self-contained reference engine (strict isolation,
 D-0011) that implements the [engine-adapter contract](../../framework/engines/ENGINE-ADAPTER-CONTRACT.md).
 It imports only the `framework/` spec — never another engine.
 
@@ -23,11 +23,11 @@ tool functions (`iops_validate_ledger`, `iops_run_gate`, `iops_audit_report`,
 
 ```bash
 pip install -e ".[dev]"
-iops-hermes ledger validate path/to/ledger.yaml
-iops-hermes gate run path/to/ledger.yaml path/to/gate.yaml
-iops-hermes audit report baseline.yaml comparison.yaml
-iops-hermes monitor validate manifest.yaml
-iops-hermes monitor slo-check manifest.yaml samples.yaml
+iplan-hermes ledger validate path/to/ledger.yaml
+iplan-hermes gate run path/to/ledger.yaml path/to/gate.yaml
+iplan-hermes audit report baseline.yaml comparison.yaml
+iplan-hermes monitor validate manifest.yaml
+iplan-hermes monitor slo-check manifest.yaml samples.yaml
 ```
 
 OpenTelemetry is an optional extra (`pip install -e ".[otel]"`); without it a

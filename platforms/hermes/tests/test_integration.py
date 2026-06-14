@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from iops_hermes import HermesEngine
-from iops_hermes.audit.report import build_audit_report
-from iops_hermes.iplan import read_iplan_ref
-from iops_hermes.ledger.store import append_event, verify_chain
-from iops_hermes.monitoring.slo import evaluate_slos
+from iplan_hermes import HermesEngine
+from iplan_hermes.audit.report import build_audit_report
+from iplan_hermes.iplan import read_iplan_ref
+from iplan_hermes.ledger.store import append_event, verify_chain
+from iplan_hermes.monitoring.slo import evaluate_slos
 
 ROOT = Path(__file__).resolve().parents[3]
 VECTORS = ROOT / "framework" / "conformance" / "vectors"

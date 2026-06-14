@@ -1,6 +1,6 @@
 # Claude Engine
 
-`iops_claude` is a fully self-contained reference engine (strict isolation,
+`iplan_claude` is a fully self-contained reference engine (strict isolation,
 D-0011) that implements the [engine-adapter contract](../../framework/engines/ENGINE-ADAPTER-CONTRACT.md).
 It imports only the `framework/` spec — never another engine. Its validation
 logic is an independent implementation, kept identical to other engines by the
@@ -27,10 +27,10 @@ wiring is a follow-up.
 
 ```bash
 pip install -e ".[dev]"
-iops-claude ledger validate path/to/ledger.yaml
-iops-claude gate run path/to/ledger.yaml path/to/gate.yaml
-iops-claude audit report baseline.yaml comparison.yaml
-iops-claude monitor validate manifest.yaml
+iplan-claude ledger validate path/to/ledger.yaml
+iplan-claude gate run path/to/ledger.yaml path/to/gate.yaml
+iplan-claude audit report baseline.yaml comparison.yaml
+iplan-claude monitor validate manifest.yaml
 ```
 
 OpenTelemetry is an optional extra (`pip install -e ".[otel]"`); without it a

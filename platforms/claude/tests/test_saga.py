@@ -6,10 +6,10 @@ import itertools
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.orchestrator.leases import can_acquire, lease_state, renew
-from iops_claude.orchestrator.saga import already_committed
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.orchestrator.leases import can_acquire, lease_state, renew
+from iplan_claude.orchestrator.saga import already_committed
 
 
 def _noop_sleep(_seconds: float) -> None:

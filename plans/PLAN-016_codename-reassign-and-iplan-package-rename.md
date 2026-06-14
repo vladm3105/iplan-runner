@@ -170,24 +170,24 @@ the iplan-runner PLAN-001 chore edit (which added the codename) is re-done here 
 
 | #   | Claim | Symbol | Citation |
 | --- | ----- | ------ | -------- |
-| 1   | the hermes engine import package is `iops_hermes` (a source dir to rename) | `task_completed` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:223 |
-| 2   | the hermes engine **dist name** is `iops-hermes` (to rename) | `name = "iops-hermes"` | platforms/hermes/pyproject.toml:6 |
-| 3   | the hermes **CLI entry point** binds the `iops_hermes.cli:main` callable | `iops_hermes.cli:main` | platforms/hermes/pyproject.toml:23 |
-| 4   | the hermes **package-data** is keyed on `iops_hermes` | `iops_hermes` | platforms/hermes/pyproject.toml:29 |
-| 5   | the claude engine **dist name** is `iops-claude` (to rename) | `name = "iops-claude"` | platforms/claude/pyproject.toml:6 |
-| 6   | the claude **CLI entry point** binds `iops_claude.cli:main` | `iops_claude.cli:main` | platforms/claude/pyproject.toml:21 |
-| 7   | the claude **package-data** is keyed on `iops_claude` | `iops_claude` | platforms/claude/pyproject.toml:27 |
-| 8   | import sites use `from iops_hermes...` (one of ~167 reference lines) | `from iops_hermes.budget` | platforms/hermes/tests/test_budget.py:9 |
-| 9   | the README binds `iops-framework` as iplan-runner's codename (to delete) | `iops-framework` | README.md:7 |
-| 10  | CLAUDE.md states the `iops-framework` codename | `iops-framework` | CLAUDE.md:3 |
-| 11  | ROADMAP.md states the `iops-framework` codename | `iops-framework` | ROADMAP.md:5 |
-| 12  | CONTRIBUTING.md states the `iops-framework` codename | `iops-framework` | CONTRIBUTING.md:4 |
-| 13  | PLAN-001's goal still uses the old repo name `aidoc-flow-iops-framework` | `aidoc-flow-iops-framework` | plans/PLAN-001_iplan-execution-ledger-runtime.md:8 |
-| 14  | DECISIONS D-0001 binds the codename to iplan-runner (to amend) | `engineering codename` | plans/DECISIONS.md:10 |
+| 1   | the hermes engine import package was renamed `iops_hermes` → `iplan_hermes` | `task_completed` | platforms/hermes/src/iplan_hermes/orchestrator/loop.py:223 |
+| 2   | the hermes engine **dist name** was renamed `iops-hermes` → `iplan-hermes` | `name = "iplan-hermes"` | platforms/hermes/pyproject.toml:6 |
+| 3   | the hermes **CLI entry point** now binds the `iplan_hermes.cli:main` callable | `iplan_hermes.cli:main` | platforms/hermes/pyproject.toml:23 |
+| 4   | the hermes **package-data** is keyed on `iplan_hermes` | `iplan_hermes` | platforms/hermes/pyproject.toml:29 |
+| 5   | the claude engine **dist name** was renamed `iops-claude` → `iplan-claude` | `name = "iplan-claude"` | platforms/claude/pyproject.toml:6 |
+| 6   | the claude **CLI entry point** now binds `iplan_claude.cli:main` | `iplan_claude.cli:main` | platforms/claude/pyproject.toml:21 |
+| 7   | the claude **package-data** is keyed on `iplan_claude` | `iplan_claude` | platforms/claude/pyproject.toml:27 |
+| 8   | import sites now use `from iplan_hermes...` | `from iplan_hermes.budget` | platforms/hermes/tests/test_budget.py:9 |
+| 9   | the README carries no codename note now — the executor is named plainly | `iplan-runner` | README.md:3 |
+| 10  | CLAUDE.md names the repo without a codename | `iplan-runner` | CLAUDE.md:3 |
+| 11  | ROADMAP.md names the project without a codename | `iplan-runner` | ROADMAP.md:5 |
+| 12  | CONTRIBUTING.md names the repo without a codename | `iplan-runner` | CONTRIBUTING.md:4 |
+| 13  | PLAN-001's goal still uses the old repo name `aidoc-flow-iops-framework` (grandfathered, left as-is) | `aidoc-flow-iops-framework` | plans/PLAN-001_iplan-execution-ledger-runtime.md:8 |
+| 14  | D-0019 records the codename drop + reassignment + package rename (supersedes the D-0001 annotation) | `D-0019` | plans/DECISIONS.md:155 |
 | 15  | the **pre-commit** hook grandfathers PLAN-001..012; PLAN-013+ are gated locally | `grandfather PLAN-001..012` | .pre-commit-config.yaml:62 |
 | 16  | gated PLAN-013 carries an `iops_hermes` path citation (cascade on rename) | `task_completed` | plans/PLAN-013_iplanic-remote-executor-conformance.md:433 |
 | 17  | gated PLAN-015 carries `iops_hermes` path citations (cascade on rename) | `_REQUIRED_IDS` | plans/PLAN-015_iplanic-repin-executor-id.md:153 |
-| 18  | the conformance engine **registry** binds each engine to its import package `iops_hermes`/`iops_claude` (must rename in lockstep) | `package: iops_hermes` | framework/registry/EXECUTION_REGISTRY.yaml:82 |
+| 18  | the conformance engine **registry** now binds each engine to its renamed import package `iplan_hermes`/`iplan_claude` | `package: iplan_hermes` | framework/registry/EXECUTION_REGISTRY.yaml:82 |
 | 19  | the conformance loader **imports** engines by the registry `package` and **silently skips** unimportable ones (a missed registry rename = green-against-zero-engines) | `import_module` | tests/conformance/_spec.py:45 |
 | 20  | the **CI** `plan-gate.yml` gates **every** changed `PLAN-*.md` except the template — it does **not** carry the pre-commit PLAN-001..012 grandfather, so editing 001..012 fails CI | `PLAN-TEMPLATE` | .github/workflows/plan-gate.yml:20 |
 

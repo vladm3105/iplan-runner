@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_claude.monitoring.alerts import build_issue, evaluate_alerts
-from iops_claude.monitoring.probes import probe_server
-from iops_claude.monitoring.telemetry import emit_run_telemetry
+from iplan_claude.monitoring.alerts import build_issue, evaluate_alerts
+from iplan_claude.monitoring.probes import probe_server
+from iplan_claude.monitoring.telemetry import emit_run_telemetry
 
 ROOT = Path(__file__).resolve().parents[3]
 ALERT = ROOT / "framework/conformance/alert"
@@ -52,9 +52,9 @@ def test_probe_server_serves_health() -> None:
 
 def test_provider_record_does_not_raise() -> None:
     # works for the no-op default (offline) and the real OTel provider if installed
-    from iops_claude.monitoring.otel import get_provider
+    from iplan_claude.monitoring.otel import get_provider
 
-    provider = get_provider("iops-claude")
+    provider = get_provider("iplan-claude")
     provider.record_metric("m", 1.0)
     provider.log("ev", "INFO", "body")
 

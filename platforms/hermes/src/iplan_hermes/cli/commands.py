@@ -1,4 +1,4 @@
-"""``iops-claude`` command handlers."""
+"""``iplan-hermes`` command handlers."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import Any
 import yaml  # type: ignore[import-untyped]
 
 from ..audit.report import build_audit_report
-from ..engine import ClaudeEngine, _default_clock
+from ..engine import HermesEngine, _default_clock
 from ..executor.base import IdSource
 from ..intake.payload import ingest_task_payload
 from ..ledger.events import to_execution_events
@@ -33,7 +33,7 @@ def _emit(result: Any) -> None:
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="iops-claude")
+    parser = argparse.ArgumentParser(prog="iplan-hermes")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_ledger = sub.add_parser("ledger", help="ledger operations")
@@ -109,7 +109,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
-    engine = ClaudeEngine()
+    engine = HermesEngine()
 
     if args.command == "ledger":
         result = engine.validate(_load(args.path))

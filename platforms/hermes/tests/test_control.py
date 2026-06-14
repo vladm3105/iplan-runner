@@ -6,8 +6,8 @@ import itertools
 from collections.abc import Callable
 
 import pytest
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 TASKS = [

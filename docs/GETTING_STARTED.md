@@ -13,7 +13,7 @@ pip install -e "./platforms/hermes[dev]"   # and/or
 pip install -e "./platforms/claude[dev]"
 ```
 
-The CLIs are `iops-hermes` and `iops-claude`; the Python API is `HermesEngine` /
+The CLIs are `iplan-hermes` and `iplan-claude`; the Python API is `HermesEngine` /
 `ClaudeEngine`. They are interchangeable — golden vectors keep their verdicts
 identical.
 
@@ -23,8 +23,8 @@ identical.
 > **Handover** → **Monitor**.
 
 ```python
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
 
 engine = HermesEngine()
 

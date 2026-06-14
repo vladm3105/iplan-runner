@@ -7,7 +7,7 @@ older ones (mark superseded entries, never delete).
 
 ### D-0001 - Repo is a hybrid spec + runtime - 2026-05-23
 
-`iplan-runner` (engineering codename `iops-framework`) is a **hybrid**: an engine-agnostic *contract* in
+`iplan-runner` is a **hybrid**: an engine-agnostic *contract* in
 `framework/` (portable YAML + Markdown, no code) plus *reference runtimes* in
 `platforms/` (real code), with a shared conformance suite in `tests/`. This
 mirrors `aidoc-flow-framework` so we inherit "the same development approach."
@@ -151,6 +151,22 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 (D-0011) tractable — each engine duplicates a *small* driver, not a whole agent.
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
+
+### D-0019 - Drop the `iops-framework` codename; rename packages `iops_*` → `iplan_*` - 2026-06-14
+
+The engineering codename `iops-framework` is **reassigned** from this repo to the
+**AIOps-Flow** AI-team product (in the `operations` repo). `iplan-runner` now has **no
+engineering codename**, and its Python packages drop the `iops_` brand:
+`iops_hermes` → `iplan_hermes`, `iops_claude` → `iplan_claude` (dist names
+`iplan-hermes`/`iplan-claude`; CLI entry points `iplan-hermes`/`iplan-claude`;
+`framework/registry/EXECUTION_REGISTRY.yaml` package keys updated in lockstep so the
+conformance loader resolves both engines). Engine identities `hermes`/`claude` are
+unchanged; the contract, vectors, and Iplanic wire surface are unchanged (rename only).
+This **supersedes** the codename annotation in D-0001 and the 2026-06
+`business/docs/DECISIONS.md` "4-product consolidation" binding of `iops-framework` to
+iplan-runner; `BRAND_AND_DOMAINS.md` (`business/` + `operations/`) is the source of
+truth. Per PLAN-016. Historical references in grandfathered plans (PLAN-001..012) and
+the frozen `.claude/skills/verified-planning` rollout docs are intentionally left as-is.
 
 ### D-0018 - Re-pin Iplanic mirrors to `1.3-draft`; enforce the `executor_id` hash form - 2026-06-11
 

@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_hermes import HermesEngine
+from iplan_hermes import HermesEngine
 
 ROOT = Path(__file__).resolve().parents[3]
 VECTORS = ROOT / "framework" / "conformance" / "vectors"

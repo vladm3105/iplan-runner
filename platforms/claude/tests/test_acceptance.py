@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.monitoring.telemetry import emit_run_telemetry
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.monitoring.telemetry import emit_run_telemetry
 
 EXAMPLES = Path(__file__).resolve().parents[3] / "examples"
 

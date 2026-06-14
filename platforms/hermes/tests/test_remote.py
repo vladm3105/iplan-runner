@@ -6,10 +6,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
-from iops_hermes.effectors.sandbox import classify_path
-from iops_hermes.intake.payload import ingest_task_payload
-from iops_hermes.ledger.events import to_execution_events
-from iops_hermes.validation.payload_rules import validate_payload
+from iplan_hermes.effectors.sandbox import classify_path
+from iplan_hermes.intake.payload import ingest_task_payload
+from iplan_hermes.ledger.events import to_execution_events
+from iplan_hermes.validation.payload_rules import validate_payload
 
 REMOTE = Path(__file__).resolve().parents[3] / "framework" / "conformance" / "remote"
 

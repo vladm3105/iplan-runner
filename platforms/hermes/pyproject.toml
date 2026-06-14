@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "iops-hermes"
+name = "iplan-hermes"
 version = "1.0.0"
 description = "Hermes reference engine for the AI Doc Flow IOps execution framework"
 requires-python = ">=3.11"
@@ -20,10 +20,10 @@ litellm = ["litellm>=1.40"]
 dev = ["pytest>=7", "ruff", "mypy"]
 
 [project.scripts]
-iops-hermes = "iops_hermes.cli:main"
+iplan-hermes = "iplan_hermes.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-iops_hermes = ["py.typed"]
+iplan_hermes = ["py.typed"]

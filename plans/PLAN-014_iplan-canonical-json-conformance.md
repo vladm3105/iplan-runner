@@ -69,7 +69,7 @@ Add `rfc8785>=0.1.4` (JCS) and `cryptography>=42` (ed25519) to **each** engine's
 
 ### Task 2 — the canonical signer (per engine, identical copies)
 
-Create `security/iplanic_signing.py` in **both** `iops_hermes` and `iops_claude`
+Create `security/iplanic_signing.py` in **both** `iplan_hermes` and `iplan_claude`
 with `drop_null`, `canonicalize`, `canonical_hash`, `signing_payload`, `sign`,
 `verify` as above. Constants: `CANONICALIZATION_ALGORITHM = "iplan-canonical-json"`,
 `HASH_ALGORITHM = "sha256"`. `sign` returns the lowercase-hex `value`; the
@@ -120,9 +120,9 @@ those three keys.
 
 | # | Claim | Symbol | Citation |
 |---|-------|--------|----------|
-| 1 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not JCS, no drop-null, and it includes `received_at` | `_canonical` | platforms/hermes/src/iops_hermes/security/signing.py:13 |
-| 2 | `sign_event` keys the HMAC with `key.encode()` (utf-8 of the key string, not raw bytes) | `key.encode` | platforms/hermes/src/iops_hermes/security/signing.py:22 |
-| 3 | the `security/signing.py` module is duplicated per engine (engine isolation), so the new signer goes in both | `_canonical` | platforms/claude/src/iops_claude/security/signing.py:13 |
+| 1 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not JCS, no drop-null, and it includes `received_at` | `_canonical` | platforms/hermes/src/iplan_hermes/security/signing.py:13 |
+| 2 | `sign_event` keys the HMAC with `key.encode()` (utf-8 of the key string, not raw bytes) | `key.encode` | platforms/hermes/src/iplan_hermes/security/signing.py:22 |
+| 3 | the `security/signing.py` module is duplicated per engine (engine isolation), so the new signer goes in both | `_canonical` | platforms/claude/src/iplan_claude/security/signing.py:13 |
 | 4 | each engine `pyproject.toml` lists only `pyyaml>=6` (no `rfc8785`/`cryptography`) | `pyyaml` | platforms/hermes/pyproject.toml:10 |
 | 5 | IOPS conformance uses `expect.yaml` vector cases carrying a signature (the pattern reused for the vendored Iplanic vectors) | `signature` | framework/conformance/signing/minimal/expect.yaml:1 |
 | 6 | the re-grounded PLAN-013 consumes this plan's canonical signer for Iplanic emission | `PLAN-014` | plans/PLAN-013_iplanic-remote-executor-conformance.md:57 |

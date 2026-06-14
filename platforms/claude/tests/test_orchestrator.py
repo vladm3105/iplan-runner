@@ -6,12 +6,12 @@ import itertools
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.ledger.index import list_runs, status
-from iops_claude.ledger.persistence import ledger_path, load, save
-from iops_claude.ledger.store import verify_chain
-from iops_claude.orchestrator.topo import topo_order
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.ledger.index import list_runs, status
+from iplan_claude.ledger.persistence import ledger_path, load, save
+from iplan_claude.ledger.store import verify_chain
+from iplan_claude.orchestrator.topo import topo_order
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},

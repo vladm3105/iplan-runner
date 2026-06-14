@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_hermes.budget import Budget, check
-from iops_hermes.config import load_config, secrets_from_env
+from iplan_hermes.budget import Budget, check
+from iplan_hermes.config import load_config, secrets_from_env
 
 ROOT = Path(__file__).resolve().parents[3]
 BUDGET = ROOT / "framework/conformance/budget"

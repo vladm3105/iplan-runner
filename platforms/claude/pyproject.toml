@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "iops-claude"
+name = "iplan-claude"
 version = "1.0.0"
 description = "Claude reference engine for the AI Doc Flow IOps execution framework"
 requires-python = ">=3.11"
@@ -18,10 +18,10 @@ otel = [
 dev = ["pytest>=7", "ruff", "mypy"]
 
 [project.scripts]
-iops-claude = "iops_claude.cli:main"
+iplan-claude = "iplan_claude.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-iops_claude = ["py.typed"]
+iplan_claude = ["py.typed"]

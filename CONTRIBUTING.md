@@ -1,8 +1,7 @@
 # Contributing
 
-Thanks for your interest in `iplan-runner` (engineering codename
-`iops-framework`). The framework is small and opinionated; the conventions
-below keep it that way.
+Thanks for your interest in `iplan-runner`. The framework is small and
+opinionated; the conventions below keep it that way.
 
 ## Scope
 

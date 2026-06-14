@@ -1,13 +1,8 @@
-"""Claude engine adapter.
+"""Hermes engine adapter.
 
-The Claude engine integrates with Claude Code: it implements the
-AGENT_UPDATE_PROTOCOL (session start -> lease -> edit recording -> evidence ->
-reconciliation) and records ledger transactions from observed local edits / hook
-callbacks. It is fully self-contained: it imports only this package and the
-framework spec, never another engine (strict isolation, D-0011).
-
-Slice 1 exercises these methods programmatically; live Claude Code hook wiring is
-a follow-up (see HOOK_INTEGRATION_POINTS in the framework spec).
+Hermes exposes the execution contract as MCP-server-style tools and dispatches
+execution via an API executor. It is fully self-contained: it imports only this
+package and the framework spec, never another engine (strict isolation, D-0011).
 """
 
 from __future__ import annotations
@@ -21,8 +16,8 @@ from typing import Any
 from .budget import Budget
 from .config import Config
 from .effectors.sandbox import classify_path
+from .executor.api import ApiExecutor
 from .executor.base import Executor
-from .executor.hostruntime import HostRuntimeExecutor
 from .executor.mock import MockExecutor
 from .executor.scripted import ScriptedExecutor
 from .gates.runner import run_gate
@@ -30,6 +25,7 @@ from .handover.receipt import build_handover_receipt
 from .intake.reader import ingest_iplan
 from .ledger.index import set_control
 from .ledger.store import append_event
+from .model.client import ModelClient
 from .monitoring.alerts import build_issue as _build_issue
 from .monitoring.alerts import evaluate_alerts as _evaluate_alerts
 from .monitoring.otel import get_provider
@@ -41,7 +37,6 @@ from .orchestrator.loop import RunResult, default_gate
 from .orchestrator.loop import land as _land
 from .orchestrator.loop import resume as _resume
 from .orchestrator.loop import run as _run
-from .runtime.client import RuntimeClient
 from .security.authz import authorize as _authorize
 from .security.signing import sign_ledger as _sign_ledger
 from .security.signing import verify_ledger as _verify_ledger
@@ -65,21 +60,21 @@ _DISPATCH: dict[str, Callable[[dict[str, Any]], list[Finding]]] = {
     "iplan-handover-receipt": validate_handover,
 }
 
-_SERVICE_NAME = "iops-claude"
+_SERVICE_NAME = "iplan-hermes"
 
 
 def _default_clock() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-class ClaudeEngine:
+class HermesEngine:
     def __init__(self) -> None:
         self._provider: MonitoringProvider = NoOpProvider()
         self._config = Config()
         self._clock: Callable[[], str] = _default_clock
 
     def engine_id(self) -> str:
-        return "claude"
+        return "hermes"
 
     def capabilities(self) -> dict[str, Any]:
         return {
@@ -93,7 +88,7 @@ class ClaudeEngine:
             "persist": True,
             "effect": True,
             "evidence": True,
-            "executor": "hooks",
+            "executor": "api",
         }
 
     def ingest_iplan(self, path: str | Path) -> dict[str, Any]:
@@ -111,13 +106,13 @@ class ClaudeEngine:
     def scripted_executor(self, spec: dict[str, Any] | None = None, workspace: str | Path = ".") -> Executor:
         return ScriptedExecutor(spec, workspace, self._config.secrets)
 
-    def host_executor(
+    def api_executor(
         self,
-        client: RuntimeClient,
+        client: ModelClient,
         workspace: str | Path = ".",
         budget: Budget | None = None,
     ) -> Executor:
-        return HostRuntimeExecutor(client, workspace, budget)
+        return ApiExecutor(client, workspace, budget, self._config.secrets)
 
     def default_executor(self) -> Executor:
         return MockExecutor()
@@ -292,43 +287,21 @@ class ClaudeEngine:
     def build_issue(self, alert: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
         return _build_issue(alert, manifest)
 
-    # --- AGENT_UPDATE_PROTOCOL ------------------------------------------------
+    # --- MCP-server-style tool surface ---------------------------------------
 
-    def start_session(self, ledger: dict[str, Any]) -> dict[str, Any]:
-        ledger.setdefault("execution_log", [])
-        ledger.setdefault("agent_leases", [])
-        return ledger
+    def iops_validate_ledger(self, document: dict[str, Any]) -> dict[str, Any]:
+        return self.validate(document)
 
-    def acquire_lease(self, ledger: dict[str, Any], lease: dict[str, Any]) -> dict[str, Any]:
-        ledger.setdefault("agent_leases", []).append(lease)
-        return ledger
+    def iops_run_gate(self, ledger: dict[str, Any], gate: dict[str, Any]) -> dict[str, Any]:
+        return self.run_gate(ledger, gate)
 
-    def record_touched_file(self, ledger: dict[str, Any], task_id: str, path: str, at: str) -> dict[str, Any]:
-        scope = ledger.get("isolation_scope", {})
-        append_event(
-            ledger,
-            {
-                "event_type": "file_edited",
-                "subject_id": task_id,
-                "at": at,
-                "touched_paths": [path],
-                "client_id": scope.get("client_id"),
-                "project_id": scope.get("project_id"),
-            },
-        )
-        return ledger
+    def iops_audit_report(self, document: dict[str, Any]) -> dict[str, Any]:
+        return self.validate(document)
 
-    def record_evidence(self, ledger: dict[str, Any], evidence: dict[str, Any]) -> dict[str, Any]:
-        ledger.setdefault("execution_evidence", []).append(evidence)
-        return ledger
+    def iops_monitor_check(self, document: dict[str, Any]) -> dict[str, Any]:
+        return self.validate(document)
 
-    def reconcile(self, ledger: dict[str, Any]) -> dict[str, Any]:
-        tasks = ledger.get("task_ledger", [])
-        pending = sum(1 for t in tasks if t.get("status") in ("pending", "in_progress"))
-        open_blockers = len(ledger.get("blockers", []))
-        ledger["reconciliation"] = {
-            "allowed": pending == 0 and open_blockers == 0,
-            "pending_tasks": pending,
-            "open_blockers": open_blockers,
-        }
-        return ledger
+    def run_executor(self, prompt: str) -> dict[str, Any]:
+        """API-executor dispatch stub, wrapped with execution-log emission."""
+        self.emit_execution_log({"event_type": "executor_dispatch", "prompt": prompt})
+        return {"engine": self.engine_id(), "dispatched": True, "prompt": prompt}

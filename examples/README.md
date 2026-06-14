@@ -22,28 +22,28 @@ check imports the result and asserts it behaves.
 
 ## Run it with the CLI
 
-Pick an engine — `iops-hermes` or `iops-claude`; both are interchangeable here.
+Pick an engine — `iplan-hermes` or `iplan-claude`; both are interchangeable here.
 `--land` needs the workspace to be a git repository.
 
 ```bash
 pip install -e "./platforms/hermes[dev]"
 
 # 1. Intake: normalize + validate the SDD-IPLAN
-iops-hermes intake examples/IPLAN-EXAMPLE.yaml
+iplan-hermes intake examples/IPLAN-EXAMPLE.yaml
 
 # 2. Run end-to-end in a fresh git workspace, committing if green
 ws="$(mktemp -d)" && git init -q "$ws"
-iops-hermes run examples/IPLAN-EXAMPLE.yaml \
+iplan-hermes run examples/IPLAN-EXAMPLE.yaml \
   --actions examples/actions.yaml --workspace "$ws" \
   --land --branch iops/example
 
 # 3. Inspect the recorded run
-iops-hermes status
+iplan-hermes status
 
 # 4. Validate the monitoring manifest and check SLOs against samples
-iops-hermes monitor validate examples/monitoring.yaml
+iplan-hermes monitor validate examples/monitoring.yaml
 printf 'availability_ratio: 99.95\n' > "$ws/samples.yaml"
-iops-hermes monitor slo-check examples/monitoring.yaml "$ws/samples.yaml"
+iplan-hermes monitor slo-check examples/monitoring.yaml "$ws/samples.yaml"
 ```
 
 After step 2 the workspace has a commit on `iops/example` containing
@@ -57,7 +57,7 @@ Signing is config-gated: the engine signs the landed ledger when its
 `framework/config/CONFIG_CONTRACT.md`). Programmatically:
 
 ```python
-from iops_hermes import HermesEngine
+from iplan_hermes import HermesEngine
 
 engine = HermesEngine()
 engine._config.signing_key = "your-signing-key"   # or load_config() from env

@@ -65,6 +65,30 @@ See `plans/DECISIONS.md` for the architecture decisions (D-0001..D-0012).
 - `framework/VERSION` is the single spec-version source; the registry and every
   engine's `FRAMEWORK_SPEC_VERSION` must equal it.
 
+## Per-repo governance — this repo owns its own continuity
+
+The `aidoc-flow` workspace is **multi-repo**. Each repo governs its own
+activity tracking; cross-session continuity is per-repo. The durable
+surfaces for **this** repo:
+
+| Surface | Path (in this repo) |
+|---|---|
+| Live HANDOFF | `plans/HANDOFF.md` |
+| TODO / backlog | `TODO.md` (root) |
+| Decisions log | `plans/DECISIONS.md` (D-0001..) |
+| Plans | `plans/PLAN-NNN_*.md` |
+| Roadmap | `ROADMAP.md` |
+
+**Never put any of these in `tmp/`** — `tmp/` is for transient working
+files; nothing in it survives a context-clear or new session.
+**Never centralize in the umbrella `aidoc-flow/`** — the umbrella holds
+no dev; plans, decisions, and tracking live in the owning submodule.
+
+A future session entered through **this** repo must find that repo's
+state here. Cross-repo coordination (e.g., a framework-spec change
+that this engine implements) references the sibling `framework/` repo
+by path; iplan-runner's own state never relocates into the framework.
+
 ## Verify
 
 ```bash

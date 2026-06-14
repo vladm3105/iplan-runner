@@ -5,9 +5,9 @@ from __future__ import annotations
 import itertools
 from collections.abc import Callable
 
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.runtime.client import RuntimeResult, StubRuntimeClient
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.runtime.client import RuntimeResult, StubRuntimeClient
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},

@@ -338,7 +338,7 @@ vendored mirror).
 ### Task 4: Claude implementation (independent copy)
 
 - [ ] **Step 1–4:** mirror Task 3 as an independent copy — **no import of
-  `iops_hermes`**; identical behavior.
+  `iplan_hermes`**; identical behavior.
 - [ ] **Step 5: green** + commit `feat: add Iplanic payload intake + event
   projection to claude`.
 
@@ -430,15 +430,15 @@ Expected:
 
 | # | Claim | Symbol | Citation |
 |---|-------|--------|----------|
-| 1 | `task_completed` IS an appended execution_log event (maps directly to Iplanic `task.completed`) | `task_completed` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:223 |
-| 2 | acceptance outcome is set on the task entry, not a log event (so `test.*` are derived) | `acceptance` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:219 |
-| 3 | the engine sandbox wrapper takes `(path, allowed_roots)` — must thread `forbidden_paths` | `classify_path` | platforms/hermes/src/iops_hermes/engine.py:97 |
-| 4 | the legacy `sign_event` HMACs IOPS's own canonical form — retained for the standalone ledger, **not** used for Iplanic emission (PLAN-014 replaces it) | `sign_event` | platforms/hermes/src/iops_hermes/security/signing.py:21 |
-| 9 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not RFC 8785 JCS, no drop-null, and it signs `received_at`: the conformance gap PLAN-014 closes | `_canonical` | platforms/hermes/src/iops_hermes/security/signing.py:13 |
-| 5 | `ingest_iplan` emits an `iplan-intake` manifest (payload-mode reuses this shape) | `iplan-intake` | platforms/hermes/src/iops_hermes/intake/reader.py:41 |
-| 6 | intake scope validation requires `client_id`/`project_id`/`allowed_roots` | `allowed_roots` | platforms/hermes/src/iops_hermes/validation/intake_rules.py:33 |
-| 7 | next decision number is D-0016 (highest existing decision is D-0015; sections are not in file order) | `D-0015` | plans/DECISIONS.md:214 |
-| 8 | real `execution_log` event_types: task_started / file_edited / task_completed / task_blocked / commit / compensation | `file_edited` | platforms/hermes/src/iops_hermes/orchestrator/loop.py:214 |
+| 1 | `task_completed` IS an appended execution_log event (maps directly to Iplanic `task.completed`) | `task_completed` | platforms/hermes/src/iplan_hermes/orchestrator/loop.py:223 |
+| 2 | acceptance outcome is set on the task entry, not a log event (so `test.*` are derived) | `acceptance` | platforms/hermes/src/iplan_hermes/orchestrator/loop.py:219 |
+| 3 | the engine sandbox wrapper takes `(path, allowed_roots)` — must thread `forbidden_paths` | `classify_path` | platforms/hermes/src/iplan_hermes/engine.py:97 |
+| 4 | the legacy `sign_event` HMACs IOPS's own canonical form — retained for the standalone ledger, **not** used for Iplanic emission (PLAN-014 replaces it) | `sign_event` | platforms/hermes/src/iplan_hermes/security/signing.py:21 |
+| 9 | IOPS `_canonical` is `json.dumps(sort_keys)` excluding only `signature` — not RFC 8785 JCS, no drop-null, and it signs `received_at`: the conformance gap PLAN-014 closes | `_canonical` | platforms/hermes/src/iplan_hermes/security/signing.py:13 |
+| 5 | `ingest_iplan` emits an `iplan-intake` manifest (payload-mode reuses this shape) | `iplan-intake` | platforms/hermes/src/iplan_hermes/intake/reader.py:41 |
+| 6 | intake scope validation requires `client_id`/`project_id`/`allowed_roots` | `allowed_roots` | platforms/hermes/src/iplan_hermes/validation/intake_rules.py:33 |
+| 7 | next decision number is D-0016 (highest existing decision is D-0015; sections are not in file order) | `D-0015` | plans/DECISIONS.md:230 |
+| 8 | real `execution_log` event_types: task_started / file_edited / task_completed / task_blocked / commit / compensation | `file_edited` | platforms/hermes/src/iplan_hermes/orchestrator/loop.py:214 |
 
 ## Review log
 

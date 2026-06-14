@@ -5,9 +5,9 @@ from __future__ import annotations
 import itertools
 from collections.abc import Callable
 
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
-from iops_hermes.orchestrator.chain import chain_order
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.orchestrator.chain import chain_order
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 CHAIN = {

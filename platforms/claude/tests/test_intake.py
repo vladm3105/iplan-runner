@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from iops_claude import ClaudeEngine
-from iops_claude.handover.receipt import build_handover_receipt
-from iops_claude.intake.reader import ingest_iplan
+from iplan_claude import ClaudeEngine
+from iplan_claude.handover.receipt import build_handover_receipt
+from iplan_claude.intake.reader import ingest_iplan
 
 ROOT = Path(__file__).resolve().parents[3]
 SAMPLES = ROOT / "framework" / "conformance" / "intake_samples"

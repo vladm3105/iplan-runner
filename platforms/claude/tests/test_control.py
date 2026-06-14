@@ -6,8 +6,8 @@ import itertools
 from collections.abc import Callable
 
 import pytest
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 TASKS = [

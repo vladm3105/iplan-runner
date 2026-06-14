@@ -1,4 +1,4 @@
-"""``iops-claude`` command-line interface."""
+"""``iplan-hermes`` command-line interface."""
 
 from .commands import main
 

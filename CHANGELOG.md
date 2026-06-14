@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- **Renamed the engine packages `iops_hermes` → `iplan_hermes` and `iops_claude` →
+  `iplan_claude`** (dist names `iplan-hermes`/`iplan-claude`; CLI entry points
+  `iplan-hermes`/`iplan-claude`; `framework/registry/EXECUTION_REGISTRY.yaml` package
+  keys updated so the conformance loader resolves both engines). Engine identities
+  `hermes`/`claude`, the contract, the vectors, and the Iplanic wire surface are
+  unchanged — rename only. **Dropped the `iops-framework` engineering codename**
+  (reassigned to AIOps-Flow; see `BRAND_AND_DOMAINS.md`). (PLAN-016, D-0019.)
+
 ### Added
 
 - `security/iplanic_signing.py` (both engines): the `iplan-canonical-json` signer

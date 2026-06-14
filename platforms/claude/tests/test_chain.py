@@ -5,9 +5,9 @@ from __future__ import annotations
 import itertools
 from collections.abc import Callable
 
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.orchestrator.chain import chain_order
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.orchestrator.chain import chain_order
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 CHAIN = {

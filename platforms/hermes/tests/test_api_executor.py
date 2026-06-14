@@ -7,10 +7,10 @@ import json
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_hermes import HermesEngine
-from iops_hermes.budget import Budget
-from iops_hermes.executor.base import IdSource
-from iops_hermes.model.client import StubModelClient
+from iplan_hermes import HermesEngine
+from iplan_hermes.budget import Budget
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.model.client import StubModelClient
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},

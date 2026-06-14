@@ -7,9 +7,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_hermes.effectors.apply import apply_write
-from iops_hermes.security.authz import authorize
-from iops_hermes.security.signing import sign_event, sign_ledger, verify_ledger
+from iplan_hermes.effectors.apply import apply_write
+from iplan_hermes.security.authz import authorize
+from iplan_hermes.security.signing import sign_event, sign_ledger, verify_ledger
 
 ROOT = Path(__file__).resolve().parents[3]
 SIGNING = ROOT / "framework/conformance/signing"
@@ -31,7 +31,7 @@ def test_authorize_matches_vectors(case: str) -> None:
 
 
 def test_sign_verify_roundtrip_and_tamper() -> None:
-    from iops_hermes.ledger.store import append_event
+    from iplan_hermes.ledger.store import append_event
 
     ledger: dict = {"execution_log": []}
     append_event(

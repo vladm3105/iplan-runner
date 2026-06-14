@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for working in `iplan-runner` (engineering codename: `iops-framework`).
+Guidance for working in `iplan-runner`.
 
 ## What this repo is
 

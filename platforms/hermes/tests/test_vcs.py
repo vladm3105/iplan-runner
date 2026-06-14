@@ -7,9 +7,9 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
-from iops_hermes.vcs.git import commit_all, current_branch, has_changes
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.vcs.git import commit_all, current_branch, has_changes
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 MANIFEST = {

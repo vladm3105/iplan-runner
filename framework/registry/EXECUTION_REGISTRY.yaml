@@ -79,8 +79,8 @@ chains_root: "framework/conformance/chains"
 
 engines:
   - id: hermes
-    package: iops_hermes
+    package: iplan_hermes
     path: "platforms/hermes"
   - id: claude
-    package: iops_claude
+    package: iplan_claude
     path: "platforms/claude"

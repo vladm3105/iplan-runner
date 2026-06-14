@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import yaml
-from iops_claude import ClaudeEngine
-from iops_claude.audit.report import build_audit_report
-from iops_claude.iplan import read_iplan_ref
-from iops_claude.ledger.store import append_event, verify_chain
-from iops_claude.monitoring.slo import evaluate_slos
+from iplan_claude import ClaudeEngine
+from iplan_claude.audit.report import build_audit_report
+from iplan_claude.iplan import read_iplan_ref
+from iplan_claude.ledger.store import append_event, verify_chain
+from iplan_claude.monitoring.slo import evaluate_slos
 
 ROOT = Path(__file__).resolve().parents[3]
 VECTORS = ROOT / "framework" / "conformance" / "vectors"

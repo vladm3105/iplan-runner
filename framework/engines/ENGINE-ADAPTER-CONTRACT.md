@@ -46,7 +46,7 @@ class EngineAdapter(Protocol):
 
     def instrument(self, manifest: dict) -> None:
         """Wire monitoring from a monitoring manifest. Sets the OTel Resource
-        service.name to the engine (e.g. "iops-hermes") then configures signals.
+        service.name to the engine (e.g. "iplan-hermes") then configures signals.
         A no-op MonitoringProvider is used when the [otel] extra is absent."""
 ```
 

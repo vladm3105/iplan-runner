@@ -150,19 +150,19 @@ framework `MINOR` bump.
 | 9   | each engine's remote test asserts the conforming `manifest[...]["executor_id"]` (was `exec:remote`) | `iopsremote` | platforms/hermes/tests/test_remote.py:33 |
 | 10  | each engine's remote test asserts every emitted event's conforming `executor_id` | `iopsremote` | platforms/hermes/tests/test_remote.py:48 |
 | 11  | the claude engine carries the identical assertions (dual-engine, D-0011) | `iopsremote` | platforms/claude/tests/test_remote.py:33 |
-| 12  | `validate_payload` is where REMOTE rules are emitted; `executor_id` is a `_REQUIRED_IDS` presence check today (no format check) | `_REQUIRED_IDS` | platforms/hermes/src/iops_hermes/validation/payload_rules.py:13 |
-| 13  | REMOTE findings are appended via `finding("REMOTE.PAYLOAD_…")` (the call shape the new rule mirrors) | `REMOTE.PAYLOAD_IDS_MISSING` | platforms/hermes/src/iops_hermes/validation/payload_rules.py:24 |
-| 14  | each engine's SEVERITY dict lists the REMOTE rules (where the new rule's severity is added) | `REMOTE.PAYLOAD_IDS_MISSING` | platforms/hermes/src/iops_hermes/validation/_base.py:45 |
+| 12  | `validate_payload` is where REMOTE rules are emitted; `executor_id` is a `_REQUIRED_IDS` presence check today (no format check) | `_REQUIRED_IDS` | platforms/hermes/src/iplan_hermes/validation/payload_rules.py:13 |
+| 13  | REMOTE findings are appended via `finding("REMOTE.PAYLOAD_…")` (the call shape the new rule mirrors) | `REMOTE.PAYLOAD_IDS_MISSING` | platforms/hermes/src/iplan_hermes/validation/payload_rules.py:24 |
+| 14  | each engine's SEVERITY dict lists the REMOTE rules (where the new rule's severity is added) | `REMOTE.PAYLOAD_IDS_MISSING` | platforms/hermes/src/iplan_hermes/validation/_base.py:45 |
 | 15  | the rule catalog declares the REMOTE-001 rules (where the new rule is registered) | `REMOTE-001` | framework/conformance/rule-ids.yaml:166 |
 | 16  | the rule-coverage test auto-scans `remote/**/expect.yaml`, so a new reject vector's `rule_id` is covered both ways | `conformance" / "remote` | tests/conformance/test_rule_catalog.py:33 |
 | 17  | the reject-vector shape is `payload.yaml` + `expect.yaml` with a sorted `rule_ids` list (the shape `reject_executor_id` mirrors) | `rule_ids` | framework/conformance/remote/reject_context/expect.yaml:1 |
 | 18  | the remote conformance test compares the accept manifest against the golden `expect["manifest"]` (so the value rewrite must update both) | `expect["manifest"]` | tests/conformance/test_remote.py:64 |
-| 18b | `executor_id` is a signed `_IDENTITY_FIELDS` member; `sign(signing_payload(event))` covers it, so rewriting it changes every `signature.value` | `signing_payload` | platforms/hermes/src/iops_hermes/ledger/events.py:63 |
+| 18b | `executor_id` is a signed `_IDENTITY_FIELDS` member; `sign(signing_payload(event))` covers it, so rewriting it changes every `signature.value` | `signing_payload` | platforms/hermes/src/iplan_hermes/ledger/events.py:63 |
 | 18c | the golden `expect.yaml` carries precomputed `signature.value`s (the five to regenerate, first at this line) | `value` | framework/conformance/remote/accept/expect.yaml:61 |
 | 19b | both engines carry a parity-gated `FRAMEWORK_SPEC_VERSION` marker (= `framework_version`) — a version carrier the bump must move | `framework_version` | tests/conformance/test_engines.py:15 |
 | 19  | the framework registry `spec_version` is `1.1.0` and must equal `framework/VERSION` (the bump pair) | `spec_version` | framework/registry/EXECUTION_REGISTRY.yaml:9 |
-| 20  | each engine `__version__` is `0.12.0` (bump to `0.13.0`) | `__version__` | platforms/hermes/src/iops_hermes/__init__.py:6 |
-| 21  | the latest decision is D-0017 (so this is D-0018), newest-first ordering | `D-0017` | plans/DECISIONS.md:178 |
+| 20  | each engine `__version__` is `0.12.0` (bump to `0.13.0`) | `__version__` | platforms/hermes/src/iplan_hermes/__init__.py:6 |
+| 21  | the latest decision is D-0017 (so this is D-0018), newest-first ordering | `D-0017` | plans/DECISIONS.md:194 |
 | 22  | the `remote_execution` block carries `executor_id` as the Iplanic identity for event emission (why the format must conform) | `executor_id` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:40 |
 
 ## Review log

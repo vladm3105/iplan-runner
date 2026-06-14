@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_hermes import HermesEngine
-from iops_hermes.effectors.apply import apply_write
-from iops_hermes.effectors.commands import run_command
-from iops_hermes.effectors.sandbox import classify_path
-from iops_hermes.evidence.runner import run_checks
-from iops_hermes.executor.base import IdSource
-from iops_hermes.redaction import redact
+from iplan_hermes import HermesEngine
+from iplan_hermes.effectors.apply import apply_write
+from iplan_hermes.effectors.commands import run_command
+from iplan_hermes.effectors.sandbox import classify_path
+from iplan_hermes.evidence.runner import run_checks
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.redaction import redact
 
 ROOT = Path(__file__).resolve().parents[3]
 SANDBOX = ROOT / "framework" / "conformance" / "sandbox"

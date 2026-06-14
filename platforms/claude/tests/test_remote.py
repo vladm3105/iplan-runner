@@ -6,10 +6,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import yaml
-from iops_claude.effectors.sandbox import classify_path
-from iops_claude.intake.payload import ingest_task_payload
-from iops_claude.ledger.events import to_execution_events
-from iops_claude.validation.payload_rules import validate_payload
+from iplan_claude.effectors.sandbox import classify_path
+from iplan_claude.intake.payload import ingest_task_payload
+from iplan_claude.ledger.events import to_execution_events
+from iplan_claude.validation.payload_rules import validate_payload
 
 REMOTE = Path(__file__).resolve().parents[3] / "framework" / "conformance" / "remote"
 

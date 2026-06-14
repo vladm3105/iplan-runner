@@ -7,9 +7,9 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-from iops_claude import ClaudeEngine
-from iops_claude.executor.base import IdSource
-from iops_claude.vcs.git import commit_all, current_branch, has_changes
+from iplan_claude import ClaudeEngine
+from iplan_claude.executor.base import IdSource
+from iplan_claude.vcs.git import commit_all, current_branch, has_changes
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 MANIFEST = {

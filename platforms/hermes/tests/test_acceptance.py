@@ -15,9 +15,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from iops_hermes import HermesEngine
-from iops_hermes.executor.base import IdSource
-from iops_hermes.monitoring.telemetry import emit_run_telemetry
+from iplan_hermes import HermesEngine
+from iplan_hermes.executor.base import IdSource
+from iplan_hermes.monitoring.telemetry import emit_run_telemetry
 
 EXAMPLES = Path(__file__).resolve().parents[3] / "examples"
 

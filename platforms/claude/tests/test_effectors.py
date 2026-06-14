@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 import yaml
-from iops_claude import ClaudeEngine
-from iops_claude.effectors.apply import apply_write
-from iops_claude.effectors.commands import run_command
-from iops_claude.effectors.sandbox import classify_path
-from iops_claude.evidence.runner import run_checks
-from iops_claude.executor.base import IdSource
-from iops_claude.redaction import redact
+from iplan_claude import ClaudeEngine
+from iplan_claude.effectors.apply import apply_write
+from iplan_claude.effectors.commands import run_command
+from iplan_claude.effectors.sandbox import classify_path
+from iplan_claude.evidence.runner import run_checks
+from iplan_claude.executor.base import IdSource
+from iplan_claude.redaction import redact
 
 ROOT = Path(__file__).resolve().parents[3]
 SANDBOX = ROOT / "framework" / "conformance" / "sandbox"

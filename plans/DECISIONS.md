@@ -152,6 +152,27 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
+### D-0020 - Iplanic transport: ledger-relay → `POST /v1/events` (design) - 2026-06-14
+
+Design the iplan-runner-side **transport** (PLAN-017) that delivers signed
+`execution-event`s to Iplanic's `POST /v1/events` — **design/spec only, no
+implementation** (the build is D-4b). A **ledger-relay / drain worker** reads the durable
+ledger in append order, projects each event to Iplanic shape (`to_execution_events`),
+signs it (`iplanic_signing.sign`), and POSTs it **verbatim** (incl. the placeholder
+`received_at = occurred_at`, which Iplanic overwrites and excludes from the signature),
+advancing a **durable cursor** (at-least-once; the cursor advances only on `202`). That
+dedup **requires** anchoring the `idempotency_key` on the **D-0008 hash-chain identity**
+(`sequence`/`event_hash`) — the current positional `IdSource` counter is insufficient (a
+D-4b value-derivation change, not a wire-shape change). Reject→outcome map:
+`timestamp_skew` is **not** server-distinguishable, so the relay classifies locally
+(heuristic); `invalid_signature`/`schema_invalid` → terminal+halt; registration/scope
+codes → terminal+escalate → **dead-letter** (durable; the cursor advances only after a
+durable dead-letter commit — no silent loss); transport faults → retry-with-backoff.
+**Per-engine** (D-0011, no shared code); an **in-process fake Iplanic server** backs the
+gated, integration-only suite (PLAN-008 "opt-in, not in CI" pattern). Builds on the
+transport-agnostic remote-executor contract (D-0016) and the pinned Iplanic `1.3-draft`
+endpoint (D-0018).
+
 ### D-0019 - Drop the `iops-framework` codename; rename packages `iops_*` → `iplan_*` - 2026-06-14
 
 The engineering codename `iops-framework` is **reassigned** from this repo to the

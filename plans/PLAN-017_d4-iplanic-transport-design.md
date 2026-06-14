@@ -162,7 +162,7 @@ mapped HTTP status — `401 unauthenticated`; `403` for `unregistered_executor` 
   decisions D-0011/D-0015/D-0016 (no contradiction).
 - **No `platforms/**` code, no `framework/` contract change, no migration, no tests** are
   added by this plan (only docs/plan).
-- D-0020 is proposed (not ratified into `DECISIONS.md` until approved); the gate passes.
+- D-0020 is **ratified in this PR** (added to `DECISIONS.md`, newest-first), on approval/merge; the gate passes.
 
 ## Claim ledger
 
@@ -175,13 +175,13 @@ mapped HTTP status — `401 unauthenticated`; `403` for `unregistered_executor` 
 | 2   | the contract defines the **Ledger → `execution-event` projection** (per ledger event) | `Ledger → ` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:47 |
 | 3   | `to_execution_events` is the projection function the relay consumes (ledger → Iplanic events) | `def to_execution_events` | platforms/hermes/src/iplan_hermes/ledger/events.py:68 |
 | 4   | `iplanic_signing.sign` is the conformance-proven Iplanic-shape signer (no re-derivation in D-4) | `def sign` | platforms/hermes/src/iplan_hermes/security/iplanic_signing.py:64 |
-| 5   | D-0016 made the remote-executor contract **transport-agnostic** — D-4 fills the transport gap | `transport-agnostic` | plans/DECISIONS.md:211 |
+| 5   | D-0016 made the remote-executor contract **transport-agnostic** — D-4 fills the transport gap | `transport-agnostic` | plans/DECISIONS.md:232 |
 | 6   | PLAN-008 established the **per-engine live-executor client** pattern D-4's transport mirrors | `ApiExecutor` | plans/PLAN-008_config-live-executors.md:9 |
 | 7   | PLAN-008's live clients are **opt-in, keyed, not in CI** — the integration-gating pattern D-4's suite mirrors | `not in CI` | plans/PLAN-008_config-live-executors.md:21 |
 | 8   | D-0011 strict engine isolation → the transport is **per-engine** (no shared code) | `Strict engine isolation` | plans/DECISIONS.md:100 |
-| 9   | D-0015 (agent-first identity) is the bearer-token / auth basis for the transport | `agent-first` | plans/DECISIONS.md:230 |
-| 10  | D-0018 pins the Iplanic `1.3-draft` contract the transport POSTs against | `Re-pin Iplanic mirrors to` | plans/DECISIONS.md:171 |
-| 11  | the highest existing decision is D-0019 (so the proposed ADR is D-0020) | `D-0019` | plans/DECISIONS.md:155 |
+| 9   | D-0015 (agent-first identity) is the bearer-token / auth basis for the transport | `agent-first` | plans/DECISIONS.md:251 |
+| 10  | D-0018 pins the Iplanic `1.3-draft` contract the transport POSTs against | `Re-pin Iplanic mirrors to` | plans/DECISIONS.md:192 |
+| 11  | the highest existing decision is D-0019 (so the proposed ADR is D-0020) | `D-0019` | plans/DECISIONS.md:176 |
 | 12  | the projection derives `idempotency_key` from a per-call `event_id` (the dedup key the relay depends on) | `idempotency_key` | platforms/hermes/src/iplan_hermes/ledger/events.py:54 |
 | 13  | `event_id` comes from a **positional** ordinal `IdSource` (`EV1`,`EV2`,…) — fresh per pass, **not** content-stable | `def __call__` | platforms/hermes/src/iplan_hermes/executor/base.py:39 |
 | 14  | the ledger already has a **stable identity** (`compute_event_hash(sequence, previous_event_hash, …)`) the relay must anchor the key on | `def compute_event_hash` | platforms/hermes/src/iplan_hermes/ledger/store.py:12 |

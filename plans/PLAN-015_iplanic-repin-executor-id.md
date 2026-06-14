@@ -162,7 +162,7 @@ framework `MINOR` bump.
 | 19b | both engines carry a parity-gated `FRAMEWORK_SPEC_VERSION` marker (= `framework_version`) — a version carrier the bump must move | `framework_version` | tests/conformance/test_engines.py:15 |
 | 19  | the framework registry `spec_version` is `1.1.0` and must equal `framework/VERSION` (the bump pair) | `spec_version` | framework/registry/EXECUTION_REGISTRY.yaml:9 |
 | 20  | each engine `__version__` is `0.12.0` (bump to `0.13.0`) | `__version__` | platforms/hermes/src/iplan_hermes/__init__.py:6 |
-| 21  | the latest decision is D-0017 (so this is D-0018), newest-first ordering | `D-0017` | plans/DECISIONS.md:194 |
+| 21  | the latest decision is D-0017 (so this is D-0018), newest-first ordering | `D-0017` | plans/DECISIONS.md:215 |
 | 22  | the `remote_execution` block carries `executor_id` as the Iplanic identity for event emission (why the format must conform) | `executor_id` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:40 |
 
 ## Review log

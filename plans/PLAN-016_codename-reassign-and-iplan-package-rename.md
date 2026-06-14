@@ -183,7 +183,7 @@ the iplan-runner PLAN-001 chore edit (which added the codename) is re-done here 
 | 11  | ROADMAP.md names the project without a codename | `iplan-runner` | ROADMAP.md:5 |
 | 12  | CONTRIBUTING.md names the repo without a codename | `iplan-runner` | CONTRIBUTING.md:4 |
 | 13  | PLAN-001's goal still uses the old repo name `aidoc-flow-iops-framework` (grandfathered, left as-is) | `aidoc-flow-iops-framework` | plans/PLAN-001_iplan-execution-ledger-runtime.md:8 |
-| 14  | D-0019 records the codename drop + reassignment + package rename (supersedes the D-0001 annotation) | `D-0019` | plans/DECISIONS.md:155 |
+| 14  | D-0019 records the codename drop + reassignment + package rename (supersedes the D-0001 annotation) | `D-0019` | plans/DECISIONS.md:176 |
 | 15  | the **pre-commit** hook grandfathers PLAN-001..012; PLAN-013+ are gated locally | `grandfather PLAN-001..012` | .pre-commit-config.yaml:62 |
 | 16  | gated PLAN-013 carries an `iops_hermes` path citation (cascade on rename) | `task_completed` | plans/PLAN-013_iplanic-remote-executor-conformance.md:433 |
 | 17  | gated PLAN-015 carries `iops_hermes` path citations (cascade on rename) | `_REQUIRED_IDS` | plans/PLAN-015_iplanic-repin-executor-id.md:153 |

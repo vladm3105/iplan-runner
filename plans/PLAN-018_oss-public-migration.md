@@ -23,7 +23,7 @@ settings.
 |------------|-------|
 | Task       | OSS-PUB-018 |
 | Depends on | `aidoc-flow-framework` (public reference); `plans/PLAN-017` (latest plan) |
-| Status     | DONE (Tasks 1–5 executed; Task 6 squash/flip gated) - 2026-06-14 |
+| Status     | DONE (Tasks 1–6 executed; repo is public) - 2026-06-15 |
 | Feeds      | Public release of `iplan-runner`; aligns the suite's OSS posture |
 
 ## Objective
@@ -510,8 +510,8 @@ run this session. Findings:
 | 8 | `framework/` is vendored as tracked files (not a submodule) | `0.14.0` | framework/VERSION:1 |
 | 9 | dependabot already covers the `claude` engine | `directory: /platforms/claude` | .github/dependabot.yml:10 |
 | 10 | Private sibling referenced in ecosystem doc (404 risk) | `aidoc-flow-iplanic` | docs/IPLAN-ECOSYSTEM.md:15 |
-| 11 | Private sibling referenced in handoff doc | `vladm3105/aidoc-flow-iplanic` | plans/HANDOFF.md:71 |
-| 12 | Docs path leak genericized to the repo name (G3; executed) | `aidoc-flow-iplanic` | docs/HANDOFF.md:81 |
+| 11 | Private sibling referenced in handoff doc (softened, G4) | `aidoc-flow-iplanic` | plans/HANDOFF.md:96 |
+| 12 | Path leak genericized to the repo name (G3; executed) | `aidoc-flow-iplanic` | plans/HANDOFF.md:96 |
 | 13 | Latest existing plan is PLAN-017 (this is 018) | `PLAN-017` | plans/PLAN-017_d4-iplanic-transport-design.md:1 |
 | 14 | Root pyproject is tooling-only (no `[project]`, not a PyPI package) | `[tool.ruff]` | pyproject.toml:1 |
 | 15 | A second workflow also uses a least-privilege token (witness for the cross-workflow safety claim; exhaustive check is the grep gate in Verification) | `permissions:` | .github/workflows/codeql.yml:11 |

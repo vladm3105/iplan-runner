@@ -1,0 +1,11 @@
+execution_order:
+- IPLAN-001
+- IPLAN-002
+iplan_chain:
+  IPLAN-001:
+    reconciled: false
+  IPLAN-002:
+    reconciled: false
+chain_reconciliation:
+  allowed: false
+chain_status: blocked

@@ -1,0 +1,29 @@
+# IPLAN Handover Receipt — TEMPLATE
+#
+# Published back toward the control plane when a ledger reaches a terminal state.
+# Binds the source IPLAN + ledger + gate verdict (+ optional audit report) into a
+# single result. Built with an injected clock; receipt_id is derived from the
+# ledger reference (deterministic, no ambient ids).
+#
+# Document type: iplan-handover-receipt
+# Validation:    category HANDOVER-001 (see framework/conformance/rule-ids.yaml)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-handover-receipt"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [handover-receipt]
+
+handover_control:
+  receipt_id: "RECEIPT-LEDGER-IPLAN-001"
+  source_iplan: "IPLAN-001"
+  source_iplan_version: "1.2.0"
+  ledger_ref: "LEDGER-IPLAN-001"
+  gate_status: "passed"           # passed | failed
+  audit_report_ref: "AUDIT-001"   # optional
+  created_at: "2026-05-23T12:00:00Z"
+
+result:
+  status: "completed"             # completed | aborted
+  reconciled: true

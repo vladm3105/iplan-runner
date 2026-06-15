@@ -1,0 +1,5 @@
+path: src/secrets/key.txt
+allowed_roots:
+- src/
+forbidden_paths:
+- src/secrets

@@ -1,0 +1,67 @@
+name: Security
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  schedule:
+    - cron: "30 3 * * 1"   # weekly, Monday 03:30 UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-audit:
+    name: Dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      # Audit the resolved runtime closure of both engines (base deps only;
+      # the optional otel/anthropic/litellm extras are integration-only).
+      # Upgrade pip first: the hosted runner's bundled pip may itself carry an
+      # advisory (e.g. PYSEC-2026-196 in pip 26.1.1) that pip-audit would flag.
+      - name: Install engines + pip-audit
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./platforms/hermes -e ./platforms/claude
+          pip install pip-audit
+
+      - name: Audit installed environment
+        run: pip-audit --progress-spinner off
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0   # full history so the scan covers the whole diff range
+
+      # Run the gitleaks binary directly. The v2 action wraps the same scanner
+      # with org-license / API-token machinery that fails on pull_request events
+      # here; the scanner engine itself is clean. `detect` scans full git history
+      # and exits non-zero on any finding.
+      - name: Install gitleaks
+        env:
+          GITLEAKS_VERSION: "8.21.2"
+          GITLEAKS_SHA256: "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba"  # pragma: allowlist secret  gitleaks:allow  (public release checksum, not a secret)
+        run: |
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          # Verify the downloaded artifact before executing it (supply-chain pin).
+          echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan git history
+        run: gitleaks detect --source . --redact --no-banner --verbose

@@ -1,0 +1,46 @@
+# IPLAN Verification Gate — TEMPLATE
+#
+# Declares the independent completion-proof rules applied to a ledger. The gate
+# is the authority on whether a ledger may be considered "done" — a ledger does
+# not self-attest. Each gate rule maps to one or more validator rule IDs.
+#
+# Document type: iplan-verification-gate
+# (Gate evaluation reuses the IPLAN-007/008/009 validators.)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-verification-gate"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [verification-gate]
+
+gate_control:
+  gate_id: "GATE-001"
+  ledger_ref: "LEDGER-IPLAN-001"
+  status: "pending"              # pending | passed | failed
+
+# Each rule references the validator rule IDs it depends on.
+gate_rules:
+  - id: "GATE-LEDGER-001"
+    name: "Completed tasks carry evidence"
+    rule_ids: ["LEDGER.EVIDENCE_REQUIRED"]
+  - id: "GATE-LEDGER-002"
+    name: "Completed tasks have passing acceptance"
+    rule_ids: ["LEDGER.ACCEPTANCE_WEAK"]
+  - id: "GATE-LEDGER-003"
+    name: "Blockers have decision owners"
+    rule_ids: ["LEDGER.BLOCKED_WITHOUT_OWNER"]
+  - id: "GATE-LEDGER-004"
+    name: "Isolation honoured"
+    rule_ids:
+      - "ISOLATION.SCOPE_MISSING"
+      - "ISOLATION.PATH_OUTSIDE_ROOTS"
+      - "ISOLATION.EVENT_SCOPE_MISMATCH"
+  - id: "GATE-LEDGER-005"
+    name: "Execution log hash chain intact"
+    rule_ids: ["HASHCHAIN.BROKEN"]
+  - id: "GATE-LEDGER-006"
+    name: "Landed work is committed"
+    rule_ids: ["LEDGER.NOT_COMMITTED"]
+
+gate_results: []                 # populated by the gate runner

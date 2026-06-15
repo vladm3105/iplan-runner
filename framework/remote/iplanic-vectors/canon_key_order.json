@@ -1,0 +1,12 @@
+{
+  "input": {
+    "b": 1,
+    "a": 2,
+    "c": {
+      "z": 1,
+      "y": 2
+    }
+  },
+  "canonical": "{\"a\":2,\"b\":1,\"c\":{\"y\":2,\"z\":1}}",
+  "sha256": "c0f8bd0ab5119fda84f6a24ed2eff88949e145d20f0a1eddbb51e14ef1eae3cb"
+}

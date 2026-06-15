@@ -1,0 +1,64 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-case-conflict
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c, .yamllint.yaml]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.3
+    hooks:
+      - id: bandit
+        args: [--config, pyproject.toml]
+        files: ^platforms/.+/src/.+\.py$
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        # Vendored Iplanic golden vectors + the remote-executor conformance expects
+        # are deterministic conformance fixtures (public test hashes/keys + generated
+        # signature values, e.g. ed25519 seed = bytes(range(32))), not secrets.
+        args: [--baseline, .secrets.baseline, --exclude-files, 'framework/(remote/iplanic-vectors|conformance/remote)/.*']
+
+  - repo: local
+    hooks:
+      - id: pip-audit
+        name: pip-audit
+        entry: pip-audit
+        language: system
+        pass_filenames: false
+        always_run: false
+        require_serial: true
+        stages: [manual]
+      - id: check-plan
+        name: verified-planning gate (claim ledger + review log)
+        entry: python .claude/skills/verified-planning/check_plan.py
+        language: system
+        files: (^|/)PLAN-[^/]*\.md$
+        # grandfather PLAN-001..012 (completed before the gate); PLAN-013+ are gated
+        exclude: (^|/)PLAN-TEMPLATE(\.snippet)?\.md$|(^|/)PLAN-0(0[1-9]|1[0-2])_
+        pass_filenames: true

@@ -1,0 +1,49 @@
+# IPLAN Audit Report — TEMPLATE
+#
+# A version-comparison report between two ledgers of the SAME source IPLAN
+# (a baseline and a later comparison). Used to audit what changed between runs.
+#
+# Document type: iplan-audit-report
+# Validation:    category IPLAN-009 (see framework/conformance/rule-ids.yaml)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-audit-report"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [audit-report, version-comparison]
+
+audit_control:
+  report_id: "AUDIT-001"
+  status: "final"                # draft | final
+
+# baseline and comparison must reference the SAME source_iplan.
+version_scope:
+  baseline:
+    ledger_id: "LEDGER-IPLAN-001"
+    source_iplan: "IPLAN-001"
+    source_iplan_version: "1.1.0"
+    source_iplan_checksum: "sha256:1111aaaa..."
+  comparison:
+    ledger_id: "LEDGER-IPLAN-001-b"
+    source_iplan: "IPLAN-001"
+    source_iplan_version: "1.2.0"
+    source_iplan_checksum: "sha256:2222bbbb..."
+
+execution_summary:
+  tasks_total: 5
+  tasks_completed: 5
+  tasks_added: 1
+  tasks_removed: 0
+
+change_report:
+  added_tasks: ["T5"]
+  removed_tasks: []
+  status_changes:
+    - task_id: "T3"
+      from_status: "blocked"
+      to_status: "completed"
+
+audit_findings: []
+
+recommendation: "accept"         # accept | investigate | reject

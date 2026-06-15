@@ -1,0 +1,42 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "30 2 * * 1"   # weekly, Monday 02:30 UTC
+
+permissions:
+  actions: read            # read workflow-run metadata (diff-informed analysis)
+  contents: read
+  packages: read           # pull CodeQL query packs
+  security-events: write   # upload results to the Security tab
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          languages: python
+          build-mode: none   # Python is interpreted — no build step
+
+      - name: Perform CodeQL analysis
+        # Advisory until code scanning is enabled on the repo (private repos need
+        # GitHub Advanced Security). The scan still runs; only the SARIF upload is
+        # rejected, and continue-on-error keeps that rejection from blocking
+        # merges. Drop this line once code scanning is enabled to restore the gate.
+        continue-on-error: true
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          category: "/language:python"

@@ -1,0 +1,4 @@
+actor:
+  id: g1
+  role: guest
+action: run

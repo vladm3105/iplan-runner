@@ -1,0 +1,44 @@
+# IPLAN Intake Manifest — TEMPLATE
+#
+# The normalized, framework-internal view of an approved SDD IPLAN. An engine's
+# `ingest_iplan` maps an SDD-IPLAN-shaped document into this shape (see
+# INTAKE_CONTRACT.md) — no dependency on the SDD repo. The run loop (Phase 3)
+# consumes this manifest; it is the validated hand-off seam.
+#
+# Document type: iplan-intake
+# Validation:    category INTAKE-001 (see framework/conformance/rule-ids.yaml)
+
+metadata:
+  schema_version: "1.0"
+  document_type: "iplan-intake"
+  framework: iops
+  last_updated: "2026-05-23"
+  tags: [iplan-intake, normalized]
+
+intake_control:
+  source_iplan: "IPLAN-001"
+  source_iplan_version: "1.2.0"
+  source_iplan_checksum: "sha256:3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b"
+  exec_ready_score: 92            # SDD's EXEC-Ready gate score; must be >= 90
+  approved: true
+
+isolation_scope:
+  client_id: "client-a"
+  project_id: "project-x"
+  allowed_roots:
+    - "src/"
+    - "tests/"
+
+# The execution task graph extracted from the IPLAN. The orchestrator turns each
+# node into a task_ledger entry; depends_on must reference task_ids in this graph.
+task_graph:
+  - task_id: "T1"
+    title: "Implement feature foo"
+    depends_on: []
+    acceptance:
+      criteria: ["unit tests pass", "lint clean"]
+  - task_id: "T2"
+    title: "Document feature foo"
+    depends_on: ["T1"]
+    acceptance:
+      criteria: ["docs updated"]

@@ -1,0 +1,33 @@
+name: docs-gate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-gate:
+    name: Documentation update gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0   # full history so the diff-aware gate can reach base
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      # If the PR touches framework/ or an engine's src/pyproject/version,
+      # CHANGELOG.md must move too — escape with [no-changelog] in a commit
+      # message when the change is genuinely not user-facing.
+      - name: Run docs gate
+        env:
+          GATE_BASE: origin/${{ github.base_ref }}
+        run: python tests/chg/docs_gate.py

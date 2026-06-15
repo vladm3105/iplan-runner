@@ -1,0 +1,86 @@
+# Execution Registry — single source of truth for the contract.
+#
+# Conformance reads this to discover contract artifacts, the rule catalog, the
+# golden vectors, and the registered engines. spec_version must equal
+# framework/VERSION.
+
+metadata:
+  framework: "AI Doc Flow IOps"
+  spec_version: "1.2.0"
+  template_policy: unified_yaml
+
+artifacts:
+  - id: ledger
+    template: "framework/execution/IPLAN-LEDGER-TEMPLATE.yaml"
+    document_type: "iplan-ledger"
+    error_prefix: "IPLAN-007"
+  - id: verify
+    template: "framework/execution/IPLAN-VERIFY-TEMPLATE.yaml"
+    document_type: "iplan-verification-gate"
+  - id: chain
+    template: "framework/execution/IPLAN-CHAIN-LEDGER-TEMPLATE.yaml"
+    document_type: "iplan-chain-ledger"
+    error_prefix: "IPLAN-008"
+  - id: audit
+    template: "framework/execution/IPLAN-AUDIT-REPORT-TEMPLATE.yaml"
+    document_type: "iplan-audit-report"
+    error_prefix: "IPLAN-009"
+  - id: monitoring
+    template: "framework/monitoring/MONITORING-MANIFEST-TEMPLATE.yaml"
+    document_type: "iplan-monitoring-manifest"
+    error_prefix: "MON-001"
+  - id: intake
+    template: "framework/intake/IPLAN-INTAKE-TEMPLATE.yaml"
+    document_type: "iplan-intake"
+    error_prefix: "INTAKE-001"
+  - id: handover
+    template: "framework/handover/IPLAN-HANDOVER-RECEIPT-TEMPLATE.yaml"
+    document_type: "iplan-handover-receipt"
+    error_prefix: "HANDOVER-001"
+
+protocol_docs:
+  - "framework/execution/AGENT_UPDATE_PROTOCOL.md"
+  - "framework/execution/HOOK_INTEGRATION_POINTS.md"
+  - "framework/execution/SAGA_EXECUTION_MODEL.md"
+  - "framework/execution/LEDGER_ISOLATION_MODEL.md"
+  - "framework/execution/STATE_MODEL.md"
+  - "framework/execution/RUN_MODEL.md"
+  - "framework/execution/LEASE_MODEL.md"
+  - "framework/execution/CONTROL_MODEL.md"
+  - "framework/execution/CHAIN_MODEL.md"
+  - "framework/engines/ENGINE-ADAPTER-CONTRACT.md"
+  - "framework/engines/EXECUTOR-CONTRACT.md"
+  - "framework/intake/INTAKE_CONTRACT.md"
+  - "framework/handover/HANDOVER_CONTRACT.md"
+  - "framework/effectors/SANDBOX_CONTRACT.md"
+  - "framework/remote/REMOTE_EXECUTOR_CONTRACT.md"
+  - "framework/effectors/EVIDENCE_CONTRACT.md"
+  - "framework/vcs/LANDING_CONTRACT.md"
+  - "framework/security/SECURITY_MODEL.md"
+  - "framework/config/CONFIG_CONTRACT.md"
+  - "framework/execution/RESOURCE_GOVERNANCE.md"
+  - "framework/monitoring/MONITORING_RUNTIME.md"
+
+rule_catalog: "framework/conformance/rule-ids.yaml"
+vectors_root: "framework/conformance/vectors"
+intake_samples_root: "framework/conformance/intake_samples"
+scenarios_root: "framework/conformance/scenarios"
+sandbox_root: "framework/conformance/sandbox"
+leases_root: "framework/conformance/leases"
+signing_root: "framework/conformance/signing"
+remote_root: "framework/conformance/remote"
+remote_mirrors:
+  - "framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml"
+  - "framework/remote/EXECUTION-EVENT-TEMPLATE.yaml"
+authz_root: "framework/conformance/authz"
+budget_root: "framework/conformance/budget"
+alert_root: "framework/conformance/alert"
+chains_root: "framework/conformance/chains"
+
+engines:
+  - id: hermes
+    package: iplan_hermes
+    path: "platforms/hermes"
+  - id: claude
+    package: iplan_claude
+    path: "platforms/claude"

@@ -1,0 +1,29 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan
+document_control:
+  iplan_id: IPLAN-001
+  version: 1.2.0
+exec_ready:
+  score: 92
+  approved: true
+isolation_scope:
+  client_id: client-a
+  project_id: project-x
+  allowed_roots:
+  - src/
+  - tests/
+tasks:
+- task_id: T1
+  title: Implement foo
+  depends_on: []
+  acceptance:
+    criteria:
+    - tests pass
+- task_id: T2
+  title: Document foo
+  depends_on:
+  - T1
+  acceptance:
+    criteria:
+    - docs updated

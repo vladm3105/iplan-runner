@@ -1,0 +1,80 @@
+clock_start: '2026-05-24T10:00:00Z'
+chain:
+  chain_id: CHAIN-001
+  iplan_chain:
+  - iplan_id: IPLAN-001
+    order: 1
+    depends_on: []
+    reconciled: false
+  - iplan_id: IPLAN-002
+    order: 2
+    depends_on:
+    - IPLAN-001
+    reconciled: false
+  execution_tiers:
+  - tier: 1
+    iplans:
+    - IPLAN-001
+  - tier: 2
+    iplans:
+    - IPLAN-002
+  cross_plan_leases: []
+iplans:
+  IPLAN-001:
+    metadata:
+      schema_version: '1.0'
+      document_type: iplan-intake
+      framework: iops
+    intake_control:
+      source_iplan: IPLAN-001
+      source_iplan_version: 1.0.0
+      source_iplan_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      exec_ready_score: 92
+      approved: true
+    isolation_scope:
+      client_id: client-a
+      project_id: project-x
+      allowed_roots:
+      - src/
+    task_graph:
+    - task_id: T1
+      title: do
+      depends_on: []
+      acceptance:
+        criteria:
+        - ok
+  IPLAN-002:
+    metadata:
+      schema_version: '1.0'
+      document_type: iplan-intake
+      framework: iops
+    intake_control:
+      source_iplan: IPLAN-002
+      source_iplan_version: 1.0.0
+      source_iplan_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      exec_ready_score: 92
+      approved: true
+    isolation_scope:
+      client_id: client-a
+      project_id: project-x
+      allowed_roots:
+      - src/
+    task_graph:
+    - task_id: T1
+      title: do
+      depends_on: []
+      acceptance:
+        criteria:
+        - ok
+mock_outcomes:
+  IPLAN-001:
+    T1:
+      outcome: failure
+      reason: boom
+  IPLAN-002:
+    T1:
+      outcome: success
+      evidence:
+        kind: test
+        summary: ok
+        location: ci://1

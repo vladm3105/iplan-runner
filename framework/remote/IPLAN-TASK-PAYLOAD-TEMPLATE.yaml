@@ -1,0 +1,32 @@
+# Vendored mirror of the Iplanic runtime task-payload — the CONSUMED SUBSET only.
+#
+#   source repo:    iplanic (sibling)
+#   source schema:  schemas/task.schema.json
+#   schema_version: 1.3-draft
+#   pinned commit:  fb5f46d
+#
+# IOPS reads only these fields to build the iplan-intake manifest + the
+# remote_execution block (see REMOTE_EXECUTOR_CONTRACT.md). Iplanic's full task
+# schema has more required fields; this mirror is the subset IOPS depends on.
+# Re-pin by re-copying and bumping the commit; drift surfaces as a failing
+# conformance vector, not a runtime dependency on the Iplanic repo.
+
+iplan_id: "IPLAN-01"
+plan_version_id: "PV-01"
+org_id: "org-a"
+project_id: "proj-1"
+run_id: "RUN-01"
+step_id: "STEP-001"
+task_id: "TASK-01"
+executor_id: "exec:iopsremote2zqf7kx3a"
+protocol_plan_id: null
+protocol_agent_id: null
+work_order:
+  work_order_id: "WORK-001"
+  todos:
+    - todo_id: "TODO-001"
+      description: "do the first unit of work"
+      acceptance_criteria: ["tests pass"]
+context_package:
+  repository: "."
+  forbidden_paths: [".git", "secrets"]

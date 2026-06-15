@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iplan-claude"
+version = "1.0.0"
+description = "Claude reference engine for the AI Doc Flow IOps execution framework"
+requires-python = ">=3.11"
+dependencies = ["pyyaml>=6", "rfc8785>=0.1.4", "cryptography>=42"]
+
+[project.optional-dependencies]
+otel = [
+  "opentelemetry-api>=1.20",
+  "opentelemetry-sdk>=1.20",
+  "opentelemetry-exporter-otlp>=1.20",
+]
+dev = ["pytest>=7", "ruff", "mypy"]
+
+[project.scripts]
+iplan-claude = "iplan_claude.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+iplan_claude = ["py.typed"]

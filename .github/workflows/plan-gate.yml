@@ -1,0 +1,27 @@
+name: plan-gate
+on:
+  pull_request:
+    paths: ["**/PLAN-*.md", "PLAN-*.md"]   # nested AND top-level
+jobs:
+  check-plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with: { python-version: "3.12" }
+      - name: Gate changed PLAN files
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          # no pathspec on the diff (a '**/' pathspec would miss top-level files);
+          # filter with the same rules as the pre-commit hook:
+          #   --diff-filter=ACMR drops Deleted plans (nothing to gate on a removal);
+          #   exclude the template and grandfathered PLAN-001..012 (pre-gate, no ledger).
+          mapfile -t plans < <(git diff --name-only --diff-filter=ACMR "$base"...HEAD \
+            | grep -E '(^|/)PLAN-[^/]*\.md$' \
+            | grep -vE '(^|/)PLAN-TEMPLATE(\.snippet)?\.md$' \
+            | grep -vE '(^|/)PLAN-0(0[1-9]|1[0-2])_' || true)
+          if [ "${#plans[@]}" -eq 0 ]; then echo "no gated PLAN files changed"; exit 0; fi
+          printf '%s\n' "${plans[@]}"
+          python .claude/skills/verified-planning/check_plan.py "${plans[@]}"

@@ -1,0 +1,122 @@
+# <TITLE> Implementation Plan
+
+> Development plans follow the SDD workflow inherited from
+> `aidoc-flow-framework`: **plan → review (≥2 passes) → implement → verify →
+> land**. A plan needs at least two review passes recorded in `## Review log`
+> before it may be implemented; harden until a pass finds nothing.
+>
+> **Size the plan to the problem.** ~N fixes for N discovered issues, not N
+> speculative features. A plan should be good enough to do what it's for, not a
+> "perfect plan to do everything." If a review pass surfaces more gaps than the
+> original problem had, the surplus is speculative scope — cut it.
+>
+> **Docs travel with code.** If the plan changes user-facing behavior, include
+> a `CHANGELOG.md` update (and any affected `README.md` / `ROADMAP.md` /
+> `plans/HANDOFF.md` / `TODO.md` / `docs/**`) as part of the last task. CI
+> gates the `CHANGELOG.md` requirement on PRs touching `framework/` or an
+> engine's `src/`.
+
+**Goal:** <one-sentence outcome>
+
+**Architecture:** <how this fits the framework/ contract + platforms/ runtimes>
+
+**Tech Stack:** <languages, tools, test runners>
+
+---
+
+| Field      | Value |
+|------------|-------|
+| Task       | <TASK-ID> |
+| Depends on | <files / prior plans> |
+| Status     | <PLANNED \| IN REVIEW \| APPROVED \| IN PROGRESS \| DONE \| ABANDONED> - <ISO-8601> |
+| Feeds      | <downstream work this unblocks> |
+
+## Objective
+
+<What this plan delivers and why. The problem it solves.>
+
+## Scope
+
+**In:**
+
+1. <included item>
+
+**Out:**
+
+1. <explicitly excluded item>
+
+## Approach
+
+<Narrative of the design. Key decisions and their rationale. Cross-reference
+`plans/DECISIONS.md` entries.>
+
+## File Structure
+
+| Path | Responsibility |
+|------|----------------|
+| `<path>` | <what it does> |
+
+## Step Sequence
+
+### Task N: <name>
+
+**Files:**
+
+- Create / Modify: `<path>`
+
+- [ ] **Step 1: <action>**
+
+  <details, code, commands>
+
+- [ ] **Step N: Commit**
+
+  ```bash
+  git add <paths>
+  git commit -m "<conventional prefix>: <message>"
+  ```
+
+## Verification
+
+> Nothing is "done" until these pass.
+
+```bash
+<commands that prove the plan landed correctly>
+```
+
+Expected:
+
+1. <observable outcome>
+
+## Risks
+
+| # | Risk | Mitigation |
+|---|------|------------|
+| R1 | <risk> | <mitigation> |
+
+## Claim ledger
+
+> Every load-bearing claim (file path, signature, field/key, event/enum value,
+> behavioral assertion) cites the `file:line` you actually read. `UNVERIFIED`
+> rows must be resolved before the plan is ready.
+> `.claude/skills/verified-planning/check_plan.py` checks each citation resolves.
+
+| # | Claim | Symbol | Citation |
+|---|-------|--------|----------|
+| 1 | <claim> | `<symbol>` | <path>:<line> |
+
+## Review log
+
+> At least **two** passes before implementation; **at least one MUST be an
+> independent fresh-context review** (dispatch the `Agent` tool — author
+> self-review does not count). Each pass: re-read the whole plan, list findings,
+> fold fixes back in. The final pass must state **zero findings**. **If a pass
+> produces findings beyond the original problem's issue count, treat the surplus
+> as speculative scope and cut it rather than folding it in.**
+
+### Pass 1 - <ISO-8601>
+
+- <finding → how the plan was changed>
+
+### Pass 2 - <ISO-8601> - independent
+
+- <findings from the fresh-context reviewer, or "no new findings">

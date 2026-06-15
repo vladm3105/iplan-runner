@@ -1,0 +1,9 @@
+{
+  "input": {
+    "i": 42,
+    "neg": -7,
+    "zero": 0
+  },
+  "canonical": "{\"i\":42,\"neg\":-7,\"zero\":0}",
+  "sha256": "1a7c93af8dcbb83ad0ed1356410df579edb5dfc7b29479a59a4b0fac4645eabc"
+}

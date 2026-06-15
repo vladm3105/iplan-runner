@@ -1,0 +1,28 @@
+tasks:
+  T1:
+    status: blocked
+    has_evidence: false
+  T2:
+    status: blocked
+    has_evidence: false
+reconciliation:
+  allowed: false
+  pending_tasks: 0
+  open_blockers: 2
+log_events:
+- event_type: task_started
+  subject_id: T1
+  touched_paths: []
+- event_type: task_blocked
+  subject_id: T1
+  touched_paths: []
+- event_type: task_blocked
+  subject_id: T2
+  touched_paths: []
+saga:
+  T1:
+    status: pending
+    attempts: 1
+run_state: completed
+gate: passed
+handover_status: aborted

@@ -1,0 +1,32 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan-audit-report
+  framework: iops
+  last_updated: '2026-05-23'
+  tags:
+  - audit-report
+audit_control:
+  report_id: AUDIT-001
+  status: final
+version_scope:
+  baseline:
+    ledger_id: LEDGER-IPLAN-001
+    source_iplan: IPLAN-001
+    source_iplan_checksum: sha256:1111111111111111111111111111111111111111111111111111111111111111
+  comparison:
+    ledger_id: LEDGER-IPLAN-001-b
+    source_iplan: IPLAN-001
+    source_iplan_version: 1.2.0
+    source_iplan_checksum: sha256:2222222222222222222222222222222222222222222222222222222222222222
+execution_summary:
+  tasks_total: 5
+  tasks_completed: 5
+  tasks_added: 1
+  tasks_removed: 0
+change_report:
+  added_tasks:
+  - T5
+  removed_tasks: []
+  status_changes: []
+audit_findings: []
+recommendation: accept

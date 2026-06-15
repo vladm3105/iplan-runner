@@ -1,0 +1,27 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"  # engines require-python >=3.11; avoid py312-only rewrites
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line-too-long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.bandit]
+# Product source only; tests use asserts (B101) and controlled subprocess/urllib.
+exclude_dirs = ["tests"]
+skips = ["B101", "B311"]

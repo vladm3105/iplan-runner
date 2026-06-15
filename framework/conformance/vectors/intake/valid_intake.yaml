@@ -1,0 +1,26 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan-intake
+  framework: iops
+  last_updated: '2026-05-23'
+  tags:
+  - iplan-intake
+intake_control:
+  source_iplan: IPLAN-001
+  source_iplan_version: 1.2.0
+  source_iplan_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  exec_ready_score: 92
+  approved: true
+isolation_scope:
+  client_id: client-a
+  project_id: project-x
+  allowed_roots:
+  - src/
+  - tests/
+task_graph:
+- task_id: T1
+  title: Implement foo
+  depends_on: []
+  acceptance:
+    criteria:
+    - tests pass

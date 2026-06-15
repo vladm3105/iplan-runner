@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability (report privately)
+    url: https://github.com/vladm3105/iplan-runner/security/advisories/new
+    about: >-
+      Do NOT open a public issue for a security vulnerability. Use GitHub's
+      private vulnerability reporting (Security → Report a vulnerability). See
+      SECURITY.md.

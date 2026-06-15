@@ -1,0 +1,80 @@
+metadata:
+  schema_version: '1.0'
+  document_type: iplan-ledger
+  framework: iops
+  last_updated: '2026-05-23'
+  tags:
+  - execution-ledger
+ledger_control:
+  ledger_id: LEDGER-IPLAN-001
+  source_iplan: IPLAN-001
+  source_iplan_version: 1.2.0
+  source_iplan_last_updated: '2026-05-20'
+  source_iplan_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  status: completed
+isolation_scope:
+  client_id: client-a
+  project_id: project-x
+  allowed_roots:
+  - src/
+  - tests/
+task_ledger:
+- task_id: T1
+  title: Implement foo
+  status: completed
+  evidence_refs:
+  - EV1
+  acceptance:
+    criteria:
+    - tests pass
+    result: pass
+  blocked_reason: null
+  decision_owner: null
+agent_leases:
+- lease_id: L1
+  task_id: T1
+  agent_id: agent-1
+  acquired_at: '2026-05-23T10:00:00Z'
+  expires_at: '2026-05-23T11:00:00Z'
+  released_at: '2026-05-23T10:45:00Z'
+execution_evidence:
+- evidence_id: EV1
+  task_id: T1
+  kind: test
+  summary: 12 passed
+  location: ci://run/1
+blockers: []
+reconciliation:
+  allowed: true
+  pending_tasks: 0
+  open_blockers: 0
+saga_journal:
+- txn_id: TX1
+  task_id: T1
+  action: apply-edit
+  compensation: revert-edit
+  idempotency_key: T1-1
+  status: committed
+  timeout_s: 600
+execution_history: []
+execution_log:
+- sequence: 1
+  previous_event_hash: null
+  event_hash: sha256:cdc9eccca5bc26a9b0bed72e8935ced1651de40045d93c36f22870279ffd2e21
+  event_type: task_started
+  subject_id: T1
+  at: '2026-05-23T10:00:00Z'
+  touched_paths: []
+  client_id: client-a
+  project_id: project-x
+- sequence: 2
+  previous_event_hash: sha256:cdc9eccca5bc26a9b0bed72e8935ced1651de40045d93c36f22870279ffd2e21
+  event_hash: sha256:43c6cbbdadb27d3cbc4cfd210d35b44a282c911647e0e08aaf2a0d4b52e8a82c
+  event_type: file_edited
+  subject_id: T1
+  at: '2026-05-23T10:30:00Z'
+  touched_paths:
+  - /etc/passwd
+  client_id: client-a
+  project_id: project-x
+audit_snapshots: []

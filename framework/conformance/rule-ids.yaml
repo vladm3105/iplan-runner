@@ -1,0 +1,182 @@
+# Canonical rule-ID catalog.
+#
+# The unit of behavioral parity (D-0012). Every engine validator emits these
+# stable rule IDs; conformance compares the rule-ID set + status across engines,
+# and asserts each emitted finding's severity equals the severity declared here.
+#
+# Coarse categories (D-0009): IPLAN-007 ledger, IPLAN-008 chain, IPLAN-009 audit,
+# MON-001 monitoring.
+
+metadata:
+  schema_version: "1.0"
+  spec_version: "0.2.0"
+
+categories:
+  IPLAN-007: "Execution ledger validation"
+  IPLAN-008: "Chain ledger validation"
+  IPLAN-009: "Audit report validation"
+  MON-001: "Monitoring manifest validation"
+  INTAKE-001: "IPLAN intake manifest validation"
+  HANDOVER-001: "Handover receipt validation"
+  REMOTE-001: "Iplanic remote-executor task-payload validation"
+
+severities: [error, warning]
+
+rules:
+  # --- Ledger (IPLAN-007) ---
+  - id: "LEDGER.SOURCE_VERSION_MISSING"
+    category: "IPLAN-007"
+    severity: error
+    description: "ledger_control is missing source_iplan, source_iplan_version, or source_iplan_checksum."
+  - id: "LEDGER.EVIDENCE_REQUIRED"
+    category: "IPLAN-007"
+    severity: error
+    description: "A task marked completed has no execution_evidence."
+  - id: "LEDGER.ACCEPTANCE_WEAK"
+    category: "IPLAN-007"
+    severity: error
+    description: "A task marked completed has acceptance.result other than pass."
+  - id: "LEDGER.BLOCKED_WITHOUT_OWNER"
+    category: "IPLAN-007"
+    severity: error
+    description: "A blocked task, or an open blocker, has no decision_owner."
+  - id: "LEDGER.LEASE_OVERLAP"
+    category: "IPLAN-007"
+    severity: error
+    description: "Two unreleased leases on the same task overlap in time."
+  - id: "LEDGER.RECONCILE_INCONSISTENT"
+    category: "IPLAN-007"
+    severity: error
+    description: "reconciliation.allowed is true while pending_tasks or open_blockers is non-zero."
+  - id: "ISOLATION.SCOPE_MISSING"
+    category: "IPLAN-007"
+    severity: error
+    description: "isolation_scope is missing client_id, project_id, or allowed_roots."
+  - id: "ISOLATION.PATH_OUTSIDE_ROOTS"
+    category: "IPLAN-007"
+    severity: error
+    description: "An execution_log event touched a path outside isolation_scope.allowed_roots."
+  - id: "ISOLATION.EVENT_SCOPE_MISMATCH"
+    category: "IPLAN-007"
+    severity: error
+    description: "An execution_log event's client_id/project_id differs from the ledger isolation_scope."
+  - id: "HASHCHAIN.BROKEN"
+    category: "IPLAN-007"
+    severity: error
+    description: "execution_log sequence, previous_event_hash, or event_hash is inconsistent."
+  - id: "LEDGER.NOT_COMMITTED"
+    category: "IPLAN-007"
+    severity: error
+    description: "ledger_control.requires_landing is true but no vcs commit is recorded."
+
+  # --- Chain (IPLAN-008) ---
+  - id: "CHAIN.ORDER_INVALID"
+    category: "IPLAN-008"
+    severity: error
+    description: "An IPLAN is ordered at or before an IPLAN it depends on."
+  - id: "CHAIN.UPSTREAM_UNRECONCILED"
+    category: "IPLAN-008"
+    severity: error
+    description: "An IPLAN depends on an upstream that is not reconciled."
+  - id: "CHAIN.LEASE_OVERLAP"
+    category: "IPLAN-008"
+    severity: error
+    description: "Two unreleased cross-plan leases on the same resource overlap in time."
+
+  # --- Audit (IPLAN-009) ---
+  - id: "AUDIT.IDENTITY_MISMATCH"
+    category: "IPLAN-009"
+    severity: error
+    description: "Baseline and comparison reference different source_iplan ids."
+  - id: "AUDIT.VERSION_MISSING"
+    category: "IPLAN-009"
+    severity: error
+    description: "Baseline or comparison is missing source_iplan_version or source_iplan_checksum."
+  - id: "AUDIT.VERSION_INCONSISTENT"
+    category: "IPLAN-009"
+    severity: error
+    description: "Baseline and comparison share a version but differ in checksum (or vice versa)."
+
+  # --- Monitoring (MON-001) ---
+  - id: "MON.SOURCE_BINDING_MISSING"
+    category: "MON-001"
+    severity: error
+    description: "monitor_control is missing source_iplan or source_ledger."
+  - id: "MON.SLO_MISSING_TARGET"
+    category: "MON-001"
+    severity: error
+    description: "An SLO has no objective."
+  - id: "MON.SIGNAL_REF_UNRESOLVED"
+    category: "MON-001"
+    severity: error
+    description: "An SLO signal_ref does not resolve to a declared metric."
+  - id: "MON.PROBE_MISSING"
+    category: "MON-001"
+    severity: warning
+    description: "A health, readiness, or startup probe is not declared."
+
+  # --- Intake (INTAKE-001) ---
+  - id: "INTAKE.SCHEMA_UNSUPPORTED"
+    category: "INTAKE-001"
+    severity: error
+    description: "metadata.schema_version is not a supported intake schema version."
+  - id: "INTAKE.SOURCE_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "intake_control is missing source_iplan, version, or checksum."
+  - id: "INTAKE.APPROVAL_INSUFFICIENT"
+    category: "INTAKE-001"
+    severity: error
+    description: "Not approved, or exec_ready_score is below the minimum (90)."
+  - id: "INTAKE.SCOPE_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "isolation_scope is missing client_id, project_id, or allowed_roots."
+  - id: "INTAKE.NO_TASKS"
+    category: "INTAKE-001"
+    severity: error
+    description: "task_graph is empty."
+  - id: "INTAKE.TASK_FIELDS_MISSING"
+    category: "INTAKE-001"
+    severity: error
+    description: "A task lacks task_id, title, or acceptance."
+  - id: "INTAKE.DEP_UNRESOLVED"
+    category: "INTAKE-001"
+    severity: error
+    description: "A depends_on entry references an unknown task_id."
+
+  # --- Handover (HANDOVER-001) ---
+  - id: "HANDOVER.SOURCE_MISSING"
+    category: "HANDOVER-001"
+    severity: error
+    description: "handover_control is missing source_iplan or ledger_ref."
+  - id: "HANDOVER.STATUS_INVALID"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is not one of completed, aborted."
+  - id: "HANDOVER.GATE_NOT_PASSED"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is completed but gate_status is not passed."
+  - id: "HANDOVER.NOT_RECONCILED"
+    category: "HANDOVER-001"
+    severity: error
+    description: "result.status is completed but reconciled is not true."
+
+  # --- Iplanic remote-executor payload (REMOTE-001) ---
+  - id: "REMOTE.PAYLOAD_IDS_MISSING"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload is missing a required identity field (org_id, project_id, run_id, step_id, or executor_id)."
+  - id: "REMOTE.PAYLOAD_NO_TODOS"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload work_order has no todos."
+  - id: "REMOTE.PAYLOAD_CONTEXT_MISSING"
+    category: "REMOTE-001"
+    severity: error
+    description: "task payload is missing context_package (repository / forbidden_paths cannot be inferred)."
+  - id: "REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT"
+    category: "REMOTE-001"
+    severity: error
+    description: "executor_id is present but not the Iplanic hash form ^exec:[a-z2-7]{16,}$ (Iplanic §2.1 / D-0031)."

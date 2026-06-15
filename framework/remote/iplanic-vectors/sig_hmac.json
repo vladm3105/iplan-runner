@@ -1,0 +1,47 @@
+{
+  "event": {
+    "org_id": "org-1",
+    "project_id": "proj-1",
+    "iplan_id": "IPLAN-01",
+    "plan_version_id": "v1",
+    "run_id": "run-1",
+    "task_id": "T-9",
+    "step_id": "S-1",
+    "executor_id": "exec:abc",
+    "trace_id": "tr-1",
+    "event_id": "ev-1",
+    "idempotency_key": "run-1:ev-1",
+    "event_type": "task.completed",
+    "occurred_at": "2026-06-09T00:00:00Z",
+    "received_at": "2026-06-09T00:00:05Z",
+    "status": "succeeded",
+    "artifact_refs": [],
+    "protocol_plan_id": null,
+    "signature": {
+      "key_id": "k1",
+      "algorithm": "hmac-sha256",
+      "value": "PLACEHOLDER"
+    }
+  },
+  "signing_payload": {
+    "org_id": "org-1",
+    "project_id": "proj-1",
+    "iplan_id": "IPLAN-01",
+    "plan_version_id": "v1",
+    "run_id": "run-1",
+    "task_id": "T-9",
+    "step_id": "S-1",
+    "executor_id": "exec:abc",
+    "trace_id": "tr-1",
+    "event_id": "ev-1",
+    "idempotency_key": "run-1:ev-1",
+    "event_type": "task.completed",
+    "occurred_at": "2026-06-09T00:00:00Z",
+    "status": "succeeded",
+    "artifact_refs": []
+  },
+  "algorithm": "hmac-sha256",
+  "key_id": "k1",
+  "key_hex": "00112233445566778899aabbccddeeff",
+  "value": "bcac738e965838bf99e49d6457035e5816018915930443417064dd0c16675b68"
+}

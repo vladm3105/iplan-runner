@@ -1,0 +1,3 @@
+path: src/a.py
+allowed_roots:
+- src/

@@ -22,6 +22,27 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
   gitleaks, and pre-commit; plus Dependabot. Merged via PRs #1 / #6 / #7.
 - [x] **`LICENSE` + `CONTRIBUTING`** (G13): MIT (relicensed from Apache-2.0 in PLAN-018 G1).
 
+## Operating modes & iplanic sync
+
+Two modes, selected by a **sync toggle** in the engine config
+(`iplanic.sync`, **off by default**). Standalone is offline mode with sync
+disabled; it can be enabled at any time. Builds on the D-4b transport
+(`plans/PLAN-017` + D-0020).
+
+- [ ] **Config-gated sync toggle** — an `iplanic` block in the engine config
+  (`iplanic.sync.enabled` + endpoint + auth); **disabled by default**, so a
+  fresh engine is standalone/offline. Flip it on at any time.
+- [ ] **Mode 1 — online (with iplanic):** sync on. iplanic manages the lifecycle
+  (dispatch, completion gate, evidence system-of-record); the engine relays
+  signed events via the D-4b drain worker.
+- [ ] **Mode 2 — standalone (offline), default:** sync off. Runs an approved
+  IPLAN fully locally (signed ledger → gate → handover → monitor); iplanic is
+  never contacted (individual plans, OSS, air-gapped, the Claude plugin).
+- [ ] **On-demand sync command** — flush the locally-stored ledger / logs /
+  evidence to iplanic from the durable cursor (`emit-events` → `POST /v1/events`),
+  idempotent + resumable; canonical-JSON signing (D-0017) lets iplanic verify
+  events produced offline.
+
 ## Deferred / integration-only (not in CI)
 
 - [ ] **Live executor integration tests** — real Anthropic/LiteLLM `ModelClient`

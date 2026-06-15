@@ -30,6 +30,11 @@ class Config:
     max_retries: int = 0
     backoff_base: float = 0.0
     signing_key: str | None = None
+    # iplanic sync (D-4b): off by default — standalone/offline is the default mode.
+    iplanic_sync_enabled: bool = False
+    iplanic_endpoint: str | None = None
+    iplanic_token_env: str = "IOPS_IPLANIC_TOKEN"
+    iplanic_max_age_s: int = 86400
 
 
 def secrets_from_env(prefix: str = "IOPS_SECRET_", env: Mapping[str, str] | None = None) -> list[str]:
@@ -53,6 +58,18 @@ def load_config(path: str | Path | None = None, env: Mapping[str, str] | None = 
         # secrets never come from the file
         if key in fields and key not in ("secrets", "signing_key"):
             setattr(cfg, key, value)
+
+    iplanic = data.get("iplanic")
+    if isinstance(iplanic, dict):
+        sync = iplanic.get("sync")
+        if isinstance(sync, dict) and "enabled" in sync:
+            cfg.iplanic_sync_enabled = bool(sync["enabled"])
+        if iplanic.get("endpoint") is not None:
+            cfg.iplanic_endpoint = str(iplanic["endpoint"])
+        if iplanic.get("token_env") is not None:
+            cfg.iplanic_token_env = str(iplanic["token_env"])
+        if iplanic.get("max_age_s") is not None:
+            cfg.iplanic_max_age_s = int(iplanic["max_age_s"])
 
     cfg.secrets = secrets_from_env(env=environ)
     signing_key = environ.get("IOPS_SIGNING_KEY")

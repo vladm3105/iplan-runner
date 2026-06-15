@@ -11,6 +11,7 @@ from typing import Any
 import yaml  # type: ignore[import-untyped]
 
 from ..audit.report import build_audit_report
+from ..config import load_config
 from ..engine import ClaudeEngine, _default_clock
 from ..executor.base import IdSource
 from ..intake.payload import ingest_task_payload
@@ -18,6 +19,9 @@ from ..ledger.events import to_execution_events
 from ..ledger.index import list_runs, set_control, status, store_control
 from ..ledger.persistence import ledger_path, load, save
 from ..monitoring.slo import evaluate_slos
+from ..relay import store as relay_store
+from ..relay.client import IplanicClient
+from ..relay.worker import drain
 from ..validation.payload_rules import validate_payload
 
 _DEFAULT_STORE = ".iops/ledgers"
@@ -85,6 +89,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_verify.add_argument("ledger")
     p_verify.add_argument("--key", required=True)
 
+    p_sync = sub.add_parser("sync", help="on-demand: drain the local ledger to iplanic (off unless enabled)")
+    p_sync.add_argument("ledger_id")
+    p_sync.add_argument("--store", default=_DEFAULT_STORE)
+    p_sync.add_argument("--config", default=None, help="config file with the iplanic sync block")
+    p_sync.add_argument("--payload", help="iplanic task payload to persist the run identity from (first sync)")
+    p_sync.add_argument("--key-env", default="IOPS_SIGNING_KEY")
+    p_sync.add_argument("--key-id", default=None)
+    p_sync.add_argument("--dry-run", action="store_true", help="report pending events without sending")
+
     for name in ("pause", "abort"):
         p = sub.add_parser(name, help=f"{name} a run")
         p.add_argument("ledger_id")
@@ -105,6 +118,57 @@ def _build_parser() -> argparse.ArgumentParser:
     p_chain.add_argument("chain_file")
 
     return parser
+
+
+def _sync(args: argparse.Namespace) -> int:
+    """On-demand drain of a stored ledger to iplanic. No-op unless sync is enabled."""
+    cfg = load_config(args.config)
+    if not cfg.iplanic_sync_enabled:
+        _emit({"sync": "disabled", "ledger_id": args.ledger_id})
+        return 0
+    endpoint = cfg.iplanic_endpoint
+    if not endpoint:
+        _emit({"error": "iplanic.endpoint not configured"})
+        return 1
+    ledger = load(ledger_path(args.store, args.ledger_id))
+    identity = (
+        relay_store.save_identity(args.store, args.ledger_id, _load(args.payload))
+        if args.payload
+        else relay_store.load_identity(args.store, args.ledger_id)
+    )
+    if not identity or not identity.get("run_id"):
+        _emit({"error": "no iplanic identity persisted; pass --payload on the first sync"})
+        return 1
+    key = os.environ.get(args.key_env, "").encode()
+    key_id = args.key_id or identity.get("executor_id") or "default"
+    if args.dry_run:
+        events = to_execution_events(ledger, identity, key=key, key_id=key_id)
+        settled = relay_store.load_settled(args.store, args.ledger_id)
+        pending = [e["idempotency_key"] for e in events if e["idempotency_key"] not in settled]
+        _emit({"sync": "dry-run", "pending": pending, "total": len(events)})
+        return 0
+    token_env = cfg.iplanic_token_env
+    client = IplanicClient(endpoint, lambda: os.environ.get(token_env))
+    report = drain(
+        ledger,
+        identity,
+        client=client,
+        store_dir=args.store,
+        ledger_id=args.ledger_id,
+        key=key,
+        key_id=args.key_id,
+        max_age_s=cfg.iplanic_max_age_s,
+    )
+    _emit(
+        {
+            "sync": "ok" if report.ok else "halted",
+            "delivered": len(report.delivered),
+            "dead_lettered": len(report.dead_lettered),
+            "pending": len(report.pending),
+            "halted": report.halted,
+        }
+    )
+    return 0 if report.ok else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -212,6 +276,9 @@ def main(argv: list[str] | None = None) -> int:
         verified = engine.verify_ledger(_load(args.ledger), args.key)
         _emit({"verified": verified})
         return 0 if verified else 1
+
+    if args.command == "sync":
+        return _sync(args)
 
     if args.command in ("pause", "abort"):
         set_control(args.ledger_id, "paused" if args.command == "pause" else "aborted", args.store)

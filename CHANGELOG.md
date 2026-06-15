@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Relay operational store → SQLite (D-4c, PLAN-020 / D-0021).** The relay's
+  cursor / dead-letter / persisted identity move from JSON sidecars to a per-store
+  SQLite database (`<store>/relay.db`, stdlib `sqlite3` — **no new dependency**, WAL).
+  It is an **outbox keyed on the stable `idempotency_key`**, so a dead-letter write
+  is an atomic settle (the row *is* the cursor mark) — closing the D-4b two-write
+  crash-window — and mirrors iplanic's transactional outbox for symmetric
+  at-least-once reasoning. `relay/store.py`'s public interface is unchanged (worker /
+  CLI / gated suite unaffected). The signed hash-chained ledger stays a portable file.
 - **`execution-event` id/idempotency_key/trace_id anchored on the hash chain (D-4b).**
   Derived from the D-0008 `event_hash` (with an `event_type` discriminator for the
   `task.completed`+`test.*` fan-out that shares one `event_hash`) instead of a

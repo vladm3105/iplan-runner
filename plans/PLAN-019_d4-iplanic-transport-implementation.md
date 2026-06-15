@@ -240,7 +240,7 @@ refresh on both engines; a sync-disabled run makes no network call.
 | 7 | `Config` is the slot for the sync toggle | `class Config` | platforms/hermes/src/iplan_hermes/config.py:21 |
 | 8 | The projection golden pins `event_id`/`idempotency_key` (regenerated, hash-anchored) | `event_id: EV-` | framework/conformance/remote/accept/expect.yaml:51 |
 | 9 | iplanic `1.3-draft` required event fields (wire shape unchanged) | `required:` | framework/remote/EXECUTION-EVENT-TEMPLATE.yaml:13 |
-| 10 | D-0020 ratifies the relay/at-least-once/dead-letter design | `### D-0020` | plans/DECISIONS.md:155 |
+| 10 | D-0020 ratifies the relay/at-least-once/dead-letter design | `### D-0020` | plans/DECISIONS.md:196 |
 | 11 | D-0011 strict engine isolation (implement per-engine) | `### D-0011` | plans/DECISIONS.md:100 |
 | 12 | Gated, not-in-CI integration pattern to mirror | `opt-in, keyed, not in CI` | plans/PLAN-008_config-live-executors.md:21 |
 | 13 | The design this builds (drain worker, reject map, dead-letter) | `D-4` | plans/PLAN-017_d4-iplanic-transport-design.md:1 |

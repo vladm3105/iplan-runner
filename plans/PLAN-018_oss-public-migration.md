@@ -510,15 +510,15 @@ run this session. Findings:
 | 8 | `framework/` is vendored as tracked files (not a submodule) | `0.14.0` | framework/VERSION:1 |
 | 9 | dependabot already covers the `claude` engine | `directory: /platforms/claude` | .github/dependabot.yml:10 |
 | 10 | Private sibling referenced in ecosystem doc (404 risk) | `aidoc-flow-iplanic` | docs/IPLAN-ECOSYSTEM.md:15 |
-| 11 | Private sibling referenced in handoff doc (softened, G4) | `aidoc-flow-iplanic` | plans/HANDOFF.md:88 |
-| 12 | Path leak genericized to the repo name (G3; executed) | `aidoc-flow-iplanic` | plans/HANDOFF.md:88 |
+| 11 | Private sibling referenced in handoff doc (softened, G4) | `aidoc-flow-iplanic` | plans/HANDOFF.md:92 |
+| 12 | Path leak genericized to the repo name (G3; executed) | `aidoc-flow-iplanic` | plans/HANDOFF.md:92 |
 | 13 | Latest existing plan is PLAN-017 (this is 018) | `PLAN-017` | plans/PLAN-017_d4-iplanic-transport-design.md:1 |
 | 14 | Root pyproject is tooling-only (no `[project]`, not a PyPI package) | `[tool.ruff]` | pyproject.toml:1 |
 | 15 | A second workflow also uses a least-privilege token (witness for the cross-workflow safety claim; exhaustive check is the grep gate in Verification) | `permissions:` | .github/workflows/codeql.yml:11 |
 | 16 | Baselined "secrets" are fake test fixtures, not real credentials | `SHOULD_BE_IGNORED` | platforms/hermes/tests/test_budget.py:30 |
 | 17 | CI installs gitleaks via unauthenticated curl (G6 Step 2 pins checksum) | `curl -fsSL` | .github/workflows/security.yml:58 |
 | 18 | G8 executed: verified-planning dev `PLAN.md`/`DESIGN.md` (which enumerated the private monorepo) removed; the skill tool is retained | `verified-planning` | .claude/skills/verified-planning/SKILL.md:2 |
-| 19 | G8 executed: the brand/strategy plan (`PLAN-016`) removed; the codename decision survives, redacted, in D-0019 | `D-0019` | plans/DECISIONS.md:176 |
+| 19 | G8 executed: the brand/strategy plan (`PLAN-016`) removed; the codename decision survives, redacted, in D-0019 | `D-0019` | plans/DECISIONS.md:217 |
 
 ## Review log
 

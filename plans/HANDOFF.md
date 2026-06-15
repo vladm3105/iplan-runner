@@ -5,12 +5,12 @@
 > Keep this current before stopping or switching context. Updated **2026-06-15**.
 
 iplan-runner is the **public OSS IPLAN executor** (MIT; pre-1.0, `v0.14.0`). All
-Phase-D design is done + ratified; **D-4b (the iplanic transport) is now BUILT** on
-branch `feat/iplan-019-d4b-transport` — **PR pending (do not merge; the user merges).**
+Phase-D design is done + ratified; **D-4b (the iplanic transport) is BUILT + MERGED**
+(PR #40). Next planned build = **D-4c** (`plans/PLAN-020`, the SQLite operational store).
 
-## Just built — `feat/iplan-019-d4b-transport` (PLAN-019, PR pending)
+## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 
-**D-4b iplanic transport** — the online + on-demand-sync operating modes are real:
+The online + on-demand-sync operating modes are real:
 - **Idempotency-key fix** (Task 1): `execution-event` `event_id`/`idempotency_key`/
   `trace_id` now anchor on the D-0008 `event_hash` (+ `event_type` discriminator for
   the `task.completed`+`test.*` fan-out), not the positional counter — re-projection
@@ -52,14 +52,18 @@ branch `feat/iplan-019-d4b-transport` — **PR pending (do not merge; the user m
 - Dual-engine **strict isolation** (D-0011): `hermes` + `claude` share no code, only
   `framework/` data; behavioral parity via golden vectors.
 
-## What's next here (after the D-4b PR merges)
+## What's next here
 
-D-4b's **Out of scope** items are the natural follow-ups (none blocking):
-- **Full auth wiring (D-0015):** replace the bearer-token seam with real OIDC/SPIFFE.
-- **Continuous/auto-sync:** a long-running relay daemon (today sync is on-demand only).
-- **Identity for identity-less runs:** `sync` requires a persisted/configured iplanic
-  identity; synthesizing/registering one for a pure-SDD standalone run is deferred.
-- iplanic-side ingestion of these events is the sibling repo's **D-3b** build.
+- **D-4c — SQLite operational store** (`plans/PLAN-020`, **D-0021**) — **PLANNED,
+  reviewed, ready to build.** Moves the relay's cursor / dead-letter / identity from
+  JSON sidecars to a per-store SQLite DB (stdlib `sqlite3`, no new dep), outbox-shaped
+  on `idempotency_key` so dead-letter + cursor-advance is one atomic, iplanic-symmetric
+  transaction; the signed ledger stays a portable file. Interface-preserving (the D-4b
+  gated suite is the regression oracle).
+- D-4b's other **Out of scope** items (none blocking): full auth wiring (D-0015,
+  OIDC/SPIFFE for the bearer seam); continuous/auto-sync daemon (today on-demand only);
+  identity for identity-less standalone runs; iplanic-side ingestion = the sibling
+  repo's **D-3b** build.
 
 ## Working protocol (this repo's specifics)
 
@@ -78,8 +82,8 @@ D-4b's **Out of scope** items are the natural follow-ups (none blocking):
   CI `plan-gate.yml` — editing a 001..012 plan, or deleting/renaming a cited file,
   fails CI; mind the citations. (3) CodeQL ("Analyze Python") is slow — not a
   failure.
-- Next **decision** = **D-0021**; next **plan** = **PLAN-020** (PLAN-019 is DONE).
-  `plans/DECISIONS.md`
+- Next **decision** = **D-0022**; next **plan** = **PLAN-021** (PLAN-019 DONE;
+  PLAN-020 = D-4c PLANNED + reviewed; D-0021 used). `plans/DECISIONS.md`
   is `### D-00NN` prose (D-0001..D-0013 ascending, then a newest-first block —
   insert new decisions at the **top of the newest block**).
 

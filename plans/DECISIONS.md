@@ -152,6 +152,47 @@ whole loop testable offline via the mock plugin, and keep strict isolation
 Stateful execution parity uses **scenario vectors** (op-sequence + mock executor
 → expected ledger), an extension of D-0012's pure-function golden vectors.
 
+### D-0021 - SQLite for executor operational state; the signed ledger stays a portable file - 2026-06-15
+
+The executor has **two storage roles with opposite requirements**, and they get
+different engines:
+
+1. **Evidence store** — the append-only, hash-chained, signed ledger + handover
+   receipt. Its integrity comes from the chain + signatures (D-0008, D-0017), and
+   its value as audit evidence is that it is a **portable file anyone can re-verify
+   offline with no runtime**. It **stays file-based** (`ledger/persistence.py`,
+   YAML). Not moved into a DB.
+2. **Operational state** — the relay's settled-cursor, dead-letter, and persisted
+   iplanic identity (today JSON sidecars in `relay/store.py`). This wants
+   transactions, an index, and concurrency-safety. It moves to **SQLite** (D-4c,
+   PLAN-020).
+
+**Why SQLite specifically:** it is **Python stdlib (`sqlite3`) — no new dependency**
+(deps stay `pyyaml`/`rfc8785`/`cryptography`), single-file, serverless. So it keeps
+the standing "standalone runs with zero external dependencies" guarantee and the
+air-gapped / Claude-plugin use cases intact. **Postgres is rejected for offline**
+(a server dependency defeats standalone/air-gap/plugin); Postgres stays iplanic's
+control-plane engine — the two planes are deliberately **not** symmetric in
+infrastructure.
+
+**Sync-friendly with iplanic (the load-bearing design rule):** the operational
+schema is an **outbox keyed on the stable `idempotency_key`** — the *same* key
+iplanic dedups on (D-4b, anchored on the D-0008 `event_hash`). One row per projected
+event records `delivered`/`dead_lettered`; the drain becomes "events whose key has no
+row → POST → write row." This **collapses the D-4b two-write invariant**
+(dead-letter commit *then* cursor advance) into **one atomic transaction** (the
+dead-letter row *is* the cursor mark), removing the crash-window that today can
+double-write a dead-letter entry. The shape **mirrors iplanic's own transactional
+outbox** (its D-3b ingestion), so at-least-once delivery is reasoned about
+identically on both ends.
+
+**Scope:** per-engine (D-0011, no shared code); `relay/store.py` is re-implemented
+over `sqlite3` behind its **current public interface** (so `relay/worker.py` and the
+CLI `sync` are unchanged and the gated suite regresses it). The run index/status
+(`ledger/index.py`, which globs the ledger files) is **out of scope** — it reads the
+file ledgers, which stay. Pre-1.0, so **no back-compat migration** of existing JSON
+sidecars.
+
 ### D-0020 - Iplanic transport: ledger-relay → `POST /v1/events` (design) - 2026-06-14
 
 Design the iplan-runner-side **transport** (PLAN-017) that delivers signed

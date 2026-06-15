@@ -28,6 +28,29 @@ BRD → PRD → … → IPLAN         │  IPLAN ─▶ Ledger ─▶ Gate ─�
 A ledger binds to its source IPLAN by `id` + `version` + `checksum`. This repo
 takes **no dependency on**, and never modifies, the SDD repo.
 
+## Operating modes
+
+iplan-runner is **local-first**: it executes an approved IPLAN with a local,
+append-only signed ledger, an independent gate, and a handover receipt — no
+network and no iplanic required. iplanic integration is optional and additive.
+
+- **Standalone (framework only).** `intake <sdd-iplan>` → `run` → local
+  ledger / gate / handover / monitor. The IPLAN comes straight from SDD (a file);
+  iplanic is never contacted. This is the mode for individual plans, OSS users,
+  and the Claude plugin.
+- **With iplanic.** `intake --payload <iplanic-task>` (iplanic dispatches the
+  approved work) → `run` → `emit-events` (project the signed ledger into iplanic
+  execution-events). iplanic adds cross-project lifecycle, immutable versioning,
+  dispatch, and audit-grade evidence as the system-of-record.
+- **Offline + sync-later.** Run standalone offline; the signed ledger persists
+  locally. Run `emit-events` once iplanic/connectivity is available — the
+  `iplan-canonical-json` signing (D-0017) lets iplanic reproduce and verify the
+  offline-produced signatures on ingest.
+
+The model transport ships an **offline deterministic stub**; real LLM clients are
+optional extras (need credentials). With the mock / scripted executors the full
+standalone + offline path runs with **zero external dependencies**.
+
 ## Capabilities (v0.14.0)
 
 The full pipeline — **IPLAN intake → run loop → gate → land → handover →

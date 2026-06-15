@@ -156,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
         ledger = _load(args.ledger)
         key = os.environ.get(args.key_env, "")
         key_id = args.key_id or payload.get("executor_id") or "default"
-        events = to_execution_events(ledger, payload, key=key.encode(), key_id=key_id, ids=IdSource())
+        events = to_execution_events(ledger, payload, key=key.encode(), key_id=key_id)
         _emit({"events": events})
         return 0
 

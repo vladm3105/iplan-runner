@@ -1,18 +1,53 @@
 metadata:
-  schema_version: "1.0"
+  schema_version: '1.0'
 isolation_scope:
-  client_id: "org-a"
-  project_id: "proj-1"
-  allowed_roots: ["."]
+  client_id: org-a
+  project_id: proj-1
+  allowed_roots:
+  - .
 task_ledger:
-  - task_id: "TASK-01"
-    status: "completed"
-    acceptance:
-      criteria: ["tests pass"]
-      result: "pass"
+- task_id: TASK-01
+  status: completed
+  acceptance:
+    criteria:
+    - tests pass
+    result: pass
 execution_log:
-  - {event_type: "task_started", subject_id: "TASK-01", at: "2026-06-11T10:00:00Z", touched_paths: []}
-  - {event_type: "file_edited", subject_id: "TASK-01", at: "2026-06-11T10:01:00Z", touched_paths: ["src/foo.py"]}
-  - {event_type: "compensation", subject_id: "TASK-01", at: "2026-06-11T10:01:30Z", touched_paths: ["src/foo.py"]}
-  - {event_type: "task_completed", subject_id: "TASK-01", at: "2026-06-11T10:02:00Z", touched_paths: []}
-  - {event_type: "commit", subject_id: "TASK-01", at: "2026-06-11T10:03:00Z", touched_paths: ["src/foo.py"]}
+- event_type: task_started
+  subject_id: TASK-01
+  at: '2026-06-11T10:00:00Z'
+  touched_paths: []
+  sequence: 1
+  previous_event_hash: null
+  event_hash: sha256:2387b4f8d5161865ddaaa3cf2b61ad8a75264a111b5cd1adabfb84b6523d62ed
+- event_type: file_edited
+  subject_id: TASK-01
+  at: '2026-06-11T10:01:00Z'
+  touched_paths:
+  - src/foo.py
+  sequence: 2
+  previous_event_hash: sha256:2387b4f8d5161865ddaaa3cf2b61ad8a75264a111b5cd1adabfb84b6523d62ed
+  event_hash: sha256:592e0f843f9e8ba14213d1ee4625d103f424576709668778fba1c26d75118d4a
+- event_type: compensation
+  subject_id: TASK-01
+  at: '2026-06-11T10:01:30Z'
+  touched_paths:
+  - src/foo.py
+  sequence: 3
+  previous_event_hash: sha256:592e0f843f9e8ba14213d1ee4625d103f424576709668778fba1c26d75118d4a
+  event_hash: sha256:168f98c8c73fc74315dedfd515dbf871032ebaf97d3ac4363663d149dbf56de9
+- event_type: task_completed
+  subject_id: TASK-01
+  at: '2026-06-11T10:02:00Z'
+  touched_paths: []
+  sequence: 4
+  previous_event_hash: sha256:168f98c8c73fc74315dedfd515dbf871032ebaf97d3ac4363663d149dbf56de9
+  event_hash: sha256:916d7d6f3e2f198add5d01fe02feb7eac5ef31321f89fafbced5cb380252b13c
+- event_type: commit
+  subject_id: TASK-01
+  at: '2026-06-11T10:03:00Z'
+  touched_paths:
+  - src/foo.py
+  sequence: 5
+  previous_event_hash: sha256:916d7d6f3e2f198add5d01fe02feb7eac5ef31321f89fafbced5cb380252b13c
+  event_hash: sha256:130aa3a98342f271c5f8c888971390e51a8f116202ffde933c44efb553b23057

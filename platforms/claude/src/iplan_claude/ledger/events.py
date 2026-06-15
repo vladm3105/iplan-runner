@@ -9,10 +9,26 @@ only — never engine identity — so both engines emit byte-identical events.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import hashlib
 from typing import Any
 
 from ..security.iplanic_signing import sign, signing_payload
+
+
+def _ident(run_id: str, event_hash: str, event_type: str) -> tuple[str, str, str]:
+    """Derive (idempotency_key, event_id, trace_id) from the hash-chain identity.
+
+    Anchored on the D-0008 ``event_hash`` (not a positional counter) so
+    re-projection is byte-stable and Iplanic's ``idempotency_key`` dedup holds.
+    The ``event_type`` discriminator separates the two events a single
+    ``task_completed`` log entry fans out to (``task.completed`` + ``test.*``),
+    which share one ``event_hash``. ``trace_id`` groups the per-log-event fan-out.
+    """
+    idem = f"{run_id}:{event_hash}:{event_type}"
+    event_id = "EV-" + hashlib.sha256(idem.encode()).hexdigest()[:12]
+    trace_id = "TR-" + hashlib.sha256(f"{run_id}:{event_hash}".encode()).hexdigest()[:12]
+    return idem, event_id, trace_id
+
 
 #: real `execution_log` kinds → (Iplanic event_type, status)
 _EVENT_MAP: dict[str, tuple[str, str]] = {
@@ -45,14 +61,14 @@ def _build_event(
     artifact_refs: list[str],
     key: bytes,
     key_id: str,
-    ids: Callable[[str], str],
+    event_hash: str,
 ) -> dict[str, Any]:
-    event_id = ids("EV")
+    idempotency_key, event_id, trace_id = _ident(identity["run_id"], event_hash, event_type)
     event: dict[str, Any] = {
         **identity,
-        "trace_id": ids("TR"),
+        "trace_id": trace_id,
         "event_id": event_id,
-        "idempotency_key": f"{identity['run_id']}:{event_id}",
+        "idempotency_key": idempotency_key,
         "event_type": event_type,
         "occurred_at": occurred_at,
         # offline: Iplanic overwrites received_at on ingest (Clock-Skew Window).
@@ -71,7 +87,6 @@ def to_execution_events(
     *,
     key: bytes,
     key_id: str,
-    ids: Callable[[str], str],
 ) -> list[dict[str, Any]]:
     identity = {k: payload.get(k) for k in _IDENTITY_FIELDS}
     results = {t.get("task_id"): (t.get("acceptance") or {}).get("result") for t in ledger.get("task_ledger", [])}
@@ -81,6 +96,7 @@ def to_execution_events(
         if kind in _SKIP or kind not in _EVENT_MAP:
             continue
         event_type, status = _EVENT_MAP[kind]
+        event_hash = log_event["event_hash"]
         events.append(
             _build_event(
                 identity,
@@ -90,7 +106,7 @@ def to_execution_events(
                 log_event.get("touched_paths") or [],
                 key,
                 key_id,
-                ids,
+                event_hash,
             )
         )
         if kind == "task_completed":
@@ -104,7 +120,7 @@ def to_execution_events(
                     [],
                     key,
                     key_id,
-                    ids,
+                    event_hash,
                 )
             )
     return events

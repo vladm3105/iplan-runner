@@ -232,20 +232,20 @@ refresh on both engines; a sync-disabled run makes no network call.
 | # | Claim | Symbol | Citation |
 |---|-------|--------|----------|
 | 1 | Hash-chain identity = the stable anchor for idempotency | `def compute_event_hash` | platforms/hermes/src/iplan_hermes/ledger/store.py:12 |
-| 2 | `event_id` is currently derived from the positional counter | `event_id = ids("EV")` | platforms/hermes/src/iplan_hermes/ledger/events.py:50 |
-| 3 | `idempotency_key` is currently `{run_id}:{event_id}` (non-stable) | `idempotency_key` | platforms/hermes/src/iplan_hermes/ledger/events.py:55 |
-| 4 | Projection entry point the worker consumes | `def to_execution_events` | platforms/hermes/src/iplan_hermes/ledger/events.py:68 |
+| 2 | `event_id` is now derived from the hash-chain identity (was a positional counter) | `event_id = "EV-"` | platforms/hermes/src/iplan_hermes/ledger/events.py:28 |
+| 3 | `idempotency_key` is now `{run_id}:{event_hash}:{event_type}` (content-stable) | `idem = f"{run_id}` | platforms/hermes/src/iplan_hermes/ledger/events.py:27 |
+| 4 | Projection entry point the worker consumes | `def to_execution_events` | platforms/hermes/src/iplan_hermes/ledger/events.py:84 |
 | 5 | Events are signed (canonical-JSON) before send | `def sign` | platforms/hermes/src/iplan_hermes/security/iplanic_signing.py:64 |
 | 6 | Signed form excludes `received_at`/`signature` | `def signing_payload` | platforms/hermes/src/iplan_hermes/security/iplanic_signing.py:55 |
 | 7 | `Config` is the slot for the sync toggle | `class Config` | platforms/hermes/src/iplan_hermes/config.py:21 |
-| 8 | The projection golden pins `event_id`/`idempotency_key` (must regen) | `event_id: EV-001` | framework/conformance/remote/accept/expect.yaml:51 |
+| 8 | The projection golden pins `event_id`/`idempotency_key` (regenerated, hash-anchored) | `event_id: EV-` | framework/conformance/remote/accept/expect.yaml:51 |
 | 9 | iplanic `1.3-draft` required event fields (wire shape unchanged) | `required:` | framework/remote/EXECUTION-EVENT-TEMPLATE.yaml:13 |
 | 10 | D-0020 ratifies the relay/at-least-once/dead-letter design | `### D-0020` | plans/DECISIONS.md:155 |
 | 11 | D-0011 strict engine isolation (implement per-engine) | `### D-0011` | plans/DECISIONS.md:100 |
 | 12 | Gated, not-in-CI integration pattern to mirror | `opt-in, keyed, not in CI` | plans/PLAN-008_config-live-executors.md:21 |
 | 13 | The design this builds (drain worker, reject map, dead-letter) | `D-4` | plans/PLAN-017_d4-iplanic-transport-design.md:1 |
-| 14 | One `task_completed` log event fans out to two projected events (id/key must discriminate) | `test.passed` | platforms/hermes/src/iplan_hermes/ledger/events.py:101 |
-| 15 | Projection identity comes from the payload, not the ledger (worker must persist it) | `payload.get` | platforms/hermes/src/iplan_hermes/ledger/events.py:76 |
+| 14 | One `task_completed` log event fans out to two projected events (id/key must discriminate) | `test.passed` | platforms/hermes/src/iplan_hermes/ledger/events.py:117 |
+| 15 | Projection identity comes from the payload, not the ledger (worker must persist it) | `payload.get` | platforms/hermes/src/iplan_hermes/ledger/events.py:91 |
 
 ## Review log
 

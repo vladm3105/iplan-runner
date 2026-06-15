@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Version scheme corrected to pre-1.0.** `framework/VERSION` (the execution
+  contract) `1.2.0 → 0.14.0`; registry `spec_version` and both engines'
+  `FRAMEWORK_SPEC_VERSION` follow in lockstep; engine package versions
+  `1.0.0 → 0.14.0`. The contract is still evolving (Phase-D work), so `0.x`
+  honestly signals pre-stable — matching the framework's convention of keeping
+  an evolving spec at `0.x`. `1.0.0` is reserved for GA / contract-freeze. No
+  behavioral or contract change — numbering only. (Continues the pre-jump `0.x`
+  line: the premature `1.0.0/1.1.0/1.2.0` map to `0.12.0/0.13.0/0.14.0`.)
 - **Renamed the engine packages `iops_hermes` → `iplan_hermes` and `iops_claude` →
   `iplan_claude`** (dist names `iplan-hermes`/`iplan-claude`; CLI entry points
   `iplan-hermes`/`iplan-claude`; `framework/registry/EXECUTION_REGISTRY.yaml` package
@@ -53,11 +61,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Iplanic exempted them). Framework spec `1.1.0 → 1.2.0`; engines `0.12.0 → 0.13.0`.
   (PLAN-015, D-0018.)
 
-## [1.0.0] - 2026-05-27
+## [0.12.0] - 2026-05-27
 
-GA — consolidation and proof; no new contract or runtime. From this release the
-`framework/` contract is **stable under SemVer** (breaking contract changes bump
-the major version; the conformance suite is the gate).
+Consolidation and proof; no new contract or runtime. (Originally tagged
+`1.0.0`; renumbered to `0.12.0` in the pre-1.0 correction — the execution
+contract is still evolving during the `0.x` series, so `1.0.0` is reserved for
+GA / contract-freeze, when it becomes stable under SemVer.)
 
 ### Added
 

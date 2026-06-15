@@ -156,15 +156,18 @@ the evidence runner (Phase 4) and **committed** by landing/VCS integration
   today chains are only validated.
 - Status: **done** — `plans/PLAN-011` (`v0.11.0`).
 
-### Phase 12 — Execution engine GA  → `v1.0.0`
+### Phase 12 — Execution engine feature-complete  → `v0.12.0`  (GA / `v1.0.0` deferred)
 
 - End-to-end hardening, full security review, docs, and a worked example driving
   an IPLAN to a **committed + green**, gate-passing, monitored result on both
   engines — proven by the per-engine acceptance test.
-- The `framework/` contract is declared **stable under SemVer**.
-- **Packaging / release / distribution** and `LICENSE`: owner-deferred (out of
-  GA; tracked in `TODO.md`).
-- Status: **done** — `plans/PLAN-012` (`v1.0.0`).
+- The `framework/` contract enters hardening but stays **pre-1.0 (`0.x`)** — it
+  may change between minors while Phase-D work lands; **`v1.0.0` (GA)** is
+  reserved for when the contract is frozen and declared stable under SemVer.
+- **Packaging / release / distribution** and `LICENSE`: owner-deferred (tracked
+  in `TODO.md`).
+- Status: **done** — `plans/PLAN-012` (shipped as `v0.12.0`; contract now at
+  `v0.14.0`).
 
 ## Tracked items
 

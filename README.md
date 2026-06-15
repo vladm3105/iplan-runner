@@ -28,7 +28,7 @@ BRD → PRD → … → IPLAN         │  IPLAN ─▶ Ledger ─▶ Gate ─�
 A ledger binds to its source IPLAN by `id` + `version` + `checksum`. This repo
 takes **no dependency on**, and never modifies, the SDD repo.
 
-## Capabilities (v1.0.0)
+## Capabilities (v0.14.0)
 
 The full pipeline — **IPLAN intake → run loop → gate → land → handover →
 monitor** — works end-to-end on both engines (see
@@ -52,11 +52,13 @@ Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
 
 ## Status & stability
 
-From **`v1.0.0`** the `framework/` **contract is stable under SemVer**: additive
-changes are minor; a breaking contract change bumps the major version. The
-conformance suite is the gate — `framework/VERSION` is the single source of
-truth, and the registry + every engine's `FRAMEWORK_SPEC_VERSION` must equal it.
-Runtime internals may still evolve within the contract.
+The `framework/` contract is **pre-1.0 (currently `v0.14.0`)**: during the `0.x`
+series it may change between minor versions as the execution contract is
+hardened. The conformance suite is the gate — `framework/VERSION` is the single
+source of truth, and the registry + every engine's `FRAMEWORK_SPEC_VERSION` must
+equal it. **From `v1.0.0` (GA) the contract will be stable under SemVer**:
+additive changes minor, a breaking contract change major. Runtime internals may
+evolve at any time.
 
 ## Hybrid: contract + runtimes
 

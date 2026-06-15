@@ -60,8 +60,8 @@ def drain(
             store.mark_settled(store_dir, ledger_id, idem)
             report.delivered.append(idem)
         elif outcome.action == reject.DEAD_LETTER:
+            # the dead-letter row IS the cursor mark — one atomic write (D-4c)
             store.dead_letter(store_dir, ledger_id, {"event": event, "reason": outcome.reason})
-            store.mark_settled(store_dir, ledger_id, idem)  # only after the dead-letter commit
             report.dead_lettered.append(idem)
         elif outcome.action == reject.RETRY:
             report.pending.append(idem)

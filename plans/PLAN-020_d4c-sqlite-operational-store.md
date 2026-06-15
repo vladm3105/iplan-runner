@@ -31,7 +31,7 @@ transaction** (the dead-letter row *is* the cursor mark). No `framework/` change
 |------------|-------|
 | Task       | D-4c (operational-store hardening of the D-4b transport) |
 | Depends on | **D-0021**; D-4b (PLAN-019, the relay it backs); D-0008 (hash-chain identity); D-0011 (isolation) |
-| Status     | PLANNED - 2026-06-15 |
+| Status     | DONE - 2026-06-15 |
 | Feeds      | The "online (with iplanic)" + on-demand-sync operating modes (durability + sync-friendliness) |
 
 ## Objective
@@ -197,12 +197,12 @@ WAL persistence, and concurrency safety; no new dependency in `pyproject.toml`.
 
 | # | Claim | Symbol | Citation |
 |---|-------|--------|----------|
-| 1 | The relay store is JSON-sidecar-file-based today (the thing being replaced) | `tmp.write_text` | platforms/hermes/src/iplan_hermes/relay/store.py:28 |
-| 2 | The store's public read surface the worker/CLI depend on | `def load_settled` | platforms/hermes/src/iplan_hermes/relay/store.py:35 |
-| 3 | `dead_letter` is a separate write today (collapses into the atomic settle) | `def dead_letter` | platforms/hermes/src/iplan_hermes/relay/store.py:60 |
-| 4 | The two-write invariant: dead-letter **then** cursor advance | `store.mark_settled` | platforms/hermes/src/iplan_hermes/relay/worker.py:64 |
+| 1 | The relay store is now SQLite-backed (the implemented operational store) | `sqlite3.connect` | platforms/hermes/src/iplan_hermes/relay/store.py:37 |
+| 2 | The store's public read surface the worker/CLI depend on | `def load_settled` | platforms/hermes/src/iplan_hermes/relay/store.py:57 |
+| 3 | `dead_letter` is one atomic `INSERT` — the row is the cursor mark | `def dead_letter` | platforms/hermes/src/iplan_hermes/relay/store.py:82 |
+| 4 | The dead-letter row IS the cursor mark — the D-4b two-write is gone | `store.dead_letter` | platforms/hermes/src/iplan_hermes/relay/worker.py:64 |
 | 5 | The cursor read the drain filters on | `store.load_settled` | platforms/hermes/src/iplan_hermes/relay/worker.py:52 |
-| 6 | Identity persists the 8 fields (moves to the `identity` table) | `payload.get` | platforms/hermes/src/iplan_hermes/relay/store.py:71 |
+| 6 | Identity persists the 8 fields (the `identity` table) | `payload.get` | platforms/hermes/src/iplan_hermes/relay/store.py:115 |
 | 7 | No new dependency — deps are pyyaml/rfc8785/cryptography (sqlite3 is stdlib) | `dependencies` | platforms/hermes/pyproject.toml:10 |
 | 8 | iplanic dedups on `idempotency_key` — so it is the outbox key (the contract prose at :52 still shows the pre-D-4b `{run_id}:{event_id}` formula; the code of record is row 9) | `idempotency_key` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:52 |
 | 9 | `idempotency_key` is anchored on the D-0008 `event_hash` (stable outbox key) | `idem = f"{run_id}` | platforms/hermes/src/iplan_hermes/ledger/events.py:27 |
@@ -211,7 +211,7 @@ WAL persistence, and concurrency safety; no new dependency in `pyproject.toml`.
 | 12 | D-0011 strict engine isolation (implement per-engine, no shared code) | `### D-0011` | plans/DECISIONS.md:100 |
 | 13 | The decision this builds | `### D-0021` | plans/DECISIONS.md:155 |
 | 14 | The D-4b gated suite exercises the store (the regression oracle) | `relay_store.load_dead_letter` | platforms/hermes/tests/test_iplanic_transport.py:102 |
-| 15 | The `claude` engine has the byte-parallel store interface (parity scope) | `def dead_letter` | platforms/claude/src/iplan_claude/relay/store.py:60 |
+| 15 | The `claude` engine has the byte-parallel store interface (parity) | `def dead_letter` | platforms/claude/src/iplan_claude/relay/store.py:82 |
 
 ## Review log
 

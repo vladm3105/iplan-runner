@@ -43,11 +43,11 @@ disabled; it can be enabled at any time. **Delivered by D-4b**
   ledger to iplanic (`POST /v1/events`) from the durable cursor, at-least-once +
   resumable, with a dead-letter sink; canonical-JSON signing (D-0017) lets iplanic
   verify events produced offline. (D-4b Task 3.)
-- [ ] **D-4c — SQLite operational store** (`plans/PLAN-020`, D-0021): move the relay
-  cursor / dead-letter / identity from JSON sidecars to a per-store SQLite DB
-  (stdlib `sqlite3`, no new dep), outbox-shaped on `idempotency_key` so the dead-letter
+- [x] **D-4c — SQLite operational store** (`plans/PLAN-020`, D-0021): the relay
+  cursor / dead-letter / identity now live in a per-store SQLite DB
+  (stdlib `sqlite3`, no new dep), outbox-shaped on `idempotency_key` so dead-letter
   + cursor-advance is one atomic transaction (iplanic-symmetric). The signed ledger
-  stays a portable file. Near-term durability hardening; not blocking.
+  stays a portable file. (DONE — built behind the unchanged store interface.)
 
 ## Deferred / integration-only (not in CI)
 

@@ -31,21 +31,23 @@ takes **no dependency on**, and never modifies, the SDD repo.
 ## Operating modes
 
 iplan-runner is **local-first**: it executes an approved IPLAN with a local,
-append-only signed ledger, an independent gate, and a handover receipt — no
-network and no iplanic required. iplanic integration is optional and additive.
+append-only signed ledger, an independent gate, and a handover receipt. iplanic
+is **optional** — there is a single **sync toggle** (`iplanic.sync`, **off by
+default**) that selects the mode:
 
-- **Standalone (framework only).** `intake <sdd-iplan>` → `run` → local
-  ledger / gate / handover / monitor. The IPLAN comes straight from SDD (a file);
-  iplanic is never contacted. This is the mode for individual plans, OSS users,
-  and the Claude plugin.
-- **With iplanic.** `intake --payload <iplanic-task>` (iplanic dispatches the
-  approved work) → `run` → `emit-events` (project the signed ledger into iplanic
-  execution-events). iplanic adds cross-project lifecycle, immutable versioning,
-  dispatch, and audit-grade evidence as the system-of-record.
-- **Offline + sync-later.** Run standalone offline; the signed ledger persists
-  locally. Run `emit-events` once iplanic/connectivity is available — the
-  `iplan-canonical-json` signing (D-0017) lets iplanic reproduce and verify the
-  offline-produced signatures on ingest.
+- **Standalone (offline) — default.** Sync off. `intake <sdd-iplan>` → `run` →
+  local ledger / gate / handover / monitor. The IPLAN comes straight from SDD (a
+  file); iplanic is never contacted — no network required. The mode for
+  individual plans, OSS users, air-gapped runs, and the Claude plugin.
+- **Online (with iplanic).** Sync on. `intake --payload <iplanic-task>` (iplanic
+  dispatches the approved work) → `run` → relay signed events. iplanic manages
+  the lifecycle: dispatch, immutable versioning, completion gate, and audit-grade
+  evidence as the system-of-record.
+
+**Sync is on-demand either way:** a standalone run can flip sync on at any time
+and flush its locally-stored ledger / logs / evidence to iplanic
+(`emit-events` → `POST /v1/events`) — the `iplan-canonical-json` signing (D-0017)
+lets iplanic verify events produced offline.
 
 The model transport ships an **offline deterministic stub**; real LLM clients are
 optional extras (need credentials). With the mock / scripted executors the full

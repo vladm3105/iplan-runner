@@ -45,9 +45,10 @@ default**) that selects the mode:
   evidence as the system-of-record.
 
 **Sync is on-demand either way:** a standalone run can flip sync on at any time
-and flush its locally-stored ledger / logs / evidence to iplanic
-(`emit-events` → `POST /v1/events`) — the `iplan-canonical-json` signing (D-0017)
-lets iplanic verify events produced offline.
+and flush its locally-stored ledger to iplanic with `iplan-<engine> sync`
+(`POST /v1/events`, at-least-once over a durable cursor + dead-letter) — the
+`iplan-canonical-json` signing (D-0017) lets iplanic verify events produced
+offline. A sync-disabled run opens no socket.
 
 The model transport ships an **offline deterministic stub**; real LLM clients are
 optional extras (need credentials). With the mock / scripted executors the full

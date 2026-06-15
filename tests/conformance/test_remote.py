@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import importlib
 import unittest
-from collections.abc import Callable
 
 import _spec
 import yaml
@@ -20,16 +19,6 @@ REMOTE = _spec.FRAMEWORK / "conformance" / "remote"
 REQUIRED = set(yaml.safe_load((_spec.FRAMEWORK / "remote" / "EXECUTION-EVENT-TEMPLATE.yaml").read_text())["required"])
 KEY = b"conformance-key"
 KEY_ID = "key-1"
-
-
-def _ids() -> Callable[[str], str]:
-    counters: dict[str, int] = {}
-
-    def make(prefix: str) -> str:
-        counters[prefix] = counters.get(prefix, 0) + 1
-        return f"{prefix}-{counters[prefix]:03d}"
-
-    return make
 
 
 def _engine_packages() -> dict[str, str]:
@@ -59,7 +48,7 @@ class RemoteConformanceTest(unittest.TestCase):
             payload_mod = importlib.import_module(f"{pkg}.intake.payload")
             events_mod = importlib.import_module(f"{pkg}.ledger.events")
             manifest = payload_mod.ingest_task_payload(str(case / "payload.yaml"))
-            events = events_mod.to_execution_events(ledger, payload, key=KEY, key_id=KEY_ID, ids=_ids())
+            events = events_mod.to_execution_events(ledger, payload, key=KEY, key_id=KEY_ID)
             with self.subTest(engine=engine_id):
                 self.assertEqual(manifest, expect["manifest"])
                 self.assertEqual(events, expect["events"])

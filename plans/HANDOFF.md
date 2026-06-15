@@ -5,7 +5,24 @@
 > Keep this current before stopping or switching context. Updated **2026-06-15**.
 
 iplan-runner is the **public OSS IPLAN executor** (MIT; pre-1.0, `v0.14.0`). All
-Phase-D design is done + ratified; the next work here is the **D-4b BUILD**.
+Phase-D design is done + ratified; **D-4b (the iplanic transport) is now BUILT** on
+branch `feat/iplan-019-d4b-transport` — **PR pending (do not merge; the user merges).**
+
+## Just built — `feat/iplan-019-d4b-transport` (PLAN-019, PR pending)
+
+**D-4b iplanic transport** — the online + on-demand-sync operating modes are real:
+- **Idempotency-key fix** (Task 1): `execution-event` `event_id`/`idempotency_key`/
+  `trace_id` now anchor on the D-0008 `event_hash` (+ `event_type` discriminator for
+  the `task.completed`+`test.*` fan-out), not the positional counter — re-projection
+  is byte-stable. Projection golden regenerated; cross-engine differential re-proven.
+- **Per-engine `relay/` package** (Task 2, byte-identical): `client.py` (HTTP POST,
+  bearer-token seam, bounded retry), `reject.py` (reject→outcome classifier),
+  `store.py` (durable settled-cursor + dead-letter + identity sidecar), `worker.py`
+  (at-least-once drain; dead-letter commits before the cursor advances).
+- **Config toggle + CLI `sync`** (Task 3): `iplanic.sync.enabled` (off by default);
+  `iplan-<engine> sync` (`--payload`/`--dry-run`). A sync-disabled run opens no socket.
+- **Gated fake-iplanic suite** (Task 4): `IPLAN_FAKE_IPLANIC=1`, 8 cases/engine, not in CI.
+- Verified green: conformance 26, 226 offline + 16 gated tests, ruff/mypy/bandit clean.
 
 ## Recently merged on `main`
 
@@ -35,41 +52,14 @@ Phase-D design is done + ratified; the next work here is the **D-4b BUILD**.
 - Dual-engine **strict isolation** (D-0011): `hermes` + `claude` share no code, only
   `framework/` data; behavioral parity via golden vectors.
 
-## What's pending here: D-4b (the BUILD of the D-4 transport)
+## What's next here (after the D-4b PR merges)
 
-The **design is merged**: `plans/PLAN-017_d4-iplanic-transport-design.md` + decision
-**D-0020** (`plans/DECISIONS.md`). D-4b implements it. **Author a verified-planning
-`PLAN-019` (D-4b) first, then build** (PLAN-018 is the public-migration plan — the
-next free number is 019). The design already resolved the hard parts:
-
-- **Ledger-relay / drain worker** (per-engine, no shared code): reads the durable
-  ledger in append order → project (`to_execution_events`) → sign
-  (`iplanic_signing.sign`) → `POST` to iplanic `/v1/events` **verbatim** (incl.
-  placeholder `received_at = occurred_at`) → on `202`, advance a **durable cursor**.
-- **⚠ Load-bearing implementation note:** the `idempotency_key`/`event_id` MUST
-  anchor on the **D-0008 hash-chain identity** (`ledger/store.py:compute_event_hash`
-  → `sequence`/`event_hash`), **NOT** the positional `IdSource` counter
-  (`ledger/events.py:_build_event`, `event_id = ids("EV")`). Positional derivation
-  makes re-projection produce different keys for the same event → defeats iplanic's
-  `idempotency_key` dedup. A value-derivation change to the emit projection (wire
-  field unchanged).
-- **Config-gated sync toggle + on-demand sync** (the operating-modes feature): an
-  `iplanic.sync` config block, **off by default** (standalone/offline); when on,
-  the drain worker relays, and an on-demand command flushes the local ledger /
-  logs / evidence from the cursor. See `TODO.md` "Operating modes & iplanic sync".
-- **Reject → outcome map:** `202` → success/advance; `timestamp_skew` → classify
-  **locally** (far-stale → dead-letter, else retry-with-cap);
-  `invalid_signature`/`schema_invalid` → terminal+halt; registration/scope (403) →
-  terminal+escalate → dead-letter; `401` → refresh token once → escalate;
-  transport/5xx → retry-with-backoff.
-- **Cursor + dead-letter both durable**; the cursor advances past a terminal reject
-  **only after** a durable dead-letter commit (no silent loss).
-- **Auth:** injected bearer-token provider seam (real OIDC deferred; static token in
-  tests). **Integration suite:** in-process fake iplanic server (202 + reject
-  envelope), gated/opt-in (PLAN-008 "not in CI" pattern); drift mitigated by the
-  pinned `framework/remote/iplanic-vectors/`. Endpoint: iplanic `POST /v1/events` →
-  `202 {event_id}` (idempotent replay) or `{reason, detail}` at 401/403/400; pinned
-  `1.3-draft` (D-0018).
+D-4b's **Out of scope** items are the natural follow-ups (none blocking):
+- **Full auth wiring (D-0015):** replace the bearer-token seam with real OIDC/SPIFFE.
+- **Continuous/auto-sync:** a long-running relay daemon (today sync is on-demand only).
+- **Identity for identity-less runs:** `sync` requires a persisted/configured iplanic
+  identity; synthesizing/registering one for a pure-SDD standalone run is deferred.
+- iplanic-side ingestion of these events is the sibling repo's **D-3b** build.
 
 ## Working protocol (this repo's specifics)
 
@@ -88,7 +78,8 @@ next free number is 019). The design already resolved the hard parts:
   CI `plan-gate.yml` — editing a 001..012 plan, or deleting/renaming a cited file,
   fails CI; mind the citations. (3) CodeQL ("Analyze Python") is slow — not a
   failure.
-- Next **decision** = **D-0021**; next **plan** = **PLAN-019**. `plans/DECISIONS.md`
+- Next **decision** = **D-0021**; next **plan** = **PLAN-020** (PLAN-019 is DONE).
+  `plans/DECISIONS.md`
   is `### D-00NN` prose (D-0001..D-0013 ascending, then a newest-first block —
   insert new decisions at the **top of the newest block**).
 

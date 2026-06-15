@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
 
 import yaml
@@ -12,16 +11,6 @@ from iplan_hermes.ledger.events import to_execution_events
 from iplan_hermes.validation.payload_rules import validate_payload
 
 REMOTE = Path(__file__).resolve().parents[3] / "framework" / "conformance" / "remote"
-
-
-def _ids() -> Callable[[str], str]:
-    counters: dict[str, int] = {}
-
-    def make(prefix: str) -> str:
-        counters[prefix] = counters.get(prefix, 0) + 1
-        return f"{prefix}-{counters[prefix]:03d}"
-
-    return make
 
 
 def test_payload_intake_maps_to_manifest() -> None:
@@ -37,7 +26,7 @@ def test_payload_intake_maps_to_manifest() -> None:
 def test_event_projection_drops_compensation_and_derives_test() -> None:
     ledger = yaml.safe_load((REMOTE / "accept" / "ledger.yaml").read_text())
     payload = yaml.safe_load((REMOTE / "accept" / "payload.yaml").read_text())
-    events = to_execution_events(ledger, payload, key=b"k", key_id="key-1", ids=_ids())
+    events = to_execution_events(ledger, payload, key=b"k", key_id="key-1")
     assert [e["event_type"] for e in events] == [
         "task.started",
         "file.changed",

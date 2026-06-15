@@ -26,22 +26,23 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
 
 Two modes, selected by a **sync toggle** in the engine config
 (`iplanic.sync`, **off by default**). Standalone is offline mode with sync
-disabled; it can be enabled at any time. Builds on the D-4b transport
-(`plans/PLAN-017` + D-0020).
+disabled; it can be enabled at any time. **Delivered by D-4b**
+(`plans/PLAN-019`, built on `plans/PLAN-017` + D-0020).
 
-- [ ] **Config-gated sync toggle** — an `iplanic` block in the engine config
-  (`iplanic.sync.enabled` + endpoint + auth); **disabled by default**, so a
-  fresh engine is standalone/offline. Flip it on at any time.
-- [ ] **Mode 1 — online (with iplanic):** sync on. iplanic manages the lifecycle
+- [x] **Config-gated sync toggle** — an `iplanic` block in the engine config
+  (`iplanic.sync.enabled` + endpoint + `token_env`); **disabled by default**, so a
+  fresh engine is standalone/offline. Flip it on at any time. (D-4b Task 3.)
+- [x] **Mode 1 — online (with iplanic):** sync on. iplanic manages the lifecycle
   (dispatch, completion gate, evidence system-of-record); the engine relays
-  signed events via the D-4b drain worker.
-- [ ] **Mode 2 — standalone (offline), default:** sync off. Runs an approved
+  signed events via the D-4b drain worker (`relay/worker.py`). (D-4b Task 2.)
+- [x] **Mode 2 — standalone (offline), default:** sync off. Runs an approved
   IPLAN fully locally (signed ledger → gate → handover → monitor); iplanic is
-  never contacted (individual plans, OSS, air-gapped, the Claude plugin).
-- [ ] **On-demand sync command** — flush the locally-stored ledger / logs /
-  evidence to iplanic from the durable cursor (`emit-events` → `POST /v1/events`),
-  idempotent + resumable; canonical-JSON signing (D-0017) lets iplanic verify
-  events produced offline.
+  never contacted (individual plans, OSS, air-gapped, the Claude plugin). A
+  sync-disabled run opens no socket (asserted). (D-4b.)
+- [x] **On-demand sync command** — `iplan-<engine> sync` flushes the locally-stored
+  ledger to iplanic (`POST /v1/events`) from the durable cursor, at-least-once +
+  resumable, with a dead-letter sink; canonical-JSON signing (D-0017) lets iplanic
+  verify events produced offline. (D-4b Task 3.)
 
 ## Deferred / integration-only (not in CI)
 

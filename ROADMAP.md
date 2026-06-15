@@ -203,3 +203,21 @@ the development plans (`PLAN-001` complete; `PLAN-002` next).
 ### CI / CD integration (user-facing)
 
 - Run an engine as a step in the *user's* CI/CD to execute and gate IPLANs.
+
+### Operating modes & on-demand iplanic sync
+
+Two modes, selected by a **sync toggle** in the engine config (`iplanic.sync`,
+**disabled by default**). Builds on the D-4b relay (`plans/PLAN-017` / D-0020):
+the relay is the transport; this adds the config-gated mode switch + an on-demand
+sync command.
+
+- **Standalone (offline) — default.** Sync off. The engine runs an approved
+  IPLAN fully locally (signed ledger → gate → handover → monitor); iplanic is
+  never contacted. The mode for individual plans, OSS users, air-gapped runs,
+  and the Claude plugin.
+- **Online (with iplanic).** Sync on. iplanic manages the lifecycle (dispatch,
+  completion gate, evidence system-of-record); the engine relays signed events.
+- **On-demand sync.** Either way, a standalone run can have sync enabled at any
+  time (config flip) and flush its locally-stored ledger / logs / evidence to
+  iplanic on request from the durable cursor — `iplan-canonical-json` signing
+  (D-0017) lets iplanic verify events produced offline.

@@ -507,7 +507,7 @@ run this session. Findings:
 | 5 | Secret scan runs on full git history in CI | `gitleaks detect` | .github/workflows/security.yml:64 |
 | 6 | Full-history fetch enables the scan | `fetch-depth: 0` | .github/workflows/security.yml:48 |
 | 7 | Weekly dependency audit present | `pip-audit` | .github/workflows/security.yml:40 |
-| 8 | `framework/` is vendored as tracked files (not a submodule) | `1.2.0` | framework/VERSION:1 |
+| 8 | `framework/` is vendored as tracked files (not a submodule) | `0.14.0` | framework/VERSION:1 |
 | 9 | dependabot already covers the `claude` engine | `directory: /platforms/claude` | .github/dependabot.yml:10 |
 | 10 | Private sibling referenced in ecosystem doc (404 risk) | `aidoc-flow-iplanic` | docs/IPLAN-ECOSYSTEM.md:15 |
 | 11 | Private sibling referenced in handoff doc | `vladm3105/aidoc-flow-iplanic` | plans/HANDOFF.md:71 |

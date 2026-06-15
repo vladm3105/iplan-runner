@@ -22,7 +22,9 @@
 - CI is fully wired and green: conformance + engine matrix (hermes/claude ×
   py3.11/3.12) + ruff + mypy --strict + pre-commit + pip-audit + gitleaks;
   CodeQL is advisory (`continue-on-error`) until code scanning is enabled on
-  the repo. Dependabot weekly. All version markers at `1.0.0`.
+  the repo. Dependabot weekly. Spec-version markers at `0.14.0` (pre-1.0:
+  `framework/VERSION` + registry `spec_version` + both engine
+  `FRAMEWORK_SPEC_VERSION`); engine packages also `0.14.0`.
 
 ### Strategic clarification (the architecture has three layers, not two)
 

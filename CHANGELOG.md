@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **`execution-event` id/idempotency_key/trace_id anchored on the hash chain (D-4b).**
+  Derived from the D-0008 `event_hash` (with an `event_type` discriminator for the
+  `task.completed`+`test.*` fan-out that shares one `event_hash`) instead of a
+  positional counter, so re-projection is byte-stable and iplanic's `idempotency_key`
+  dedup holds. The wire shape is unchanged — values only; the projection golden
+  `framework/conformance/remote/accept/expect.yaml` was regenerated and the
+  cross-engine differential re-proven.
 - **Version scheme corrected to pre-1.0.** `framework/VERSION` (the execution
   contract) `1.2.0 → 0.14.0`; registry `spec_version` and both engines'
   `FRAMEWORK_SPEC_VERSION` follow in lockstep; engine package versions
@@ -25,6 +32,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **iplanic transport (D-4b, PLAN-019 / D-0020).** A per-engine `relay/` package
+  (hermes + claude, byte-identical) that streams the local signed execution ledger
+  to iplanic `POST /v1/events`, gated by a config sync toggle (**off by default**):
+  - `relay/client.py` — stdlib HTTP POST with an injected bearer-token provider
+    seam (D-0015 boundary), bounded transport/5xx retry+backoff, scheme-guarded to
+    http(s).
+  - `relay/reject.py` — the PLAN-017 reject→outcome classifier (202→advance,
+    `timestamp_skew`→local far-stale heuristic, 403→dead-letter, 401→refresh-once,
+    integrity/unknown→halt).
+  - `relay/store.py` — durable settled-cursor keyed on the stable projected
+    `idempotency_key`, dead-letter sink, and the persisted iplanic-identity sidecar.
+  - `relay/worker.py` — at-least-once drain loop; the dead-letter is committed
+    **before** the cursor advances (no silent loss).
+  - CLI `iplan-<engine> sync` (on-demand drain, `--payload`/`--dry-run`) + an
+    `iplanic` sync block on `Config` (`sync.enabled` default false, endpoint,
+    `token_env`). A sync-disabled run opens no socket.
+  - Gated fake-iplanic integration suite (`IPLAN_FAKE_IPLANIC=1`, not in CI).
 - `security/iplanic_signing.py` (both engines): the `iplan-canonical-json` signer
   for Iplanic `execution-event` emission — RFC 8785 JCS + `sha256` + recursive
   drop-null, signed payload excluding `{signature, received_at}`, raw-byte HMAC

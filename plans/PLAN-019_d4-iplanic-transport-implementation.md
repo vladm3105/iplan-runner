@@ -31,7 +31,7 @@ sync is opt-in.
 |------------|-------|
 | Task       | D-4b (build of D-4 transport) |
 | Depends on | `plans/PLAN-017` (design, DONE) + D-0020; D-0016/D-0018 (contract); D-0011 (isolation) |
-| Status     | PLANNED - 2026-06-15 |
+| Status     | DONE - 2026-06-15 |
 | Feeds      | The "online (with iplanic)" + on-demand-sync operating modes (README / TODO / ROADMAP) |
 
 ## Objective

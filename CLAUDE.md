@@ -98,3 +98,10 @@ pytest platforms/hermes platforms/claude -q
 ruff check platforms
 mypy --strict platforms/hermes/src platforms/claude/src
 ```
+
+## GitHub operations
+
+Use the **GitHub CLI (`gh`)** as the default for all GitHub operations — PRs,
+issues, reviews, releases, repo queries — not the GitHub MCP servers
+(`github-tt`, `github-vl`) or raw API calls. If `gh` is unauthenticated, run
+`gh auth login` rather than falling back to MCP/API.

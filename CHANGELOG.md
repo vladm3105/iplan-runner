@@ -13,8 +13,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `iplan-hermes`/`iplan-claude`; `framework/registry/EXECUTION_REGISTRY.yaml` package
   keys updated so the conformance loader resolves both engines). Engine identities
   `hermes`/`claude`, the contract, the vectors, and the Iplanic wire surface are
-  unchanged — rename only. **Dropped the `iops-framework` engineering codename**
-  (reassigned to AIOps-Flow; see `BRAND_AND_DOMAINS.md`). (PLAN-016, D-0019.)
+  unchanged — rename only. **Dropped the former engineering codename.** (D-0019.)
 
 ### Added
 

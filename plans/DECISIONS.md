@@ -173,21 +173,21 @@ gated, integration-only suite (PLAN-008 "opt-in, not in CI" pattern). Builds on 
 transport-agnostic remote-executor contract (D-0016) and the pinned Iplanic `1.3-draft`
 endpoint (D-0018).
 
-### D-0019 - Drop the `iops-framework` codename; rename packages `iops_*` → `iplan_*` - 2026-06-14
+### D-0019 - Drop the former engineering codename; rename packages `iops_*` → `iplan_*` - 2026-06-14
 
-The engineering codename `iops-framework` is **reassigned** from this repo to the
-**AIOps-Flow** AI-team product (in the `operations` repo). `iplan-runner` now has **no
-engineering codename**, and its Python packages drop the `iops_` brand:
-`iops_hermes` → `iplan_hermes`, `iops_claude` → `iplan_claude` (dist names
-`iplan-hermes`/`iplan-claude`; CLI entry points `iplan-hermes`/`iplan-claude`;
-`framework/registry/EXECUTION_REGISTRY.yaml` package keys updated in lockstep so the
-conformance loader resolves both engines). Engine identities `hermes`/`claude` are
-unchanged; the contract, vectors, and Iplanic wire surface are unchanged (rename only).
-This **supersedes** the codename annotation in D-0001 and the 2026-06
-`business/docs/DECISIONS.md` "4-product consolidation" binding of `iops-framework` to
-iplan-runner; `BRAND_AND_DOMAINS.md` (`business/` + `operations/`) is the source of
-truth. Per PLAN-016. Historical references in grandfathered plans (PLAN-001..012) and
-the frozen `.claude/skills/verified-planning` rollout docs are intentionally left as-is.
+`iplan-runner` drops its former engineering codename, and its Python packages
+drop the `iops_` brand: `iops_hermes` → `iplan_hermes`, `iops_claude` →
+`iplan_claude`. The distribution names become `iplan-hermes` / `iplan-claude`,
+and the CLI entry points become `iplan-hermes` / `iplan-claude`. The package
+keys in `framework/registry/EXECUTION_REGISTRY.yaml` are updated in lockstep so
+the conformance loader resolves both engines after the rename. Engine identities
+`hermes` / `claude` are unchanged, and the contract, the golden vectors, and the
+Iplanic wire surface are all unchanged — this is a rename only, with no
+behavioral or schema impact, and no migration is required for existing ledgers.
+This decision **supersedes** the codename annotation in D-0001. Historical
+references in the grandfathered plans (PLAN-001..012), which predate the
+verified-planning gate, are intentionally left as-is rather than rewritten to
+match the new package names.
 
 ### D-0018 - Re-pin Iplanic mirrors to `1.3-draft`; enforce the `executor_id` hash form - 2026-06-11
 

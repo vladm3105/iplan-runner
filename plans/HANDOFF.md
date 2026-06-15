@@ -12,7 +12,7 @@
 - `v1.0.0` GA (PR #8, PLAN-012 DONE): `examples/`, per-engine acceptance
   (`platforms/*/tests/test_acceptance.py`), `docs/SECURITY_REVIEW.md` +
   `SECURITY.md`, `docs/GETTING_STARTED.md`, contract-stability statement.
-- `LICENSE` (Apache-2.0 canonical text) + `CONTRIBUTING.md` (PR #10). G13 done.
+- `LICENSE` (MIT; relicensed from Apache-2.0 in PLAN-018 G1) + `CONTRIBUTING.md` (PR #10). G13 done.
 - pip-audit CI fix: `python -m pip install --upgrade pip` before audit so
   `PYSEC-2026-196` against the runner's bundled pip stops blocking all PRs.
 - Plan-sizing rule (PR #11) encoded in `CLAUDE.md`, `plans/PLAN-TEMPLATE.md`
@@ -68,7 +68,7 @@ surface → MCP connector role; sandbox + allowed_roots → subset of
 
 ### Blocking — what the next session needs before drafting PLAN-013
 
-The Iplanic repo (`vladm3105/aidoc-flow-iplanic`) is **private** to my GitHub
+The Iplanic repo (`vladm3105/aidoc-flow-iplanic`, private — planned public) is on my GitHub
 MCP scope and unauthenticated raw reads return 404. To draft a non-speculative
 PLAN-013 (per the plan-sizing rule), the next session needs the **byte-level
 contracts**, not just the prose standard:

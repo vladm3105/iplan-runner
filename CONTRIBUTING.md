@@ -72,6 +72,6 @@ and per-threat tests are in [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md)
 
 ## License
 
-Contributions are licensed under the **Apache License 2.0** (see
+Contributions are licensed under the **MIT License** (see
 [`LICENSE`](LICENSE)). By submitting a contribution you agree it may be
 distributed under those terms.

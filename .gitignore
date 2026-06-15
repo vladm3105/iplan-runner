@@ -7,6 +7,11 @@ __pycache__/
 *.egg-info/
 .eggs/
 
+# Tool caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
 # IDE
 .idea/
 .vscode/

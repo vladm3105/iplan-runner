@@ -1,5 +1,9 @@
 # iplan-runner — OSS IPLAN executor
 
+[![CI](https://github.com/vladm3105/iplan-runner/actions/workflows/ci.yml/badge.svg)](https://github.com/vladm3105/iplan-runner/actions/workflows/ci.yml)
+[![Security](https://github.com/vladm3105/iplan-runner/actions/workflows/security.yml/badge.svg)](https://github.com/vladm3105/iplan-runner/actions/workflows/security.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 `iplan-runner` is the **execution / operations plane** companion to
 [SDD](https://github.com/vladm3105/aidoc-flow-framework) (the control plane). It
 turns an **approved IPLAN** into auditable execution.
@@ -87,4 +91,4 @@ for how to contribute, and `plans/DECISIONS.md` for architecture rationale.
 
 ## License
 
-Apache License 2.0 — see [`LICENSE`](LICENSE).
+MIT License — see [`LICENSE`](LICENSE).

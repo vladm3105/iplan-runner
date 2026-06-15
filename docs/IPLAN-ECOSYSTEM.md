@@ -12,7 +12,7 @@
 | Repo                               | Role                | Responsibility (authoritative doc)                                                                                                                                                |
 | ---------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aidoc-flow-framework` (SDD)       | **Authors** IPLANs  | Layer 8 — turns SPEC/TDD into an approved implementation plan (`IPLAN-NN`). Template: `framework/layers/08_IPLAN/IPLAN-TEMPLATE.yaml`.                                            |
-| `aidoc-flow-iplanic`               | **Manages** IPLANs  | Control plane — import, immutable hash-bound versioning, validation, approval, executor dispatch, completion gate, signed evidence. Standard: `docs/standards/IPLAN-STANDARD.md`. |
+| `aidoc-flow-iplanic` (private — planned public) | **Manages** IPLANs  | Control plane — import, immutable hash-bound versioning, validation, approval, executor dispatch, completion gate, signed evidence. Standard: `docs/standards/IPLAN-STANDARD.md`. |
 | `iplan-runner` (IOPS) | **Executes** IPLANs | Remote execution worker — runs the plan, produces an append-only ledger + independent gate + handover receipt, emits signed facts. Intake: `framework/intake/INTAKE_CONTRACT.md`. |
 
 Intended pipeline:
@@ -95,5 +95,5 @@ task payload rather than an assumed authoring shape.
 This note is mirrored (identically) in all three repos:
 
 - `aidoc-flow-framework` → `framework/layers/08_IPLAN/IPLAN-ECOSYSTEM.md`
-- `aidoc-flow-iplanic` → `docs/standards/IPLAN-ECOSYSTEM.md`
+- `aidoc-flow-iplanic` (private — planned public) → `docs/standards/IPLAN-ECOSYSTEM.md`
 - `iplan-runner` → `docs/IPLAN-ECOSYSTEM.md`  ← _this file_

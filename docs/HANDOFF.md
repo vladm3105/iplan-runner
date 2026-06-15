@@ -1,13 +1,13 @@
 # iplan-runner — Session Handoff
 
 > Durable resume doc. Updated **2026-06-14**. iplan-runner is the **OSS IPLAN executor**
-> (renamed from `iops-framework`; that codename was reassigned to AIOps-Flow). All Phase-D
+> (the former engineering codename was dropped; see D-0019). All Phase-D
 > design is done + ratified; the next work here is the **D-4b BUILD** — when you move past
 > the design stage.
 
 ## Repo state
 
-- **`main`, clean.** Remote `git@github.com:vladm3105/iplan-runner.git` (SSH).
+- **`main`, clean.** Remote `https://github.com/vladm3105/iplan-runner`.
 - Python packages are **`iplan_hermes` / `iplan_claude`** (renamed from `iops_*`).
 - Already a **conformant Iplanic remote executor** (D-0016, transport-agnostic): it emits
   signed `execution-event`s in Iplanic's shape by projecting its own ledger
@@ -78,5 +78,6 @@ The **design is merged**: `plans/PLAN-017_d4-iplanic-transport-design.md` + deci
 
 ## Sibling: iplanic (the standard + ingestion service)
 
-`/opt/data/aidoc-flow/iplanic` — D-1/D-2 **built**; D-3 design (PLAN-015, D-0034) merged;
-**D-3b** (the PostgreSQL build) is its pending counterpart. See `iplanic/docs/HANDOFF.md`.
+The `aidoc-flow-iplanic` repo (private — planned public) — D-1/D-2 **built**;
+D-3 design (PLAN-015, D-0034) merged; **D-3b** (the PostgreSQL build) is its
+pending counterpart.

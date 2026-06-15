@@ -23,7 +23,7 @@ settings.
 |------------|-------|
 | Task       | OSS-PUB-018 |
 | Depends on | `aidoc-flow-framework` (public reference); `plans/PLAN-017` (latest plan) |
-| Status     | PLANNED - 2026-06-14 |
+| Status     | DONE (Tasks 1–5 executed; Task 6 squash/flip gated) - 2026-06-14 |
 | Feeds      | Public release of `iplan-runner`; aligns the suite's OSS posture |
 
 ## Objective
@@ -500,7 +500,7 @@ run this session. Findings:
 
 | # | Claim | Symbol | Citation |
 |---|-------|--------|----------|
-| 1 | Current license is Apache-2.0 (to be replaced) | `Apache License` | LICENSE:2 |
+| 1 | License is MIT (G1 relicensed from Apache-2.0; executed) | `MIT License` | LICENSE:1 |
 | 2 | README already frames the repo as OSS | `# iplan-runner — OSS IPLAN executor` | README.md:1 |
 | 3 | CI uses least-privilege token | `contents: read` | .github/workflows/ci.yml:9 |
 | 4 | CI trigger is plain `pull_request` (no `pull_request_target`) | `pull_request:` | .github/workflows/ci.yml:6 |
@@ -511,14 +511,14 @@ run this session. Findings:
 | 9 | dependabot already covers the `claude` engine | `directory: /platforms/claude` | .github/dependabot.yml:10 |
 | 10 | Private sibling referenced in ecosystem doc (404 risk) | `aidoc-flow-iplanic` | docs/IPLAN-ECOSYSTEM.md:15 |
 | 11 | Private sibling referenced in handoff doc | `vladm3105/aidoc-flow-iplanic` | plans/HANDOFF.md:71 |
-| 12 | Local absolute path leaked in docs | `/opt/data/aidoc-flow/iplanic` | docs/HANDOFF.md:81 |
+| 12 | Docs path leak genericized to the repo name (G3; executed) | `aidoc-flow-iplanic` | docs/HANDOFF.md:81 |
 | 13 | Latest existing plan is PLAN-017 (this is 018) | `PLAN-017` | plans/PLAN-017_d4-iplanic-transport-design.md:1 |
 | 14 | Root pyproject is tooling-only (no `[project]`, not a PyPI package) | `[tool.ruff]` | pyproject.toml:1 |
 | 15 | A second workflow also uses a least-privilege token (witness for the cross-workflow safety claim; exhaustive check is the grep gate in Verification) | `permissions:` | .github/workflows/codeql.yml:11 |
 | 16 | Baselined "secrets" are fake test fixtures, not real credentials | `SHOULD_BE_IGNORED` | platforms/hermes/tests/test_budget.py:30 |
 | 17 | CI installs gitleaks via unauthenticated curl (G6 Step 2 pins checksum) | `curl -fsSL` | .github/workflows/security.yml:58 |
-| 18 | Public-bound `.claude/` dev artifact enumerates the private monorepo (G8 removes it) | `for r in framework iops-framework business operations iplanic knowledge-rag` | .claude/skills/verified-planning/PLAN.md:635 |
-| 19 | Public-bound plan is wholly AIOps-Flow/brand strategy (G8 removes it) | `AIOps-Flow` | plans/PLAN-016_codename-reassign-and-iplan-package-rename.md:5 |
+| 18 | G8 executed: verified-planning dev `PLAN.md`/`DESIGN.md` (which enumerated the private monorepo) removed; the skill tool is retained | `verified-planning` | .claude/skills/verified-planning/SKILL.md:2 |
+| 19 | G8 executed: the brand/strategy plan (`PLAN-016`) removed; the codename decision survives, redacted, in D-0019 | `D-0019` | plans/DECISIONS.md:176 |
 
 ## Review log
 

@@ -1,0 +1,46 @@
+# Path -> label map for actions/labeler (v5+ format). Run by
+# .github/workflows/labeler.yml. Labels must already exist in the repo
+# (actions/labeler does not create them).
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+
+framework:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "framework/**"
+
+"platform: hermes":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "platforms/hermes/**"
+
+"platform: claude":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "platforms/claude/**"
+
+conformance:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".pre-commit-config.yaml"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/requirements*.txt"
+          - "**/pyproject.toml"
+
+plans:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "plans/**"

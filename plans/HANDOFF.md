@@ -4,10 +4,11 @@
 > Sessions run in ephemeral containers: **only committed + pushed work survives.**
 > Keep this current before stopping or switching context. Updated **2026-06-15**.
 
-iplan-runner is the **public OSS IPLAN executor** (MIT; pre-1.0, `v0.14.0`). All
-Phase-D design is done + ratified; **D-4b (transport) is BUILT + MERGED** (PR #40)
-and **D-4c (SQLite operational store) is BUILT** (`plans/PLAN-020`, on branch
-`feat/iplan-020-d4c-sqlite-store` — **PR pending; do not merge, the user merges**).
+iplan-runner is the **public OSS IPLAN executor** (MIT; pre-1.0, `v0.14.0`). The
+**D-4 iplanic transport is fully built + merged**: **D-4b** (transport — PLAN-019, PR #40)
+and **D-4c** (SQLite operational store — PLAN-020/D-0021, PR #42). Sibling-side, iplanic's
+**D-3b PostgreSQL persistence is also merged (PR #50)**, so the full ingestion runtime is
+live; the next ecosystem build is iplanic's **management API** (sibling repo).
 
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 

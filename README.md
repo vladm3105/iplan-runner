@@ -120,3 +120,5 @@ for how to contribute, and `plans/DECISIONS.md` for architecture rationale.
 ## License
 
 MIT License — see [`LICENSE`](LICENSE).
+
+<!-- ai-review smoke test (delete me) -->

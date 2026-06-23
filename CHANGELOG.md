@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Consume the IPLAN standard (PLAN-023 / D-0023).** iplan-runner is now a **pinned consumer** of
+  [`iplan-standard@iplan/v0.1.0`](https://github.com/vladm3105/aidoc-flow-iplan-standard), replacing the
+  stale hand-copied fork:
+  - The `framework/remote/` task-payload mirror is **re-derived** to the current shape (the `repository`
+    object, fixing the `repository: "."` drift) and all provenance is re-pinned (`fb5f46d`/`1.3-draft` →
+    `iplan/v0.1.0`).
+  - The standard's `iplan_canonical` is **vendored as a package** (`security/iplan_canonical/`) in each
+    engine; `security/iplanic_signing.py` is now a thin re-export shim over it — same public API, so
+    importers + the conformance suite are unchanged, and hashes/signatures are byte-identical to iplanic by
+    construction. Runner-local `.pyi` stubs keep `mypy --strict` clean over the verbatim untyped package.
+  - **`sync/check-drift.sh`** byte-diffs the vendored package (per engine) + the canonicalization vectors
+    against the pinned tag and fails on drift. Conformance 26 + 244 offline tests green; ruff/mypy clean.
 - **Relay operational store → SQLite (D-4c, PLAN-020 / D-0021).** The relay's
   cursor / dead-letter / persisted identity move from JSON sidecars to a per-store
   SQLite database (`<store>/relay.db`, stdlib `sqlite3` — **no new dependency**, WAL).

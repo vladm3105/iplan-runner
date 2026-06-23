@@ -10,6 +10,14 @@ and **D-4c** (SQLite operational store — PLAN-020/D-0021, PR #42). Sibling-sid
 **D-3b PostgreSQL persistence is also merged (PR #50)**, so the full ingestion runtime is
 live; the next ecosystem build is iplanic's **management API** (sibling repo).
 
+**Consume the IPLAN standard (PLAN-023 / D-0023):** the standard now lives in its own OSS repo
+[`iplan-standard`](https://github.com/vladm3105/aidoc-flow-iplan-standard) (`iplan/v0.1.0`); iplan-runner is a
+**pinned consumer**, not a fork. The canonicalization/signing is vendored as `security/iplan_canonical/` per
+engine (the standard's verbatim copy) with `security/iplanic_signing.py` a thin re-export shim; the
+`framework/remote/` mirror is re-derived to the current shape; `sync/check-drift.sh` byte-diffs the vendored
+surface against the pinned tag. **Do not edit the vendored package or fork the standard** — change upstream +
+re-pin. (PLAN-021 task-receiver remains separate/untracked, founder-owned.)
+
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 
 The online + on-demand-sync operating modes are real:

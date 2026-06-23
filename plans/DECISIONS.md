@@ -348,3 +348,36 @@ additive and churn-free:
 5. **Stateless vs stateful vectors.** `framework/conformance/vectors/` holds
    pure-validator cases; `framework/conformance/scenarios/` holds stateful
    run-loop cases (`steps.yaml` + `expect.yaml`).
+
+### D-0023 - Consume the IPLAN standard (vendor-pin + drift-check, replacing the stale fork) - 2026-06-23
+
+The IPLAN standard now lives, versioned + OSS, in its own neutral repo
+[`iplan-standard`](https://github.com/vladm3105/aidoc-flow-iplan-standard) (`iplan/v0.1.0`). iplan-runner
+was consuming it three stale/hand-rolled ways: a vendored schema mirror pinned to an old iplanic commit
+(`fb5f46d`/`1.3-draft`) that had drifted (`repository: "."` vs the live object — the bug PLAN-021's review
+caught), and a **divergent parallel reimplementation** of the canonical-JSON + signing
+(`security/iplanic_signing.py`, per engine). The "drift surfaces as a failing vector" promise never fired —
+the vectors don't cover the payload shape. **Decision (PLAN-023):**
+
+1. **Re-derive** the `framework/remote/` YAML subset from the pinned tag's `task.schema.json` (fixing the
+   `repository`-object drift) + re-pin all provenance (`fb5f46d`/`1.3-draft` → `iplan/v0.1.0`). The mirror is
+   a hand-derived *subset instance*, not byte-comparable to the JSON Schema — its correctness is the receiver
+   adapter test, not a byte-diff.
+2. **Vendor the standard's `iplan_canonical` as a package** (`security/iplan_canonical/`, a verbatim copy of
+   the tag) in **each** engine (D-0011), and turn `security/iplanic_signing.py` into a **thin re-export shim**
+   over it — preserving the public name + API, so every importer, `__all__`, and the conformance test are
+   unchanged (zero rename blast radius). Hashes/signatures are now byte-identical to iplanic by construction
+   (one source). `mypy --strict` over the verbatim *untyped* package is handled by **runner-local `.pyi`
+   stubs** (mypy uses the stub interface + skips the untyped body; stubs aren't `*.py`, so they're invisible
+   to the drift-check; runtime still loads the verbatim `.py`) + the shim's explicit `__all__`
+   (`no_implicit_reexport`). [Refines the plan's "scoped mypy override", which couldn't fix the caller-side
+   `no-untyped-call`.]
+3. **`sync/check-drift.sh`** byte-diffs the byte-copyable surface (the vendored `iplan_canonical/` `*.py` per
+   engine + the vector `*.json`) against the tag and **fails on drift** — replacing the non-functional drift
+   claim. Vendor-pin (not a git dependency) keeps the OSS install self-contained.
+
+**Deferred:** the held prose specs (`iplan/v0.2.0`); a package dependency. **Why:** iplan-runner consumed the
+standard by stale hand-copies that silently forked; pinning every vendored artifact to the tag + a real,
+scoped drift-check + one shared canonicalization source (behind the existing shim) makes drift structurally
+impossible. Verified: conformance 26 + 244 offline tests green (the shim is behaviour-preserving), drift-check
+in-sync + a negative test, ruff/mypy clean (no new errors).

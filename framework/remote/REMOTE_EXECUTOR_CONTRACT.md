@@ -1,6 +1,6 @@
 # Iplanic Remote-Executor Contract (D-0016)
 
-How IOPS acts as a **conformant remote executor for Iplanic**: it consumes
+How iplan-runner acts as a **conformant remote executor for Iplanic**: it consumes
 Iplanic's runtime **task payload** as a second intake front door, honors the
 payload's `context_package` (incl. `forbidden_paths`), and emits **signed
 `execution-event`s** in Iplanic's shape by projecting its own signed ledger.
@@ -12,11 +12,11 @@ are **vendored, version-pinned mirrors** under `framework/remote/`. Signing uses
 the `iplan-canonical-json` signer (PLAN-014, D-0017), so emitted signatures are
 byte-reproducible by Iplanic.
 
-The mirrors are pinned to Iplanic **`1.3-draft`** (commit `fb5f46d`). `executor_id`
+The mirrors are pinned to **`iplan-standard@iplan/v0.1.0`** (https://github.com/vladm3105/aidoc-flow-iplan-standard). `executor_id`
 must be the Iplanic self-certifying hash form **`^exec:[a-z2-7]{16,}$`**
 (`exec:<base32(sha256(...))>`, Iplanic §2.1 / D-0031); a payload whose `executor_id`
 is present but not in that form is rejected at intake
-(`REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT`), since IOPS carries it into the signed,
+(`REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT`), since iplan-runner carries it into the signed,
 emitted event (D-0018).
 
 ## Payload → `iplan-intake` manifest

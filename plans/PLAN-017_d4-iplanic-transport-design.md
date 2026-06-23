@@ -174,7 +174,7 @@ mapped HTTP status — `401 unauthenticated`; `403` for `unregistered_executor` 
 | 1   | iplan-runner already emits signed `execution-event`s **by projecting its own ledger** (the source D-4 relays) | `projecting its own signed ledger` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:6 |
 | 2   | the contract defines the **Ledger → `execution-event` projection** (per ledger event) | `Ledger → ` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:47 |
 | 3   | `to_execution_events` is the projection function the relay consumes (ledger → Iplanic events) | `def to_execution_events` | platforms/hermes/src/iplan_hermes/ledger/events.py:84 |
-| 4   | `iplanic_signing.sign` is the conformance-proven Iplanic-shape signer (no re-derivation in D-4) | `def sign` | platforms/hermes/src/iplan_hermes/security/iplanic_signing.py:64 |
+| 4   | `iplanic_signing.sign` is the conformance-proven Iplanic-shape signer (no re-derivation in D-4) | `def sign` | platforms/hermes/src/iplan_hermes/security/iplan_canonical/signing.py:37 |
 | 5   | D-0016 made the remote-executor contract **transport-agnostic** — D-4 fills the transport gap | `transport-agnostic` | plans/DECISIONS.md:273 |
 | 6   | PLAN-008 established the **per-engine live-executor client** pattern D-4's transport mirrors | `ApiExecutor` | plans/PLAN-008_config-live-executors.md:9 |
 | 7   | PLAN-008's live clients are **opt-in, keyed, not in CI** — the integration-gating pattern D-4's suite mirrors | `not in CI` | plans/PLAN-008_config-live-executors.md:21 |

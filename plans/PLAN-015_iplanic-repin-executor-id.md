@@ -139,11 +139,11 @@ framework `MINOR` bump.
 
 | #   | Claim | Symbol | Citation |
 | --- | ----- | ------ | -------- |
-| 1   | the vendored mirror now pins Iplanic `1.3-draft` (bumped from `1.2-draft`) | `1.3-draft` | framework/remote/iplanic-vectors/SOURCE.md:12 |
-| 2   | the vendored mirror now pins commit `fb5f46d` (bumped from `bf3b9b6`) | `fb5f46d` | framework/remote/iplanic-vectors/SOURCE.md:13 |
+| 1   | the vendored mirror pin record (this plan set `1.3-draft`; since re-pinned to `iplan/v0.1.0` by D-0023) | `Pinned tag` | framework/remote/iplanic-vectors/SOURCE.md:12 |
+| 2   | the mirror pin moved commit→tag (`fb5f46d` → `iplan/v0.1.0`, D-0023) | `iplan/v0.1.0` | framework/remote/iplanic-vectors/SOURCE.md:12 |
 | 3   | re-pin procedure is "re-copy and bump the commit; drift surfaces as a failing conformance vector" | `Re-pin` | framework/remote/iplanic-vectors/SOURCE.md:16 |
-| 4   | the task-payload template header records `schema_version: 1.2-draft` + `pinned commit: bf3b9b6` | `pinned commit` | framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml:6 |
-| 5   | the execution-event template header records the same pin pair | `pinned commit` | framework/remote/EXECUTION-EVENT-TEMPLATE.yaml:6 |
+| 4   | the task-payload template header pin (this plan's `pinned commit`; since re-pinned to `iplan/v0.1.0` by D-0023) | `pinned tag` | framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml:5 |
+| 5   | the execution-event template header pin (same re-pin to `iplan/v0.1.0`, D-0023) | `pinned tag` | framework/remote/EXECUTION-EVENT-TEMPLATE.yaml:5 |
 | 6   | IOPS's `executor_id` value now conforms to the hash form (was the 6-char `exec:remote`) | `iopsremote` | framework/conformance/remote/accept/payload.yaml:8 |
 | 7   | the template example now carries the conforming hash form (was `exec:remote`) | `iopsremote` | framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml:21 |
 | 8   | the regenerated golden derives the conforming `executor_id` (was `exec:remote`; manifest + events) | `iopsremote` | framework/conformance/remote/accept/expect.yaml:33 |

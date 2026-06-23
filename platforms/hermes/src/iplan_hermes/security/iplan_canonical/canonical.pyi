@@ -1,0 +1,9 @@
+from typing import Any
+
+CANONICALIZATION_ALGORITHM: str
+CANONICALIZATION_VERSION: str
+HASH_ALGORITHM: str
+
+def drop_null(value: Any) -> Any: ...
+def canonicalize(value: Any) -> bytes: ...
+def canonical_hash(value: Any) -> str: ...

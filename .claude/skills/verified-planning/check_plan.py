@@ -89,11 +89,21 @@ def _resolve(rel: str, roots: list[Path]) -> Path | None:
     return None
 
 
-def check_ledger(body: str, roots: list[Path]) -> list[str]:
+def check_ledger(body: str, roots: list[Path]) -> tuple[list[str], list[str], list[tuple[str, str, int, int]]]:
+    """Return (errors, warnings, drifts).
+
+    The **symbol is authoritative; the line is an advisory hint** (PLAN-051). A symbol at the cited line ±
+    PROXIMITY passes silently; a symbol present *elsewhere* in the file passes with a drift **warning** (the
+    line is stale — not an error); a genuinely-absent symbol (or an out-of-range line with no symbol to
+    anchor on) is an error. ``drifts`` lists ``(symbol, rel, old_line, new_line)`` for **unambiguous** drifts
+    (the symbol appears exactly once in the file, so the new line is certain) — consumed by ``--fix``.
+    """
     errs: list[str] = []
+    warns: list[str] = []
+    drifts: list[tuple[str, str, int, int]] = []
     rows = table_rows(body)
     if not rows:
-        return ["Claim ledger has no rows"]
+        return ["Claim ledger has no rows"], warns, drifts
     for i, cells in enumerate(rows, 1):
         citation = cells[-1]
         symbol = cells[-2].strip("`").strip() if len(cells) >= 2 else ""
@@ -114,12 +124,28 @@ def check_ledger(body: str, roots: list[Path]) -> list[str]:
             errs.append(f"ledger row {i}: path '{rel}' is not a file")
             continue
         lines = target.read_text(errors="replace").splitlines()
-        if line < 1 or line > len(lines):
-            errs.append(f"ledger row {i}: line {line} out of range for {rel} ({len(lines)} lines)")
+        in_range = 1 <= line <= len(lines)
+        if not symbol:  # no symbol to anchor on → the line is the only check
+            if not in_range:
+                errs.append(
+                    f"ledger row {i}: line {line} out of range for {rel} ({len(lines)} lines) and no symbol to anchor"
+                )
             continue
-        if symbol and symbol not in (chr(10)).join(lines[max(0, line - 1 - PROXIMITY) : line - 1 + PROXIMITY + 1]):
-            errs.append(f"ledger row {i}: symbol '{symbol}' not found within ±{PROXIMITY} lines of {rel}:{line}")
-    return errs
+        window = (chr(10)).join(lines[max(0, line - 1 - PROXIMITY) : line - 1 + PROXIMITY + 1]) if in_range else ""
+        if symbol in window:
+            continue  # precise — the symbol is at (±PROXIMITY of) the cited line
+        # the line drifted (or is out of range): the symbol is authoritative — find it anywhere in the file
+        hits = [n for n, ln in enumerate(lines, 1) if symbol in ln]
+        if not hits:
+            errs.append(f"ledger row {i}: symbol '{symbol}' not found in {rel}")
+            continue
+        nearest = min(hits, key=lambda n: abs(n - line))
+        warns.append(
+            f"ledger row {i}: symbol '{symbol}' is at {rel}:{nearest} (cited :{line}) — line drifted; citation passes"
+        )
+        if len(hits) == 1:  # unambiguous → --fix can re-point it
+            drifts.append((symbol, rel, line, hits[0]))
+    return errs, warns, drifts
 
 
 def check_review(body: str) -> list[str]:
@@ -137,13 +163,18 @@ def check_review(body: str) -> list[str]:
     return errs
 
 
-def check_plan(path: Path, extra_roots: list[Path]) -> tuple[list[str], dict[str, int | bool]]:
-    """Return (errors, info). info: {gated, citations, passes}."""
+def check_plan(
+    path: Path, extra_roots: list[Path]
+) -> tuple[list[str], list[str], list[tuple[str, str, int, int]], dict[str, int | bool]]:
+    """Return (errors, warnings, drifts, info). info: {gated, citations, passes}. Only ``errors`` decide the
+    exit code; ``warnings`` are drift notices (never fail); ``drifts`` are the unambiguous re-points for --fix."""
     text = path.read_text(errors="replace")
     secs = sections(text)
     info: dict[str, int | bool] = {"gated": False, "citations": 0, "passes": 0}
+    warns: list[str] = []
+    drifts: list[tuple[str, str, int, int]] = []
     if "claim ledger" not in secs and "review log" not in secs:
-        return [], info  # not a gated plan; skip
+        return [], warns, drifts, info  # not a gated plan; skip
     info["gated"] = True
     roots = [repo_root(path), *extra_roots]
     errs: list[str] = []
@@ -151,13 +182,34 @@ def check_plan(path: Path, extra_roots: list[Path]) -> tuple[list[str], dict[str
         errs.append("missing '## Claim ledger' section")
     else:
         info["citations"] = len(table_rows(secs["claim ledger"]))
-        errs += check_ledger(secs["claim ledger"], roots)
+        e, w, d = check_ledger(secs["claim ledger"], roots)
+        errs += e
+        warns += w
+        drifts += d
     if "review log" not in secs:
         errs.append("missing '## Review log' section")
     else:
         info["passes"] = len(PASS_RE.findall(secs["review log"]))
         errs += check_review(secs["review log"])
-    return errs, info
+    return errs, warns, drifts, info
+
+
+def apply_fixes(path: Path, drifts: list[tuple[str, str, int, int]]) -> int:
+    """Re-point drifted citations **per row** (PLAN-051): on the one plan line that carries both the row's
+    `symbol` and its `{rel}:{old}` token, replace `:{old}` → `:{new}` (count=1). Returns the number fixed."""
+    lines = path.read_text(errors="replace").splitlines(keepends=True)
+    fixed = 0
+    for symbol, rel, old, new in drifts:
+        # trailing-digit boundary guard so `rel:1` doesn't match inside `rel:10`/`rel:11`
+        pat = re.compile(re.escape(f"{rel}:{old}") + r"(?!\d)")
+        for idx, ln in enumerate(lines):
+            if symbol in ln and pat.search(ln):
+                lines[idx] = pat.sub(f"{rel}:{new}", ln, count=1)
+                fixed += 1
+                break
+    if fixed:
+        path.write_text("".join(lines))
+    return fixed
 
 
 def _snippet_parts() -> tuple[str, str]:
@@ -202,7 +254,16 @@ def main(argv: list[str]) -> int:
         metavar="DIR",
         help="extra directory to resolve citations against (repeatable)",
     )
-    ap.add_argument("--init", action="store_true", help="scaffold Claim-ledger + Review-log sections into the plan(s)")
+    ap.add_argument(
+        "--init",
+        action="store_true",
+        help="scaffold Claim-ledger + Review-log sections into the plan(s)",
+    )
+    ap.add_argument(
+        "--fix",
+        action="store_true",
+        help="re-point unambiguous drifted citation line numbers in the plan(s)",
+    )
     args = ap.parse_args(argv)
 
     if not args.plans:
@@ -217,7 +278,11 @@ def main(argv: list[str]) -> int:
     extra_roots = [Path(r) for r in args.root]
     failed = False
     for a in args.plans:
-        errs, info = check_plan(Path(a), extra_roots)
+        errs, warns, drifts, info = check_plan(Path(a), extra_roots)
+        if args.fix and drifts:
+            n = apply_fixes(Path(a), drifts)
+            if n:
+                print(f"fix  {a} — re-pointed {n} drifted citation(s)")
         if errs:
             failed = True
             print(f"FAIL {a}")
@@ -227,6 +292,9 @@ def main(argv: list[str]) -> int:
             print(f"ok   {a} — verified {info['citations']} citation(s), {info['passes']} review pass(es)")
         else:
             print(f"ok   {a} (not a gated plan; skipped)")
+        if warns and not args.fix:  # drift notices; --fix already re-pointed the fixable ones
+            for w in warns:
+                print(f"  warn {a}: {w}")
     return 1 if failed else 0
 
 

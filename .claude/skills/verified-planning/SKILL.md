@@ -30,6 +30,11 @@ signature, a field or key name, an event/enum value, or a behavioral assertion
 A claim you have not verified is written `UNVERIFIED` in the Citation column and
 **cannot survive to ready**. Do not guess a line number — open the file.
 
+The **symbol is authoritative; the line is an advisory hint.** If a later edit shifts a cited line, the gate
+still passes (the symbol is found elsewhere) and only **warns** that the line drifted — only a genuinely
+**absent** symbol fails. Run `check_plan.py --fix <plan>` to re-point drifted line numbers (unambiguous
+symbols) automatically.
+
 ## 2. Mandatory independent review (the part that actually works)
 
 Before the plan is ready, dispatch a **fresh-context subagent** (the `Agent`

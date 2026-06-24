@@ -1,15 +1,16 @@
-# Vendored mirror of the Iplanic runtime task-payload — the CONSUMED SUBSET only.
+# Vendored mirror of the IPLAN-standard task payload — the CONSUMED SUBSET only.
 #
-#   source repo:    iplanic (sibling)
+#   source repo:    iplan-standard (https://github.com/vladm3105/aidoc-flow-iplan-standard)
 #   source schema:  schemas/task.schema.json
-#   schema_version: 1.3-draft
-#   pinned commit:  fb5f46d
+#   pinned tag:     iplan/v0.1.0
 #
-# IOPS reads only these fields to build the iplan-intake manifest + the
-# remote_execution block (see REMOTE_EXECUTOR_CONTRACT.md). Iplanic's full task
-# schema has more required fields; this mirror is the subset IOPS depends on.
-# Re-pin by re-copying and bumping the commit; drift surfaces as a failing
-# conformance vector, not a runtime dependency on the Iplanic repo.
+# iplan-runner reads only these fields to build the iplan-intake manifest + the
+# remote_execution block (see REMOTE_EXECUTOR_CONTRACT.md). The standard's full task
+# schema has more required fields; this is the subset iplan-runner depends on. This is a
+# hand-derived SUBSET (an instance), not the JSON Schema verbatim — re-derive it from the
+# pinned tag's task.schema.json on a re-pin (its correctness is checked by the receiver
+# adapter test, not a byte-diff). Drift in the byte-copyable surface (iplan_canonical/ +
+# vectors) is caught by sync/check-drift.sh.
 
 iplan_id: "IPLAN-01"
 plan_version_id: "PV-01"
@@ -28,5 +29,8 @@ work_order:
       description: "do the first unit of work"
       acceptance_criteria: ["tests pass"]
 context_package:
-  repository: "."
+  repository:
+    url: "https://github.com/example/repo.git"
+    default_branch: "main"
+    base_ref: "main"
   forbidden_paths: [".git", "secrets"]

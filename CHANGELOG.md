@@ -6,8 +6,49 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`CLAUDE.md` — new "Governance PR discipline (mandatory)" section.** Two
+  rules for any PR touching `plans/DECISIONS.md`, plan files, `CLAUDE.md`,
+  `.github/ai-review/` or `.github/workflows/ai-review.yml`, or
+  superseding a locked decision: (1) ≤3 doc surfaces per PR (split if
+  more); (2) mandatory adversarial self-review before every push
+  (dead refs / supersession completeness / internal consistency).
+  Reconciliation paragraph clarifies the rule does NOT supersede the
+  existing doc-currency rule — it scopes how doc-currency applies
+  per-PR. Origin: operations 2026-06-23 (22+ ai-reviewer findings
+  across operations PRs #107-109 in one session). Cross-references
+  `aidoc-flow-operations` `CLAUDE.md` + `OPS-0061`.
+
 ### Changed
 
+- **`CLAUDE.md` — new "Unified CI — consume from `aidoc-flow-ci`" section
+  (PR #48, merged 2026-06-23 as `859ef45`).** Codifies this repo's
+  consumption pattern for the planned `aidoc-flow-ci` shared CI library
+  (`vladm3105/aidoc-flow-ci`, public, semver-tagged `ci/v1.0.X`) per
+  the unified-CI design in `aidoc-flow-operations` IPLAN-0017 + the
+  charter at `aidoc-flow-operations`
+  `ops/iplans/IPLAN-0017-CHARTER_aidoc-flow-ci.md`. Documents the
+  foundational "local overrides shared" rule + 3 override modes
+  (parameter override / full replacement / add custom workflow) +
+  warning-only drift detection. Per-repo state captured: private repo;
+  ai-review.yml WIRED via PR #45 (merged 2026-06-19) but the gate is
+  inert until the reviewer App is installed on this repo. Migration
+  to `uses: vladm3105/aidoc-flow-ci/...@ci/v1.0.0` happens in **Phase
+  C** of IPLAN-0017 rollout when the App is installed + Steps 1-3
+  activation mirror are run per IPLAN-0016 §2a-v3.
+- **Consume the IPLAN standard (PLAN-023 / D-0023).** iplan-runner is now a **pinned consumer** of
+  [`iplan-standard@iplan/v0.1.0`](https://github.com/vladm3105/aidoc-flow-iplan-standard), replacing the
+  stale hand-copied fork:
+  - The `framework/remote/` task-payload mirror is **re-derived** to the current shape (the `repository`
+    object, fixing the `repository: "."` drift) and all provenance is re-pinned (`fb5f46d`/`1.3-draft` →
+    `iplan/v0.1.0`).
+  - The standard's `iplan_canonical` is **vendored as a package** (`security/iplan_canonical/`) in each
+    engine; `security/iplanic_signing.py` is now a thin re-export shim over it — same public API, so
+    importers + the conformance suite are unchanged, and hashes/signatures are byte-identical to iplanic by
+    construction. Runner-local `.pyi` stubs keep `mypy --strict` clean over the verbatim untyped package.
+  - **`sync/check-drift.sh`** byte-diffs the vendored package (per engine) + the canonicalization vectors
+    against the pinned tag and fails on drift. Conformance 26 + 244 offline tests green; ruff/mypy clean.
 - **Relay operational store → SQLite (D-4c, PLAN-020 / D-0021).** The relay's
   cursor / dead-letter / persisted identity move from JSON sidecars to a per-store
   SQLite database (`<store>/relay.db`, stdlib `sqlite3` — **no new dependency**, WAL).

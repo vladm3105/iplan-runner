@@ -1,12 +1,29 @@
-import subprocess
-import sys
+import contextlib
+import importlib.util
+import io
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "check_plan.py"
 
+# Load the gate in-process (no subprocess: faster, and avoids a security-linter
+# flag for shelling out from a test).
+_spec = importlib.util.spec_from_file_location("check_plan_under_test", SCRIPT)
+_cp = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_cp)
+
+
+class _Result:
+    def __init__(self, returncode, stdout, stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
 
 def _run(*args):
-    return subprocess.run([sys.executable, str(SCRIPT), *map(str, args)], capture_output=True, text=True)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = _cp.main([str(a) for a in args])
+    return _Result(rc, buf.getvalue())
 
 
 def _repo(tmp_path: Path) -> Path:
@@ -59,18 +76,71 @@ def test_directory_citation_fails_gracefully(tmp_path):
     assert "Traceback" not in r.stderr
 
 
-def test_line_out_of_range_fails(tmp_path):
+def test_line_out_of_range_with_symbol_warns(tmp_path):
+    # PLAN-051: out-of-range line + symbol present elsewhere → warn (rc 0), the symbol is authoritative.
     repo = _repo(tmp_path)
     plan = _plan(repo, "| 1 | x | `task_completed` | src/loop.py:999 |\n")
+    r = _run(plan)
+    assert r.returncode == 0, r.stdout
+    assert "drifted" in r.stdout and "warn" in r.stdout
+
+
+def test_drifted_symbol_warns(tmp_path):
+    # PLAN-051: symbol present but not at the cited line → warn (rc 0), not a failure.
+    repo = _repo(tmp_path)
+    plan = _plan(repo, "| 1 | x | `task_completed` | src/loop.py:1 |\n")
+    r = _run(plan)
+    assert r.returncode == 0, r.stdout
+    assert "drifted" in r.stdout and "warn" in r.stdout  # the warn line is emitted
+
+
+def test_symbol_genuinely_absent_fails(tmp_path):
+    # A symbol that appears nowhere in the file is a real, still-failing error.
+    repo = _repo(tmp_path)
+    plan = _plan(repo, "| 1 | x | `never_appears_anywhere` | src/loop.py:1 |\n")
+    r = _run(plan)
+    assert r.returncode == 1 and "not found in" in r.stdout
+
+
+def test_no_symbol_out_of_range_fails(tmp_path):
+    # No symbol to anchor on + out-of-range line → still an error (nothing to resolve against).
+    repo = _repo(tmp_path)
+    plan = _plan(repo, "| 1 | x |  | src/loop.py:999 |\n")
     r = _run(plan)
     assert r.returncode == 1 and "out of range" in r.stdout
 
 
-def test_symbol_not_near_line_fails(tmp_path):
+def test_no_symbol_in_range_passes(tmp_path):
+    # No symbol + in-range line passes unchanged (the line is the only check).
+    repo = _repo(tmp_path)
+    plan = _plan(repo, "| 1 | x |  | src/loop.py:5 |\n")
+    r = _run(plan)
+    assert r.returncode == 0, r.stdout
+
+
+def test_fix_repoints_unambiguous_drift(tmp_path):
+    # --fix re-points a drifted, single-occurrence citation, in place, per-row.
     repo = _repo(tmp_path)
     plan = _plan(repo, "| 1 | x | `task_completed` | src/loop.py:1 |\n")
-    r = _run(plan)
-    assert r.returncode == 1 and "not found within" in r.stdout
+    r = _run("--fix", plan)
+    assert r.returncode == 0, r.stdout
+    assert "re-pointed 1" in r.stdout
+    assert "src/loop.py:11" in plan.read_text()  # 1 → 11, the real line
+    r2 = _run(plan)  # now precise — no drift
+    assert r2.returncode == 0 and "drifted" not in r2.stdout
+
+
+def test_ambiguous_drift_warns_and_fix_leaves_it(tmp_path):
+    # A symbol with multiple occurrences is ambiguous → warns, and --fix does NOT rewrite it.
+    repo = _repo(tmp_path)
+    (repo / "src" / "dup.py").write_text("\n".join(["x"] * 4 + ["dup_sym"] + ["x"] * 10 + ["dup_sym"]) + "\n")
+    plan = _plan(repo, "| 1 | x | `dup_sym` | src/dup.py:1 |\n")
+    before = plan.read_text()
+    r = _run("--fix", plan)
+    assert r.returncode == 0 and "re-pointed" not in r.stdout
+    assert plan.read_text() == before  # unchanged
+    r2 = _run(plan)
+    assert r2.returncode == 0 and "drifted" in r2.stdout
 
 
 def test_unverified_row_fails(tmp_path):
@@ -87,7 +157,7 @@ def test_empty_ledger_fails(tmp_path):
     assert r.returncode == 1 and "no rows" in r.stdout
 
 
-REVIEW_ONE_PASS = "## Review log\n\n### Pass 1 - 2026-06-07\n- only one pass.\n"
+REVIEW_SINGLE_ENTRY = "## Review log\n\n### Pass 1 - 2026-06-07\n- only one pass.\n"
 REVIEW_NO_INDEP = (
     "## Review log\n\n### Pass 1 - 2026-06-07\n- self.\n\n### Pass 2 - 2026-06-07\n- self again, no new findings.\n"
 )
@@ -99,7 +169,7 @@ REVIEW_NOT_GREEN = (
 
 def test_fewer_than_two_passes_fails(tmp_path):
     repo = _repo(tmp_path)
-    plan = _plan(repo, GOOD_ROW, review=REVIEW_ONE_PASS)
+    plan = _plan(repo, GOOD_ROW, review=REVIEW_SINGLE_ENTRY)
     r = _run(plan)
     assert r.returncode == 1 and "at least two" in r.stdout
 

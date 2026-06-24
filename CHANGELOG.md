@@ -8,6 +8,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **`CLAUDE.md` — new "Unified CI — consume from `aidoc-flow-ci`" section
+  (PR #48, merged 2026-06-23 as `859ef45`).** Codifies this repo's
+  consumption pattern for the planned `aidoc-flow-ci` shared CI library
+  (`vladm3105/aidoc-flow-ci`, public, semver-tagged `ci/v1.0.X`) per
+  the unified-CI design in `aidoc-flow-operations` IPLAN-0017 + the
+  charter at `aidoc-flow-operations`
+  `ops/iplans/IPLAN-0017-CHARTER_aidoc-flow-ci.md`. Documents the
+  foundational "local overrides shared" rule + 3 override modes
+  (parameter override / full replacement / add custom workflow) +
+  warning-only drift detection. Per-repo state captured: private repo;
+  ai-review.yml WIRED via PR #45 (merged 2026-06-19) but the gate is
+  inert until the reviewer App is installed on this repo. Migration
+  to `uses: vladm3105/aidoc-flow-ci/...@ci/v1.0.0` happens in **Phase
+  C** of IPLAN-0017 rollout when the App is installed + Steps 1-3
+  activation mirror are run per IPLAN-0016 §2a-v3.
 - **Consume the IPLAN standard (PLAN-023 / D-0023).** iplan-runner is now a **pinned consumer** of
   [`iplan-standard@iplan/v0.1.0`](https://github.com/vladm3105/aidoc-flow-iplan-standard), replacing the
   stale hand-copied fork:

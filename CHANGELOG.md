@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`CLAUDE.md` — new "Governance PR discipline (mandatory)" section.** Two
+  rules for any PR touching `plans/DECISIONS.md`, plan files, `CLAUDE.md`,
+  `.github/ai-review/` or `.github/workflows/ai-review.yml`, or
+  superseding a locked decision: (1) ≤3 doc surfaces per PR (split if
+  more); (2) mandatory adversarial self-review before every push
+  (dead refs / supersession completeness / internal consistency).
+  Reconciliation paragraph clarifies the rule does NOT supersede the
+  existing doc-currency rule — it scopes how doc-currency applies
+  per-PR. Origin: operations 2026-06-23 (22+ ai-reviewer findings
+  across operations PRs #107-109 in one session). Cross-references
+  `aidoc-flow-operations` `CLAUDE.md` + `OPS-0061`.
+
 ### Changed
 
 - **Consume the IPLAN standard (PLAN-023 / D-0023).** iplan-runner is now a **pinned consumer** of

@@ -35,6 +35,17 @@ class Config:
     iplanic_endpoint: str | None = None
     iplanic_token_env: str = "IOPS_IPLANIC_TOKEN"
     iplanic_max_age_s: int = 86400
+    # inbound A2A task receiver (PLAN-021): off by default; opt-in, gated out of CI.
+    receiver_enabled: bool = False
+    receiver_bind: str = "127.0.0.1"
+    receiver_port: int = 8080
+    receiver_auth_env: str = "IOPS_RECEIVER_TOKEN"
+    receiver_key_id: str | None = None  # the event signing-key handle = the registered log_ingest_key_id
+    receiver_executor_id: str | None = None
+    receiver_org_id: str | None = None  # the heartbeat's X-Org-Id
+    receiver_workspace: str = "."
+    receiver_max_parallel: int = 4
+    receiver_heartbeat_s: float = 30.0
 
 
 def secrets_from_env(prefix: str = "IOPS_SECRET_", env: Mapping[str, str] | None = None) -> list[str]:
@@ -70,6 +81,20 @@ def load_config(path: str | Path | None = None, env: Mapping[str, str] | None = 
             cfg.iplanic_token_env = str(iplanic["token_env"])
         if iplanic.get("max_age_s") is not None:
             cfg.iplanic_max_age_s = int(iplanic["max_age_s"])
+
+    receiver = data.get("receiver")
+    if isinstance(receiver, dict):
+        if "enabled" in receiver:
+            cfg.receiver_enabled = bool(receiver["enabled"])
+        for str_field in ("bind", "auth_env", "key_id", "executor_id", "org_id", "workspace"):
+            if receiver.get(str_field) is not None:
+                setattr(cfg, f"receiver_{str_field}", str(receiver[str_field]))
+        if receiver.get("port") is not None:
+            cfg.receiver_port = int(receiver["port"])
+        if receiver.get("max_parallel") is not None:
+            cfg.receiver_max_parallel = int(receiver["max_parallel"])
+        if receiver.get("heartbeat_s") is not None:
+            cfg.receiver_heartbeat_s = float(receiver["heartbeat_s"])
 
     cfg.secrets = secrets_from_env(env=environ)
     signing_key = environ.get("IOPS_SIGNING_KEY")

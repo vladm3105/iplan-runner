@@ -78,8 +78,59 @@ Emission is **offline / in-memory**. A live HTTP POST to Iplanic's ingestion
 endpoint is integration-only (behind an extra), exactly as live executors are
 (PLAN-008). This plan does not ship a transport client.
 
+## Inbound dispatch — task receiver (PLAN-021, D-0022)
+
+The **outbound** half above is offline by default. The **inbound** half is an
+opt-in HTTP door (`receiver.enabled`, stdlib `http.server`, gated out of CI) that
+lets iplanic dispatch a task over A2A instead of a file:
+
+```text
+POST /v1/tasks
+Authorization: Bearer <token>        # MANDATORY (constant-time compare)
+Content-Type: application/json
+<body = an iplanic task.schema.json payload>
+```
+
+| Response | Meaning |
+| --- | --- |
+| any `2xx` (`202 {task_id, run_id, status}`) | accepted — iplanic reads the **status only**; the body is debug-only |
+| `400 schema_invalid` | body is not JSON / not an object / fails `validate_payload` / missing `task_id` |
+| `401 unauthenticated` | absent or wrong bearer |
+| `503 receiver_busy` | `max_parallel` runs already in flight (iplanic records a `DispatchError`, no attempt) |
+
+**Prompt-ACK-then-background.** The handler durably accepts then ACKs `2xx`
+immediately; the run executes on a daemon thread (a long run must not trip
+iplanic's dispatch timeout, which maps to a `DispatchError`).
+
+**Idempotent on `(run_id, task_id)`** (`task_id == step_id` recurs across chain
+members, so the pair is the key). A row already `running`/terminal short-circuits
+to `202` (`status: duplicate`); a fresh accept — or a crash-orphaned `accepted`
+row whose run never started — runs. Two concurrent same-key POSTs both ACK, but an
+atomic `accepted → running` claim lets exactly one run.
+
+**Scope is the wire.** The dispatched `context_package.repository` **object**
+(`{url, default_branch, base_ref}`) is rewritten to the configured `receiver`
+workspace path before intake (`adapt_dispatched_task`); the run uses a
+**deterministic** executor. The repo → workspace clone, the live executor, auto
+re-drain, crash-recovery, and mTLS/OIDC inbound auth are **PLAN-022**.
+
+### Cross-repo provisioning (two paired credentials)
+
+The receiver authenticates iplanic, and iplanic verifies the receiver's signed
+events — two shared credentials must be provisioned on both sides:
+
+| Pairing | iplan-runner config | iplanic side |
+| --- | --- | --- |
+| **dispatch bearer** | `IOPS_RECEIVER_TOKEN` (`receiver.auth_env`) | the value iplanic resolves for the executor's `dispatch_token_id` (iplanic PLAN-048) |
+| **event signature** | `receiver_key_id` = the registered `log_ingest_key_id`; `IOPS_SIGNING_KEY` = its secret | the secret iplanic resolves for that `log_ingest_key_id` (else every event `403`s) |
+
+The receiver also runs a background heartbeat (`POST /executors/{id}/heartbeat`,
+sending `X-Org-Id: receiver_org_id`) so iplanic keeps it dispatchable rather than
+marking it `stale`. See iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
+
 ## Worked example
 
 See `framework/conformance/remote/accept/` (`payload.yaml`, `ledger.yaml`,
 `expect.yaml`) for a full payload → manifest → events projection, and
-`remote/reject_context/` for the `REMOTE.PAYLOAD_*` findings.
+`remote/reject_context/` + `remote/reject_repository/` for the `REMOTE.PAYLOAD_*`
+findings.

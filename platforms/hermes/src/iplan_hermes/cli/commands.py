@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,7 @@ from ..ledger.events import to_execution_events
 from ..ledger.index import list_runs, set_control, status, store_control
 from ..ledger.persistence import ledger_path, load, save
 from ..monitoring.slo import evaluate_slos
+from ..receiver import Heartbeat, ReceiverDeps, build_receiver
 from ..relay import store as relay_store
 from ..relay.client import IplanicClient
 from ..relay.worker import drain
@@ -98,6 +100,10 @@ def _build_parser() -> argparse.ArgumentParser:
     p_sync.add_argument("--key-id", default=None)
     p_sync.add_argument("--dry-run", action="store_true", help="report pending events without sending")
 
+    p_server = sub.add_parser("server", help="run the inbound A2A task receiver (off unless receiver.enabled)")
+    p_server.add_argument("--config", default=None, help="config file with the receiver + iplanic blocks")
+    p_server.add_argument("--store", default=_DEFAULT_STORE)
+
     for name in ("pause", "abort"):
         p = sub.add_parser(name, help=f"{name} a run")
         p.add_argument("ledger_id")
@@ -169,6 +175,72 @@ def _sync(args: argparse.Namespace) -> int:
         }
     )
     return 0 if report.ok else 1
+
+
+def _server(args: argparse.Namespace) -> int:
+    """Run the inbound A2A task receiver. No-op unless `receiver.enabled`."""
+    cfg = load_config(args.config)
+    if not cfg.receiver_enabled:
+        _emit({"receiver": "disabled"})
+        return 0
+    token = os.environ.get(cfg.receiver_auth_env, "")
+    if not token:
+        _emit({"error": f"{cfg.receiver_auth_env} is empty; the receiver requires a bearer"})
+        return 1
+    endpoint = cfg.iplanic_endpoint
+    if not endpoint:
+        _emit({"error": "iplanic.endpoint not configured (the receiver drains events back to it)"})
+        return 1
+
+    def _log(message: str) -> None:
+        print(f"[receiver] {message}", file=sys.stderr)
+
+    def _token() -> str | None:
+        return os.environ.get(cfg.iplanic_token_env)
+
+    deps = ReceiverDeps(
+        engine=HermesEngine(),
+        store_dir=args.store,
+        workspace=cfg.receiver_workspace,
+        client=IplanicClient(endpoint, _token),
+        key=(cfg.signing_key or "").encode(),
+        key_id=cfg.receiver_key_id,
+        log=_log,
+    )
+    try:
+        server = build_receiver(
+            bind=cfg.receiver_bind,
+            port=cfg.receiver_port,
+            token=token,
+            deps=deps,
+            max_parallel=cfg.receiver_max_parallel,
+        )
+    except (OSError, ValueError) as exc:
+        _emit({"error": f"receiver failed to start: {exc}"})
+        return 1
+
+    heartbeat = None
+    if cfg.receiver_executor_id and cfg.receiver_org_id:
+        heartbeat = Heartbeat(
+            endpoint=endpoint,
+            executor_id=cfg.receiver_executor_id,
+            org_id=cfg.receiver_org_id,
+            token_provider=_token,
+            interval_s=cfg.receiver_heartbeat_s,
+            log=_log,
+        )
+        heartbeat.start()
+    _log(f"listening on {cfg.receiver_bind}:{cfg.receiver_port}" + (" (heartbeat on)" if heartbeat else ""))
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:  # pragma: no cover - operator Ctrl-C
+        pass
+    finally:
+        if heartbeat is not None:
+            heartbeat.stop()
+        server.shutdown()
+        server.server_close()
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -279,6 +351,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "sync":
         return _sync(args)
+
+    if args.command == "server":
+        return _server(args)
 
     if args.command in ("pause", "abort"):
         set_control(args.ledger_id, "paused" if args.command == "pause" else "aborted", args.store)

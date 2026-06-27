@@ -214,6 +214,19 @@ cursor / dead-letter / identity live in a per-store SQLite DB (stdlib, no new de
 outbox-shaped on `idempotency_key` so dead-letter + cursor-advance is one atomic,
 iplanic-symmetric transaction; the signed ledger stays a portable file.
 
+### Inbound dispatch — A2A task receiver
+
+The **inbound** complement to the outbound relay: an opt-in `POST /v1/tasks`
+receiver (config `receiver.enabled`, **disabled by default**, gated out of CI) so
+iplanic can dispatch a task to a running engine over A2A instead of a file. **Built
+by D-5a (wire slice)** (`plans/PLAN-021`, D-0022): mandatory-bearer door,
+`(run_id, task_id)` idempotency (`accepted_task` table), deterministic run → relay
+drain back, heartbeat liveness, `server` CLI verb. **Deferred → PLAN-022:** the live
+executor (HostRuntime/API), repo → workspace clone from
+`repository.{url,default_branch,base_ref}`, auto re-drain on outage, in-flight
+crash-recovery + graceful-shutdown drain, and mTLS/OIDC inbound auth +
+inbound signature-verify.
+
 - **Standalone (offline) — default.** Sync off. The engine runs an approved
   IPLAN fully locally (signed ledger → gate → handover → monitor); iplanic is
   never contacted. The mode for individual plans, OSS users, air-gapped runs,

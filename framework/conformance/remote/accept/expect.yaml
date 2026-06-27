@@ -21,11 +21,15 @@ manifest:
   - task_id: TODO-001
     title: implement foo
     depends_on: []
-    acceptance: tests pass
+    acceptance:
+      criteria:
+      - tests pass
   - task_id: TODO-002
     title: land the change
     depends_on: []
-    acceptance: committed
+    acceptance:
+      criteria:
+      - committed
   remote_execution:
     task_id: TASK-01
     run_id: RUN-01

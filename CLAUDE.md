@@ -204,3 +204,41 @@ OK <reason>`).
 operations PRs #107-109 in one session). Full reasoning + formal record
 in `aidoc-flow-operations` `CLAUDE.md` "Governance PR discipline" section,
 plus `ops/DECISIONS.md` `OPS-0061`.
+
+## AI agent auto-merge default (OPS-0062)
+
+**Applies to ALL AI agents (Claude, Codex, Gemini, GitHub Copilot, etc.) —
+not just one model.** For PRs the AI agent opens itself in this repository:
+
+1. **Auto-watch + auto-merge when green.** After opening a PR, the AI
+   watches the PR's check rollup until all checks complete. If
+   `mergeStateStatus = CLEAN` AND all required checks are SUCCESS, the AI
+   attempts `gh pr merge --squash --delete-branch` without asking the human
+   for explicit per-PR authorization. Stale-check recovery uses documented
+   patterns (label-cycle per `aidoc-flow-ci/docs/troubleshooting.md §15`).
+2. **Escalate to human at 10 attempts.** If the PR still hasn't merged
+   after 10 distinct merge-or-recovery actions, the AI STOPS and requests
+   human confirmation.
+
+**One attempt =** each distinct merge-or-recovery action: each `gh pr merge`
+invocation, each `skip-ai-review` label-cycle, each `gh run rerun`, each
+`gh workflow run` retrigger. Polling does not count. **Counter is per-PR
+cumulative, not per-session.**
+
+**Visibility:** AI announces each merge attempt in-session.
+
+**Exceptions (AI never auto-merges these; always asks):**
+
+- 🟡 / 🔴 actions per the autonomy tiers (canonical table in operations
+  `CLAUDE.md`).
+- Spec / governance tier PRs (excluded from auto-merge by `ai-review.yml`
+  `tier=spec`).
+- Cross-repo coordinated changes.
+- PRs touching this repo's governance PR list (per the "Governance PR
+  discipline" section above).
+
+**Human-opened PRs are unaffected.**
+
+**Origin:** OPS-0062 (2026-06-27). Full reasoning + scope clauses +
+reconciliation with the `auto_merge.repos` allowlist in
+`aidoc-flow-operations` `ops/DECISIONS.md` OPS-0062.

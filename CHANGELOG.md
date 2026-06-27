@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — CLAUDE.md: OPS-0062 AI agent auto-merge default rule (applies to ALL AI agents) (2026-06-27)
+
+- **`CLAUDE.md`** new section **"AI agent auto-merge default (OPS-0062)"**
+  after the existing "Governance PR discipline (mandatory)" section.
+- **Canonical record:** operations `ops/DECISIONS.md` OPS-0062 (PR #152
+  merged 2026-06-27 commit `dcc4692`).
+- AI agents (Claude, Codex, Gemini, etc.) opening PRs in this repo default
+  to auto-watch + auto-merge when green; escalate to human at 10 attempts.
+- Exceptions explicitly preserve this repo's governance PR list.
+
 ### Added
 
 - **`CLAUDE.md` — new "Governance PR discipline (mandatory)" section.** Two

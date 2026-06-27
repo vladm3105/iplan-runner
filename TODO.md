@@ -49,6 +49,28 @@ disabled; it can be enabled at any time. **Delivered by D-4b**
   + cursor-advance is one atomic transaction (iplanic-symmetric). The signed ledger
   stays a portable file. (DONE — built behind the unchanged store interface.)
 
+## Inbound dispatch — A2A task receiver (PLAN-021 → PLAN-022)
+
+The outbound half (relay/sync) is done; the **inbound** half lets iplanic dispatch
+a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
+
+- [x] **PLAN-021 — inbound task receiver (wire slice)** — **BUILT (D-0022,
+  2026-06-27).** Opt-in `POST /v1/tasks` (both engines, stdlib `http.server`, off by
+  default, gated out of CI): mandatory constant-time bearer, extended
+  `validate_payload` (`REMOTE.PAYLOAD_REPOSITORY_SHAPE`), `adapt_dispatched_task` +
+  `ingest_task_payload_dict`, an `accepted_task` idempotency table (PK
+  `(run_id, task_id)` + a `status` column; split durable-accept + atomic claim), a
+  heartbeat thread, a `server` CLI verb, and a **deterministic** run through intake →
+  orchestrator → relay back to iplanic — proven end-to-end against the in-process
+  `/v1/events` fake. No iplanic PR remained (dispatcher-auth shipped, iplanic
+  PLAN-048/D-0067); provisioning per iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
+  256 offline + 12 gated tests, 26 conformance, ruff + `mypy --strict` clean.
+- [ ] **PLAN-022 — receiver follow-on (deployment-shaped)** — the LIVE executor
+  (HostRuntime/API), repo → workspace clone from
+  `repository.{url,default_branch,base_ref}`, auto re-drain on iplanic-outage
+  recovery, in-flight crash-recovery + graceful-shutdown drain, and mTLS/OIDC
+  inbound auth + inbound signature-verify.
+
 ## Deferred / integration-only (not in CI)
 
 - [ ] **Live executor integration tests** — real Anthropic/LiteLLM `ModelClient`

@@ -46,6 +46,7 @@ SEVERITY: dict[str, str] = {
     "REMOTE.PAYLOAD_NO_TODOS": "error",
     "REMOTE.PAYLOAD_CONTEXT_MISSING": "error",
     "REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT": "error",
+    "REMOTE.PAYLOAD_REPOSITORY_SHAPE": "error",
 }
 
 

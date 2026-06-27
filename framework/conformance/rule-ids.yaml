@@ -180,3 +180,7 @@ rules:
     category: "REMOTE-001"
     severity: error
     description: "executor_id is present but not the Iplanic hash form ^exec:[a-z2-7]{16,}$ (Iplanic §2.1 / D-0031)."
+  - id: "REMOTE.PAYLOAD_REPOSITORY_SHAPE"
+    category: "REMOTE-001"
+    severity: error
+    description: "context_package.repository is an object but missing a required field (url, default_branch, or base_ref); the dispatched task.schema.json shape (PLAN-021)."

@@ -6,6 +6,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — Inbound A2A task receiver (PLAN-021, D-0022) (2026-06-27)
+
+- **`POST /v1/tasks` receiver** (both engines, stdlib `http.server`, opt-in
+  `receiver.enabled`, gated out of CI): mandatory constant-time bearer, a bounded
+  daemon-thread run pool (`503 receiver_busy` at capacity), prompt-ACK-then-background.
+  iplanic can now **dispatch a task over the wire** (not just a file) and the run's
+  signed events drain back through the existing relay.
+- **`(run_id, task_id)` idempotency** — a new `accepted_task` table in the relay
+  SQLite with split `accept_task` (durable, gates the ACK) + atomic `claim_task`
+  (`accepted → running`, gates the run): two concurrent POSTs ACK but exactly one
+  runs; a crash-orphaned `accepted` row re-runs; a `running`/terminal row replays.
+- **`receiver/` package** (`auth`, `service`, `heartbeat`, `http`) + a `receiver`
+  config block + a `server` CLI verb + a background heartbeat
+  (`POST /executors/{id}/heartbeat`) that keeps the executor dispatchable.
+- **Intake + validation** — `ingest_task_payload_dict` (canonical-hash checksum) +
+  `adapt_dispatched_task` (nested `context_package.repository` object → workspace
+  path); `validate_payload` gains `REMOTE.PAYLOAD_REPOSITORY_SHAPE` (backward
+  compatible — a string repository stays valid). Inbound section added to
+  `framework/remote/REMOTE_EXECUTOR_CONTRACT.md`; a `reject_repository` conformance
+  vector added; the `accept` vector's manifest acceptance is now the runnable dict shape.
+- **No iplanic PR remains** (dispatcher-auth shipped, iplanic PLAN-048/D-0067) — only
+  the two-pairing provisioning per iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
+- Deferred → PLAN-022: live executor, repo→workspace clone, auto re-drain,
+  crash-recovery, mTLS/OIDC inbound auth.
+
 ### Added — CLAUDE.md: OPS-0062 AI agent auto-merge default rule (applies to ALL AI agents) (2026-06-27)
 
 - **`CLAUDE.md`** new section **"AI agent auto-merge default (OPS-0062)"**

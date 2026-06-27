@@ -1,0 +1,23 @@
+# A dispatched task whose context_package.repository OBJECT is missing base_ref —
+# the only defect, so validate_payload emits exactly REMOTE.PAYLOAD_REPOSITORY_SHAPE.
+iplan_id: "IPLAN-01"
+plan_version_id: "PV-01"
+org_id: "org-a"
+project_id: "proj-1"
+run_id: "RUN-01"
+step_id: "STEP-001"
+task_id: "TASK-01"
+executor_id: "exec:iopsremote2zqf7kx3a"
+protocol_plan_id: null
+protocol_agent_id: null
+work_order:
+  work_order_id: "WORK-001"
+  todos:
+    - todo_id: "TODO-001"
+      description: "implement foo"
+      acceptance_criteria: ["tests pass"]
+context_package:
+  repository:
+    url: "https://example.invalid/repo.git"
+    default_branch: "main"
+  forbidden_paths: [".git", "secrets"]

@@ -381,3 +381,56 @@ standard by stale hand-copies that silently forked; pinning every vendored artif
 scoped drift-check + one shared canonicalization source (behind the existing shim) makes drift structurally
 impossible. Verified: conformance 26 + 244 offline tests green (the shim is behaviour-preserving), drift-check
 in-sync + a negative test, ruff/mypy clean (no new errors).
+
+### D-0022 - Inbound A2A task receiver (`POST /v1/tasks`, wire slice) - 2026-06-27
+
+The outbound half (relay/sync, D-4b/c) let iplan-runner *report* to iplanic; the
+inbound half (PLAN-021) lets iplanic **dispatch** a task to a running engine over
+A2A instead of a file. Built in both engines (D-0011), opt-in (`receiver.enabled`),
+stdlib `http.server` only (no new dependency), gated out of CI (PLAN-008 pattern).
+
+**Decision (PLAN-021):**
+
+1. **`POST /v1/tasks`** with a **mandatory** constant-time bearer
+   (`receiver/auth.py` over `IOPS_RECEIVER_TOKEN`; refuse-to-start if empty).
+   Responses: any `2xx` = accepted (iplanic reads the status only), `400
+   schema_invalid`, `401 unauthenticated`, `503 receiver_busy` (bounded
+   `max_parallel` daemon-thread pool). **Prompt-ACK-then-background**: the run is on
+   a daemon thread so a long run never trips iplanic's dispatch timeout.
+2. **Idempotent on `(run_id, task_id)`** (`task_id == step_id` recurs across chain
+   members) via a new `accepted_task` table in the relay SQLite (`relay/store.py`,
+   the existing per-call-connection + WAL discipline). Split into a durable
+   `accept_task` (gates the ACK; returns `accept`/`replay`) and an atomic
+   `claim_task` (`accepted → running`, gates the run): two concurrent POSTs both ACK
+   but exactly one runs; a crash-orphaned bare `accepted` row re-runs; a `running`/
+   terminal row short-circuits. In-flight crash recovery is **PLAN-022** (a stuck
+   `running` row is operator-resolved).
+3. **Validator + adapter:** extend the hand-rolled `validate_payload` with the
+   nested `context_package.repository` **object** shape (a new
+   `REMOTE.PAYLOAD_REPOSITORY_SHAPE` rule, backward-compatible — a string repository
+   stays valid); `adapt_dispatched_task` rewrites that object → the configured
+   workspace path string before intake; `ingest_task_payload_dict` (canonical-hash
+   checksum) feeds the deterministic run → relay drain back to iplanic
+   (`receiver_key_id` = the registered `log_ingest_key_id`). The manifest
+   `task_graph.acceptance` now carries the runnable `{criteria}` dict shape (was a
+   joined string — never previously fed to the run loop).
+4. **Liveness:** a background heartbeat thread (`receiver/heartbeat.py`) posts
+   `POST /executors/{id}/heartbeat` (with `X-Org-Id: receiver_org_id`) so iplanic
+   keeps the executor dispatchable. A `server` CLI verb mirrors `sync`.
+
+**Cross-repo:** the once-paired iplanic dispatcher-auth **shipped** (iplanic
+PLAN-048/D-0067), so no iplanic PR remains — only the two-pairing provisioning
+(`IOPS_RECEIVER_TOKEN` ↔ the executor's `dispatch_token_id`; `IOPS_SIGNING_KEY` =
+the secret iplanic resolves for `log_ingest_key_id`), documented in iplanic
+`docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
+
+**Deferred → PLAN-022:** the live executor (HostRuntime/API), repo → workspace
+clone from `repository.{url,default_branch,base_ref}`, auto re-drain on outage,
+in-flight crash-recovery + graceful-shutdown drain, mTLS/OIDC inbound auth +
+inbound signature-verify.
+
+**Why:** iplan-runner already consumed iplanic tasks (file) and reported events
+(relay); the one missing piece to make dispatch reach a real executor over the wire
+is the inbound door — built thin, deterministic, and proven end-to-end against an
+in-process `/v1/events` fake. **Verified:** 256 offline + 12 gated tests green
+(both engines), 26 conformance, ruff + `mypy --strict` clean.

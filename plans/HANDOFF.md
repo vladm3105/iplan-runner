@@ -2,7 +2,7 @@
 
 > Durable resume doc — the **canonical** handoff for this repo (per `CLAUDE.md`).
 > Sessions run in ephemeral containers: **only committed + pushed work survives.**
-> Keep this current before stopping or switching context. Updated **2026-06-15**.
+> Keep this current before stopping or switching context. Updated **2026-06-27**.
 
 iplan-runner is the **public OSS IPLAN executor** (MIT; pre-1.0, `v0.14.0`). The
 **D-4 iplanic transport is fully built + merged**: **D-4b** (transport — PLAN-019, PR #40)
@@ -16,7 +16,26 @@ live; the next ecosystem build is iplanic's **management API** (sibling repo).
 engine (the standard's verbatim copy) with `security/iplanic_signing.py` a thin re-export shim; the
 `framework/remote/` mirror is re-derived to the current shape; `sync/check-drift.sh` byte-diffs the vendored
 surface against the pinned tag. **Do not edit the vendored package or fork the standard** — change upstream +
-re-pin. (PLAN-021 task-receiver remains separate/untracked, founder-owned.)
+re-pin.
+
+## Recently built: D-5a inbound task receiver (PLAN-021 / D-0022)
+
+The **inbound** half of the iplanic transport is built (both engines, D-0011): an
+opt-in `POST /v1/tasks` receiver (`receiver/` — `auth`/`service`/`heartbeat`/`http`,
+stdlib `http.server`, gated out of CI) accepts an iplanic A2A `task.schema.json`
+dispatch under a **mandatory** bearer, ACKs `202` promptly, runs a **deterministic**
+executor through intake → orchestrator → relay back to iplanic, stays dispatchable
+via a heartbeat thread, and is idempotent on `(run_id, task_id)` (a new
+`accepted_task` table: split durable-accept + atomic claim, so concurrent POSTs ACK
+but exactly one runs). Adds the inbound contract section, an extended
+`validate_payload` (`REMOTE.PAYLOAD_REPOSITORY_SHAPE`), `adapt_dispatched_task` +
+`ingest_task_payload_dict`, a `receiver` config block + `server` CLI verb, a gated
+end-to-end wire test, and a `reject_repository` conformance vector. **No iplanic PR
+remains** (dispatcher-auth shipped, iplanic PLAN-048/D-0067) — only provisioning per
+iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`. **Verified:** 256 offline + 12
+gated tests (both engines), 26 conformance, ruff + `mypy --strict` clean. **Deferred
+→ PLAN-022:** live executor, repo→workspace clone, auto re-drain, crash-recovery,
+mTLS/OIDC inbound auth. Branch `feat/plan-021-task-receiver` (founder reviews/merges).
 
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 

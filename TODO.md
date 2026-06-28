@@ -65,11 +65,29 @@ a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
   `/v1/events` fake. No iplanic PR remained (dispatcher-auth shipped, iplanic
   PLAN-048/D-0067); provisioning per iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
   256 offline + 12 gated tests, 26 conformance, ruff + `mypy --strict` clean.
-- [ ] **PLAN-022 — receiver follow-on (deployment-shaped)** — the LIVE executor
-  (HostRuntime/API), repo → workspace clone from
-  `repository.{url,default_branch,base_ref}`, auto re-drain on iplanic-outage
-  recovery, in-flight crash-recovery + graceful-shutdown drain, and mTLS/OIDC
-  inbound auth + inbound signature-verify.
+- [ ] **PLAN-022 — receiver follow-on (deployment-shaped). DEFERRED until really
+  needed (founder, 2026-06-28).** Makes dispatch run **real work on a real repo**
+  (PLAN-021 proved the wire with a deterministic executor against a fixed workspace).
+  - **Already built:** `HostRuntimeExecutor` (the governor — drives a `RuntimeClient`,
+    enforces `allowed_roots` + budget, records evidence) + the `host_executor(client,
+    workspace, budget)` engine method. **Gaps:** only `StubRuntimeClient` (canned)
+    exists; `receiver/service.py` runs the deterministic `default_executor()`; and
+    `adapt_dispatched_task` maps the `repository` object → a fixed workspace path
+    **without cloning**.
+  - **Core slice (when it lands):** (1) a real live `RuntimeClient` + (2)
+    repo→workspace clone from `repository.{url,default_branch,base_ref}`, then wire
+    `host_executor(...)` into `receiver/service.py` in place of `default_executor()`.
+    Both engines, byte-identical seams (D-0011).
+  - **DECISION B — the runtime (UNRESOLVED; pick when needed):** (a) **Claude Code
+    CLI subprocess** — drive the real `claude` in the workspace; most faithful, needs
+    the CLI + an API key in the runner env; hermes needs its own equivalent. (b)
+    **Model API agent-loop** — an Anthropic/LiteLLM tool-loop doing edits;
+    provider-pluggable, more code, no CLI dep. (c) **Generic subprocess I/O
+    contract** — env/stdin task → stdout `RuntimeResult` JSON + workspace edits; most
+    pluggable/testable, defers the actual agent to a configured command.
+  - **Hardening follow-ons (separate plans, NOT the core):** auto re-drain on
+    iplanic-outage recovery; in-flight crash-recovery + graceful-shutdown drain;
+    mTLS/OIDC inbound auth + inbound signature-verify.
 
 ## Deferred / integration-only (not in CI)
 

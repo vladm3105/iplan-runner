@@ -18,6 +18,16 @@ engine (the standard's verbatim copy) with `security/iplanic_signing.py` a thin 
 surface against the pinned tag. **Do not edit the vendored package or fork the standard** — change upstream +
 re-pin.
 
+**Forward — IPLAN Assurance (design stage, 2026-06-27):** a cross-repo initiative to add
+**verifiable provenance + transparency (NOT blockchain)** to IPLAN. Neutral contract drafted upstream:
+`iplan-standard/docs/standards/IPLAN-ASSURANCE.md` (DRAFT — assurance levels L0 unsigned / L1 signed
+initiator / L2 transparency-logged; `iplan-standard` PR #3). **Runner's part = the L1 intake provenance
+gate:** verify an initiator signature over the canonical IPLAN against an authorized-initiator keyring
+**before** execution (new `INTAKE.PROVENANCE_*` rules alongside `INTAKE-001`), reusing the vendored
+`security/iplan_canonical/` signer and composing with — not replacing — D-0015 actor identity. Not yet a
+PLAN; ratify L1 upstream first, then author the consumer plan here as a pinned consumer. Commercial
+framing (out of this repo): `business/docs/STRATEGY_VERIFIABLE_AGENT_EXECUTION.md` (`business` PR #34).
+
 ## Recently built: D-5a inbound task receiver (PLAN-021 / D-0022)
 
 The **inbound** half of the iplanic transport is built (both engines, D-0011): an

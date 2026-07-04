@@ -242,3 +242,36 @@ cumulative, not per-session.**
 **Origin:** OPS-0062 (2026-06-27). Full reasoning + scope clauses +
 reconciliation with the `auto_merge.repos` allowlist in
 `aidoc-flow-operations` `ops/DECISIONS.md` OPS-0062.
+
+## Multi-agent automated review (aidoc-flow standard — OPS-0065 + OPS-0067)
+
+This repo follows the **aidoc-flow standard** for author-side multi-agent
+review BEFORE push/commit. The canonical rules + diff-class → agents table +
+parameterized prompt templates live in `aidoc-flow-operations`:
+
+- **Rules:** `aidoc-flow-operations/CLAUDE.md` → "Multi-agent automated review
+  (OPS-0065 — generalizes the CI ai-reviewer pattern to ALL internal flow)"
+  section.
+- **Prompt templates:** `aidoc-flow-operations/.claude/agents/review-prompts/`
+  — diff-class skeletons (`workflow-yaml.md` / `governance-docs.md` /
+  `docs.md` / `scripts.md` / `cross-repo.md` / `adversarial-judge.md` +
+  `INDEX.md`).
+- **Empirical default (OPS-0067):** 3-agent parallel dispatch + single fold
+  cycle for ≤300-line diffs. Re-dispatch only on NEW load-bearing surfaces
+  or structural pivots. Cap at 3 cycles per OPS-0066 circuit-breaker.
+- **Standard scope:** all aidoc-flow workspace repos — this one included.
+  This repo uses `plans/PLAN-NNN_*.md` plan-file naming; the Rule 1 (≤3
+  surfaces) accounting applies to those PLAN files, not `IPLAN-*.md`.
+
+The CI `ai-review.yml` gate (merge-side) is unchanged; multi-agent review
+strengthens the author-side review pattern.
+
+**Skip discipline:** Stop using `SKIP_LOCAL_AI_REVIEW=1` indiscriminately
+per OPS-0065. Acceptable cases: (a) mechanical content (pin bumps with no
+logic edits); (b) AI-side review already done via dispatched agent (commit-
+message audit-trail line names the agents + verdict); (c) explicit founder
+OK per governance PR-discipline Rule 2.
+
+**Origin:** OPS-0065/0067 in `aidoc-flow-operations` `ops/DECISIONS.md`;
+cross-repo rollout runbook at
+`aidoc-flow-operations` `ops/inbox/2026-06-30_cto-platform_ops-0067-multi-agent-review-rollout.md`.

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import threading
 import time
 import urllib.error
@@ -26,6 +27,7 @@ import pytest
 from iplan_claude.engine import ClaudeEngine
 from iplan_claude.receiver import ReceiverDeps, build_receiver
 from iplan_claude.relay.client import IplanicClient, Response
+from iplan_claude.vcs.git import commit_all
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("IPLAN_FAKE_IPLANIC"),
@@ -39,8 +41,25 @@ TOKEN = "receiver-tok"
 RUN_EVENTS = 3
 
 
-def _payload(run_id: str = "RUN-01", task_id: str = "TASK-01") -> dict[str, Any]:
-    """A valid dispatched task with the OBJECT repository shape iplanic sends."""
+def _fixture_repo(tmp_path: Path) -> tuple[str, str]:
+    """A local git repo the receiver can actually clone (PLAN-022). Returns (file:// url, base_ref)."""
+    src = tmp_path / "src"
+    subprocess.run(["git", "init", "-q", str(src)], check=True)
+    (src / "a.txt").write_text("hi\n")
+    commit_all(src, "main", "c1")
+    return src.as_uri(), "main"
+
+
+def _payload(
+    run_id: str = "RUN-01",
+    task_id: str = "TASK-01",
+    *,
+    repo_url: str = "https://x/r.git",
+    base_ref: str = "abc",
+) -> dict[str, Any]:
+    """A valid dispatched task with the OBJECT repository shape iplanic sends. `repo_url`/`base_ref`
+    default to a fake coordinate (fine for door-rejected paths); success-path tests pass a
+    `_fixture_repo` the receiver can clone."""
     return {
         "iplan_id": "IPLAN-01",
         "plan_version_id": "PV-01",
@@ -55,7 +74,7 @@ def _payload(run_id: str = "RUN-01", task_id: str = "TASK-01") -> dict[str, Any]
             "todos": [{"todo_id": "TODO-1", "description": "do", "acceptance_criteria": ["ok"]}],
         },
         "context_package": {
-            "repository": {"url": "https://x/r.git", "default_branch": "main", "base_ref": "abc"},
+            "repository": {"url": repo_url, "default_branch": "main", "base_ref": base_ref},
             "forbidden_paths": [".git"],
         },
     }
@@ -132,10 +151,11 @@ def _wait(predicate: Callable[[], bool], timeout: float = 5.0) -> bool:
 
 
 def test_dispatch_delivers_events_end_to_end(tmp_path: Path) -> None:
+    url, ref = _fixture_repo(tmp_path)
     with fake_events() as (events_url, received):
         client = IplanicClient(events_url, lambda: "tok", backoff_base=0.0)
         with receiver(tmp_path, client=client) as rx:
-            status, body = _post(rx, _payload())
+            status, body = _post(rx, _payload(repo_url=url, base_ref=ref))
             assert status == 202 and body["status"] == "accepted"
             assert _wait(lambda: len(received) >= RUN_EVENTS), f"only {len(received)} events delivered"
     keys = [e["idempotency_key"] for e in received]
@@ -144,13 +164,14 @@ def test_dispatch_delivers_events_end_to_end(tmp_path: Path) -> None:
 
 
 def test_idempotent_replay_is_one_run(tmp_path: Path) -> None:
+    url, ref = _fixture_repo(tmp_path)
     with fake_events() as (events_url, received):
         client = IplanicClient(events_url, lambda: "tok", backoff_base=0.0)
         with receiver(tmp_path, client=client) as rx:
-            s1, _ = _post(rx, _payload())
+            s1, _ = _post(rx, _payload(repo_url=url, base_ref=ref))
             assert s1 == 202
             assert _wait(lambda: len(received) >= RUN_EVENTS)
-            s2, body2 = _post(rx, _payload())  # same (run_id, task_id) after it settled
+            s2, body2 = _post(rx, _payload(repo_url=url, base_ref=ref))  # same (run_id, task_id) after settle
             assert s2 == 202 and body2["status"] == "duplicate"
             time.sleep(0.2)  # give any (erroneous) second run a chance to deliver
     assert len(received) == RUN_EVENTS  # exactly one run delivered — the replay did not re-run
@@ -191,21 +212,23 @@ def test_at_capacity_503(tmp_path: Path) -> None:
             gate.wait(5)
             return Response(status=202, body={})
 
+    url, ref = _fixture_repo(tmp_path)
     with receiver(tmp_path, client=GateClient(), max_parallel=1) as rx:
-        assert _post(rx, _payload(run_id="RUN-A"))[0] == 202  # occupies the only slot
-        assert started.wait(5)  # the worker is now blocked in delivery
-        assert _post(rx, _payload(run_id="RUN-B"))[0] == 503  # no slot -> receiver_busy
+        assert _post(rx, _payload(run_id="RUN-A", repo_url=url, base_ref=ref))[0] == 202  # occupies the slot
+        assert started.wait(5)  # the worker cloned + ran and is now blocked in delivery
+        assert _post(rx, _payload(run_id="RUN-B", repo_url=url, base_ref=ref))[0] == 503  # no slot -> busy
         gate.set()  # release the first worker
 
 
 def test_concurrent_same_task_runs_once(tmp_path: Path) -> None:
+    url, ref = _fixture_repo(tmp_path)
     with fake_events() as (events_url, received):
         client = IplanicClient(events_url, lambda: "tok", backoff_base=0.0)
         with receiver(tmp_path, client=client, max_parallel=8) as rx:
             results: list[int] = []
 
             def fire() -> None:
-                results.append(_post(rx, _payload())[0])  # identical (run_id, task_id)
+                results.append(_post(rx, _payload(repo_url=url, base_ref=ref))[0])  # identical (run_id, task_id)
 
             threads = [threading.Thread(target=fire) for _ in range(8)]
             for t in threads:

@@ -434,3 +434,29 @@ inbound signature-verify.
 is the inbound door — built thin, deterministic, and proven end-to-end against an
 in-process `/v1/events` fake. **Verified:** 256 offline + 12 gated tests green
 (both engines), 26 conformance, ruff + `mypy --strict` clean.
+
+### D-0024 - Repo → workspace clone + executor seam (PLAN-022) - 2026-07-05
+
+Closes the CI-able half of the "live executor" deferral (D-0022). The receiver discarded the dispatched
+git coordinate (`adapt_dispatched_task` flattened `context_package.repository` `{url,default_branch,base_ref}`
+into one fixed workspace path) and hard-wired `MockExecutor`. Now:
+
+1. **`vcs/git.py` gains `clone(url, ref, dest)`** — a full (non-shallow) clone + `checkout <ref>` (so an
+   arbitrary-SHA `base_ref` resolves), reusing the landing helper's fixed-argv/no-shell posture.
+2. **`receiver/service.provision_workspace`** clones the dispatched **object** repository into a per-run
+   `<workspace>/<run_id>/<task_id>` and feeds that path to `adapt_dispatched_task`; a **string** repository
+   (file-intake shape) passes through unchanged. `_slug` sanitizes the payload-controlled `run_id`/`task_id`
+   (only non-empty-validated) so they cannot escape the workspace root (path-traversal guard).
+3. **`ReceiverDeps.make_executor`** is an injectable factory (default `= engine.default_executor()`,
+   byte-for-byte today's `MockExecutor`) called with the per-task workspace — so a real executor drops in
+   with **no** receiver change.
+
+Both engines byte-parallel (D-0011). **Deliberately clone-only** — the real-agent executor
+(`HostRuntimeExecutor` + a real `RuntimeClient` adapter) is deferred to **PLAN-023** because that adapter
+is integration-only / un-CI-able (only `StubRuntimeClient` exists), the same value-scrutiny that deferred
+iplanic's external anchoring. `ScriptedExecutor` is **not** the dispatched-task executor (it needs a
+pre-written `actions` spec a description-only dispatched todo never carries). **hermes gap for PLAN-023:**
+hermes has no `host_executor`/`runtime/client.py` yet, so PLAN-023 is not byte-parallel. **Verified:**
+137 offline + 6 gated tests green **per engine**, 26 conformance (cross-engine differential + spec parity),
+`ruff check platforms` + `mypy --strict platforms/*/src` clean. Verified-planning: PLAN-022, 20 cited
+claims, 2 review passes (1 independent) + a Rule-2 diff self-review.

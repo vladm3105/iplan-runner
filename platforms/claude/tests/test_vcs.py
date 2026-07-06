@@ -9,7 +9,7 @@ from pathlib import Path
 
 from iplan_claude import ClaudeEngine
 from iplan_claude.executor.base import IdSource
-from iplan_claude.vcs.git import commit_all, current_branch, has_changes
+from iplan_claude.vcs.git import clone, commit_all, current_branch, has_changes, head_sha
 
 EV = {"kind": "test", "summary": "ok", "location": "ci://1"}
 MANIFEST = {
@@ -102,3 +102,39 @@ def test_land_noop_on_clean_tree(tmp_path: Path) -> None:
     landed = engine.land(ledger, str(tmp_path), branch="iops/x", clock=_clock())
     assert landed.ledger["ledger_control"]["requires_landing"] is False
     assert landed.ledger["vcs"]["commits"] == []
+
+
+def _source_repo(path: Path) -> tuple[str, str, str, str]:
+    """Build a fixture source repo with two commits on `main` + a `v1` tag at the first.
+    Returns (file_url, sha1, sha2, tag)."""
+    _init_repo(path)
+    (path / "a.txt").write_text("v1\n")
+    sha1 = commit_all(path, "main", "c1")
+    (path / "a.txt").write_text("v2\n")
+    sha2 = commit_all(path, "main", "c2")
+    subprocess.run(["git", "-C", str(path), "tag", "v1", sha1], check=True)
+    return path.as_uri(), sha1, sha2, "v1"
+
+
+def test_clone_checks_out_branch_tag_and_sha(tmp_path: Path) -> None:
+    url, sha1, sha2, tag = _source_repo(tmp_path / "src")
+
+    d_branch = tmp_path / "cb"
+    assert clone(url, "main", d_branch) == sha2  # branch → tip SHA
+    assert (d_branch / "a.txt").read_text() == "v2\n"
+    assert head_sha(d_branch) == sha2
+
+    d_tag = tmp_path / "ct"
+    assert clone(url, tag, d_tag) == sha1  # tag → first commit
+    assert (d_tag / "a.txt").read_text() == "v1\n"
+
+    d_sha = tmp_path / "cs"
+    assert clone(url, sha1, d_sha) == sha1  # arbitrary SHA (needs the full, non-shallow clone)
+    assert (d_sha / "a.txt").read_text() == "v1\n"
+
+
+def test_clone_bad_url_raises(tmp_path: Path) -> None:
+    import pytest
+
+    with pytest.raises(subprocess.CalledProcessError):  # a bad coordinate surfaces (receiver catches it)
+        clone((tmp_path / "does-not-exist").as_uri(), "main", tmp_path / "dst")

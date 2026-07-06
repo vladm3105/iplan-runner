@@ -206,12 +206,12 @@ external anchoring: build the real CI-able seam now, defer the un-CI-able extern
 | --- | ----- | ------ | -------- |
 | 1 | `adapt_dispatched_task` overwrites `context["repository"]` with the workspace path string — dropping the dispatched `{url,default_branch,base_ref}` object | `context["repository"] = str(workspace)` | platforms/claude/src/iplan_claude/intake/payload.py:124 |
 | 2 | The adapter's own docstring names the repo→workspace clone as the PLAN-022 concern | `PLAN-022` | platforms/claude/src/iplan_claude/intake/payload.py:21 |
-| 3 | `execute` calls `deps.engine.run(manifest, deps.engine.default_executor(), …)` — the executor swap point | `deps.engine.default_executor()` | platforms/claude/src/iplan_claude/receiver/service.py:57 |
+| 3 | `execute` runs the executor from the injectable seam — `deps.engine.run(manifest, deps.make_executor(deps.engine, workspace), …)` (the swap point; pre-impl this was the hard-wired `deps.engine.default_executor()`) | `deps.make_executor(deps.engine, workspace)` | platforms/claude/src/iplan_claude/receiver/service.py:100 |
 | 4 | `default_executor()` returns `MockExecutor()` — the hard-wired canned executor the seam replaces | `def default_executor` | platforms/claude/src/iplan_claude/engine.py:122 |
-| 5 | `execute` flow claim → adapt → ingest → run → save → drain → settle; the clone slots between claim (`:50`) and adapt (`:55`) | `def execute` | platforms/claude/src/iplan_claude/receiver/service.py:45 |
-| 6 | `ReceiverDeps` (dataclass) — where the `make_executor` factory field is added | `class ReceiverDeps` | platforms/claude/src/iplan_claude/receiver/service.py:33 |
-| 7 | `ReceiverDeps.workspace` is a single string wired once — reinterpreted as the clone root | `workspace: str` | platforms/claude/src/iplan_claude/receiver/service.py:38 |
-| 8 | A clone/run failure is caught by the existing `except Exception` → `settle_task(ok=False)` + log (worker never crashes) | `store.settle_task(deps.store_dir, run_id, task_id, ok=False)` | platforms/claude/src/iplan_claude/receiver/service.py:77 |
+| 5 | `execute` flow claim → adapt → ingest → run → save → drain → settle; the clone slots between claim (`:50`) and adapt (`:55`) | `def execute` | platforms/claude/src/iplan_claude/receiver/service.py:86 |
+| 6 | `ReceiverDeps` (dataclass) — where the `make_executor` factory field is added | `class ReceiverDeps` | platforms/claude/src/iplan_claude/receiver/service.py:68 |
+| 7 | `ReceiverDeps.workspace` is a single string wired once — reinterpreted as the clone root | `workspace: str` | platforms/claude/src/iplan_claude/receiver/service.py:73 |
+| 8 | A clone/run failure is caught by the existing `except Exception` → `settle_task(ok=False)` + log (worker never crashes) | `store.settle_task(deps.store_dir, run_id, task_id, ok=False)` | platforms/claude/src/iplan_claude/receiver/service.py:121 |
 | 9 | `vcs/git.py` is landing-only over the `_git(workspace,*args)` fixed-argv helper — no clone/fetch/checkout exists | `def _git` | platforms/claude/src/iplan_claude/vcs/git.py:9 |
 | 10 | `_git` = `subprocess.run(["git","-C",str(workspace),*args], check=True, …)` — the fixed-argv/no-shell pattern the `clone` helper mirrors | `subprocess.run` | platforms/claude/src/iplan_claude/vcs/git.py:10 |
 | 11 | After adapt, the manifest's `allowed_roots` = `[context["repository"]]` → isolation binds to the cloned path | `allowed_roots` | platforms/claude/src/iplan_claude/intake/payload.py:73 |

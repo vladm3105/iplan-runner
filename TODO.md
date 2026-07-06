@@ -49,7 +49,7 @@ disabled; it can be enabled at any time. **Delivered by D-4b**
   + cursor-advance is one atomic transaction (iplanic-symmetric). The signed ledger
   stays a portable file. (DONE — built behind the unchanged store interface.)
 
-## Inbound dispatch — A2A task receiver (PLAN-021 → PLAN-022)
+## Inbound dispatch — A2A task receiver (PLAN-021 → PLAN-023 → PLAN-024)
 
 The outbound half (relay/sync) is done; the **inbound** half lets iplanic dispatch
 a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
@@ -65,22 +65,29 @@ a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
   `/v1/events` fake. No iplanic PR remained (dispatcher-auth shipped, iplanic
   PLAN-048/D-0067); provisioning per iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`.
   256 offline + 12 gated tests, 26 conformance, ruff + `mypy --strict` clean.
-- [ ] **PLAN-022 — receiver follow-on (deployment-shaped). DEFERRED until really
-  needed (founder, 2026-06-28).** Makes dispatch run **real work on a real repo**
-  (PLAN-021 proved the wire with a deterministic executor against a fixed workspace).
-  - **Already built:** `HostRuntimeExecutor` (the governor — drives a `RuntimeClient`,
-    enforces `allowed_roots` + budget, records evidence) + the `host_executor(client,
-    workspace, budget)` engine method. **Gaps:** only `StubRuntimeClient` (canned)
-    exists; `receiver/service.py` runs the deterministic `default_executor()`; and
-    `adapt_dispatched_task` maps the `repository` object → a fixed workspace path
-    **without cloning**.
-  - **Core slice (when it lands):** (1) a real live `RuntimeClient` + (2)
-    repo→workspace clone from `repository.{url,default_branch,base_ref}`, then wire
-    `host_executor(...)` into `receiver/service.py` in place of `default_executor()`.
-    Both engines, byte-identical seams (D-0011).
-  - **DECISION B — the runtime (UNRESOLVED; pick when needed):** (a) **Claude Code
+- [x] **PLAN-022 — repo→workspace clone + executor seam** — **SHIPPED (D-0024,
+  2026-07-05).** The receiver now **clones the dispatched repo** from
+  `repository.{url,base_ref}` into a per-run `<workspace>/<run_id>/<task_id>`
+  (`vcs/git.clone` + `receiver/service.provision_workspace`, `_slug` path-safe) and
+  runs the task against that working copy; the executor became an injectable
+  `ReceiverDeps.make_executor` factory (default still `MockExecutor`). Both engines.
+  Deliberately clone-only — `ScriptedExecutor` is **not** the dispatched-task executor
+  (it needs a pre-written `actions` spec a description-only todo never carries).
+- [x] **PLAN-023 — config-selected receiver executor** — **SHIPPED (D-0025,
+  2026-07-05).** `receiver.executor` (`mock` default / `host` claude / `api` hermes)
+  picks the executor via the seam: `host` → `HostRuntimeExecutor(StubRuntimeClient)`
+  (the budget+scope governor), `api` → `ApiExecutor(StubModelClient)` (model→actions).
+  **Engine-specific** — each engine ships its own real-agent executor (D-0013), not a
+  parity gap (spec parity = version + no-cross-import, not a source diff). Stub-only →
+  fully CI-able; the **real** client adapters are the last piece (below).
+- [ ] **PLAN-024 — real client adapters (integration-only).** The last live-execution
+  gap: claude's real Claude Code hook `RuntimeClient` (only `StubRuntimeClient` exists)
+  + hermes's real model client (`get_model_client(...)`, `[anthropic]` extra +
+  credentials) — a **config-guarded swap of the stub** in the PLAN-023 factory, no
+  other receiver change. Un-CI-able (needs a real runtime/API + credentials).
+  - **DECISION B — the runtime (still open; pick when needed):** (a) **Claude Code
     CLI subprocess** — drive the real `claude` in the workspace; most faithful, needs
-    the CLI + an API key in the runner env; hermes needs its own equivalent. (b)
+    the CLI + an API key in the runner env; hermes uses its own model client. (b)
     **Model API agent-loop** — an Anthropic/LiteLLM tool-loop doing edits;
     provider-pluggable, more code, no CLI dep. (c) **Generic subprocess I/O
     contract** — env/stdin task → stdout `RuntimeResult` JSON + workspace edits; most
@@ -88,6 +95,8 @@ a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
   - **Hardening follow-ons (separate plans, NOT the core):** auto re-drain on
     iplanic-outage recovery; in-flight crash-recovery + graceful-shutdown drain;
     mTLS/OIDC inbound auth + inbound signature-verify.
+  - ⚠ **PLAN number collision:** `PLAN-024` was also reserved for the deferred L1
+    intake-provenance-gate (unmerged branch) — pick distinct numbers when either lands.
 
 ## Deferred / integration-only (not in CI)
 

@@ -221,11 +221,16 @@ receiver (config `receiver.enabled`, **disabled by default**, gated out of CI) s
 iplanic can dispatch a task to a running engine over A2A instead of a file. **Built
 by D-5a (wire slice)** (`plans/PLAN-021`, D-0022): mandatory-bearer door,
 `(run_id, task_id)` idempotency (`accepted_task` table), deterministic run → relay
-drain back, heartbeat liveness, `server` CLI verb. **Deferred → PLAN-022:** the live
-executor (HostRuntime/API), repo → workspace clone from
-`repository.{url,default_branch,base_ref}`, auto re-drain on outage, in-flight
-crash-recovery + graceful-shutdown drain, and mTLS/OIDC inbound auth +
-inbound signature-verify.
+drain back, heartbeat liveness, `server` CLI verb. **Then made to run real work:**
+**PLAN-022 (D-0024)** clones the dispatched repo (`repository.{url,base_ref}`) into a
+per-run workspace and made the executor an injectable seam; **PLAN-023 (D-0025)** lets
+`receiver.executor` config-select it (`mock` default / `host` claude
+`HostRuntimeExecutor` / `api` hermes `ApiExecutor`) — each engine's real budget+scope
+governor, wired over the offline **stub** client so it stays CI-able. **Remaining
+(integration-only):** swap the stub for the **real** client adapter (claude's Claude
+Code hook `RuntimeClient` / hermes's `get_model_client`). Still deferred: auto re-drain
+on outage, in-flight crash-recovery + graceful-shutdown drain, and mTLS/OIDC inbound
+auth + inbound signature-verify.
 
 - **Standalone (offline) — default.** Sync off. The engine runs an approved
   IPLAN fully locally (signed ledger → gate → handover → monitor); iplanic is

@@ -73,6 +73,11 @@ monitor** — works end-to-end on both engines (see
   secrets from the environment; resource budgets.
 - **Monitor**: SLO/alert evaluation, probes, optional OpenTelemetry, engine
   self-telemetry. **Chain** multiple IPLANs with `run_chain`.
+- **Receive** dispatched work over A2A (opt-in `server` verb, `POST /v1/tasks`):
+  a bearer-gated, idempotent door that **clones the dispatched repo** into a
+  per-run workspace and runs it through a **config-selected executor**
+  (`receiver.executor`: `mock` / `host` / `api`), relaying signed events back.
+  The real agent runtime is a config-guarded, integration-only client swap.
 
 Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
 

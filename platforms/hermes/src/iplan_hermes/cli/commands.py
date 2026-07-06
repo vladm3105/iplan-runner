@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -14,11 +15,12 @@ import yaml  # type: ignore[import-untyped]
 from ..audit.report import build_audit_report
 from ..config import load_config
 from ..engine import HermesEngine, _default_clock
-from ..executor.base import IdSource
+from ..executor.base import Executor, IdSource
 from ..intake.payload import ingest_task_payload
 from ..ledger.events import to_execution_events
 from ..ledger.index import list_runs, set_control, status, store_control
 from ..ledger.persistence import ledger_path, load, save
+from ..model.client import StubModelClient
 from ..monitoring.slo import evaluate_slos
 from ..receiver import Heartbeat, ReceiverDeps, build_receiver
 from ..relay import store as relay_store
@@ -177,6 +179,18 @@ def _sync(args: argparse.Namespace) -> int:
     return 0 if report.ok else 1
 
 
+def _executor_factory(mode: str) -> Callable[[HermesEngine, str], Executor]:
+    """Map the `receiver.executor` config to a `make_executor` factory (PLAN-023). `mock` is today's
+    deterministic default; `api` runs the real `ApiExecutor` (a model proposes actions, then apply +
+    budget-check) over a `StubModelClient` — the real model client (`get_model_client`) is a PLAN-024
+    config-guarded swap. An unknown mode raises (the caller fails the boot loud)."""
+    if mode == "mock":
+        return lambda engine, _workspace: engine.default_executor()
+    if mode == "api":
+        return lambda engine, workspace: engine.api_executor(StubModelClient(), workspace)
+    raise ValueError(f"unknown receiver.executor {mode!r} (want 'mock' or 'api')")
+
+
 def _server(args: argparse.Namespace) -> int:
     """Run the inbound A2A task receiver. No-op unless `receiver.enabled`."""
     cfg = load_config(args.config)
@@ -198,6 +212,12 @@ def _server(args: argparse.Namespace) -> int:
     def _token() -> str | None:
         return os.environ.get(cfg.iplanic_token_env)
 
+    try:
+        make_executor = _executor_factory(cfg.receiver_executor)
+    except ValueError as exc:
+        _emit({"error": str(exc)})
+        return 1
+
     deps = ReceiverDeps(
         engine=HermesEngine(),
         store_dir=args.store,
@@ -206,6 +226,7 @@ def _server(args: argparse.Namespace) -> int:
         key=(cfg.signing_key or "").encode(),
         key_id=cfg.receiver_key_id,
         log=_log,
+        make_executor=make_executor,
     )
     try:
         server = build_receiver(

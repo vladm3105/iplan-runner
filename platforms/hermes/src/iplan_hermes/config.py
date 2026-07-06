@@ -44,6 +44,7 @@ class Config:
     receiver_executor_id: str | None = None
     receiver_org_id: str | None = None  # the heartbeat's X-Org-Id
     receiver_workspace: str = "."
+    receiver_executor: str = "mock"  # the receiver's executor mode: "mock" (default) | "api" (PLAN-023)
     receiver_max_parallel: int = 4
     receiver_heartbeat_s: float = 30.0
 
@@ -86,7 +87,7 @@ def load_config(path: str | Path | None = None, env: Mapping[str, str] | None = 
     if isinstance(receiver, dict):
         if "enabled" in receiver:
             cfg.receiver_enabled = bool(receiver["enabled"])
-        for str_field in ("bind", "auth_env", "key_id", "executor_id", "org_id", "workspace"):
+        for str_field in ("bind", "auth_env", "key_id", "executor_id", "org_id", "workspace", "executor"):
             if receiver.get(str_field) is not None:
                 setattr(cfg, f"receiver_{str_field}", str(receiver[str_field]))
         if receiver.get("port") is not None:

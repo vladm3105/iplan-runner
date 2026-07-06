@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,7 @@ import yaml  # type: ignore[import-untyped]
 from ..audit.report import build_audit_report
 from ..config import load_config
 from ..engine import ClaudeEngine, _default_clock
-from ..executor.base import IdSource
+from ..executor.base import Executor, IdSource
 from ..intake.payload import ingest_task_payload
 from ..ledger.events import to_execution_events
 from ..ledger.index import list_runs, set_control, status, store_control
@@ -24,6 +25,7 @@ from ..receiver import Heartbeat, ReceiverDeps, build_receiver
 from ..relay import store as relay_store
 from ..relay.client import IplanicClient
 from ..relay.worker import drain
+from ..runtime.client import StubRuntimeClient
 from ..validation.payload_rules import validate_payload
 
 _DEFAULT_STORE = ".iops/ledgers"
@@ -177,6 +179,18 @@ def _sync(args: argparse.Namespace) -> int:
     return 0 if report.ok else 1
 
 
+def _executor_factory(mode: str) -> Callable[[ClaudeEngine, str], Executor]:
+    """Map the `receiver.executor` config to a `make_executor` factory (PLAN-023). `mock` is today's
+    deterministic default; `host` runs the real `HostRuntimeExecutor` governor (budget + scope) over a
+    `StubRuntimeClient` — the real Claude Code hook adapter is a PLAN-024 config-guarded swap. An unknown
+    mode raises (the caller fails the boot loud)."""
+    if mode == "mock":
+        return lambda engine, _workspace: engine.default_executor()
+    if mode == "host":
+        return lambda engine, workspace: engine.host_executor(StubRuntimeClient(), workspace)
+    raise ValueError(f"unknown receiver.executor {mode!r} (want 'mock' or 'host')")
+
+
 def _server(args: argparse.Namespace) -> int:
     """Run the inbound A2A task receiver. No-op unless `receiver.enabled`."""
     cfg = load_config(args.config)
@@ -198,6 +212,12 @@ def _server(args: argparse.Namespace) -> int:
     def _token() -> str | None:
         return os.environ.get(cfg.iplanic_token_env)
 
+    try:
+        make_executor = _executor_factory(cfg.receiver_executor)
+    except ValueError as exc:
+        _emit({"error": str(exc)})
+        return 1
+
     deps = ReceiverDeps(
         engine=ClaudeEngine(),
         store_dir=args.store,
@@ -206,6 +226,7 @@ def _server(args: argparse.Namespace) -> int:
         key=(cfg.signing_key or "").encode(),
         key_id=cfg.receiver_key_id,
         log=_log,
+        make_executor=make_executor,
     )
     try:
         server = build_receiver(

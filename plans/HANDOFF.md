@@ -43,9 +43,16 @@ but exactly one runs). Adds the inbound contract section, an extended
 end-to-end wire test, and a `reject_repository` conformance vector. **No iplanic PR
 remains** (dispatcher-auth shipped, iplanic PLAN-048/D-0067) — only provisioning per
 iplanic `docs/runbooks/EXECUTOR-DISPATCH-SETUP.md`. **Verified:** 256 offline + 12
-gated tests (both engines), 26 conformance, ruff + `mypy --strict` clean. **Deferred
-→ PLAN-022:** live executor, repo→workspace clone, auto re-drain, crash-recovery,
-mTLS/OIDC inbound auth. Branch `feat/plan-021-task-receiver` (founder reviews/merges).
+gated tests (both engines), 26 conformance, ruff + `mypy --strict` clean.
+
+**PLAN-022 (D-0024) SHIPPED (2026-07-05):** the receiver now **clones the dispatched
+repository** `{url,base_ref}` into a per-run workspace (`vcs/git.clone` +
+`receiver/service.provision_workspace`, `_slug` path-safe) and the executor is an
+injectable `ReceiverDeps.make_executor` factory (default still `MockExecutor`). Both
+engines. **Deferred → PLAN-023:** the real-agent executor (`HostRuntimeExecutor` + a
+real `RuntimeClient` adapter — integration-only/un-CI-able; **hermes has no
+`host_executor`/`runtime/client.py` yet, so PLAN-023 is NOT byte-parallel**). Still
+deferred: auto re-drain on outage, in-flight crash-recovery, mTLS/OIDC inbound auth.
 
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 
@@ -115,8 +122,8 @@ The online + on-demand-sync operating modes are real:
   CI `plan-gate.yml` — editing a 001..012 plan, or deleting/renaming a cited file,
   fails CI; mind the citations. (3) CodeQL ("Analyze Python") is slow — not a
   failure.
-- Next **decision** = **D-0022**; next **plan** = **PLAN-021** (PLAN-019 + PLAN-020
-  DONE; D-0021 used). `plans/DECISIONS.md`
+- Next **decision** = **D-0025**; next **plan** = **PLAN-023** (real-agent executor;
+  PLAN-019/020/021/022 DONE, D-0021/0022/0024 used). `plans/DECISIONS.md`
   is `### D-00NN` prose (D-0001..D-0013 ascending, then a newest-first block —
   insert new decisions at the **top of the newest block**).
 

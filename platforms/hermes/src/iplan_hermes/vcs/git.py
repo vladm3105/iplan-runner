@@ -24,6 +24,23 @@ def head_sha(workspace: str | Path) -> str:
     return _git(workspace, "rev-parse", "HEAD")
 
 
+def clone(url: str, ref: str, dest: str | Path) -> str:
+    """Clone `url` into `dest` and check out `ref` (a branch, tag, or SHA); return the checked-out SHA.
+
+    A **full** clone (no `--depth`) so an arbitrary-commit `ref` is resolvable — a shallow clone would
+    lack SHAs not at a branch tip. Same fixed-argv / `check=True` / no-shell posture as `_git`; `git clone`
+    is a sibling call (not `git -C`), so it is not routed through `_git`.
+    """
+    subprocess.run(  # nosec - fixed git argv, list-form, no shell
+        ["git", "clone", "--no-single-branch", url, str(dest)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    _git(dest, "checkout", ref)
+    return head_sha(dest)
+
+
 def current_branch(workspace: str | Path) -> str:
     return _git(workspace, "rev-parse", "--abbrev-ref", "HEAD")
 

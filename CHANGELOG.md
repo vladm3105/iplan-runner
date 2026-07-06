@@ -6,6 +6,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — PLAN-022: repo → workspace clone + executor seam (D-0024, 2026-07-05)
+
+- **`vcs/git.py: clone(url, ref, dest)`** (both engines) — a full (non-shallow)
+  `git clone` + `checkout <ref>`, so a branch, tag, or arbitrary-SHA `base_ref`
+  resolves. Fixed-argv / no-shell, like the landing helpers.
+- **`receiver/service.provision_workspace`** — the receiver now **clones the
+  dispatched repository** `{url, base_ref}` into a per-run
+  `<workspace>/<run_id>/<task_id>` and runs the task against that working copy
+  (isolation binds to it via `allowed_roots`). A string repository (file-intake
+  shape) passes through unchanged. `_slug` sanitizes the payload-controlled
+  `run_id`/`task_id` so they cannot escape the workspace root.
+- **`ReceiverDeps.make_executor`** — the executor is now an injectable factory
+  (default preserves today's `MockExecutor`), so a real executor drops in with
+  no receiver change.
+- **Clone-only slice** — the real-agent executor (`HostRuntimeExecutor` + a real
+  `RuntimeClient` adapter, integration-only) is deferred to **PLAN-023**.
+- Both engines byte-parallel (D-0011). +2 vcs + 7 workspace tests/engine; the
+  gated wire suite now clones a local `file://` fixture. 137 offline + 6 gated
+  per engine, 26 conformance, ruff + `mypy --strict` clean.
+
 ### Added — IPLAN-0030 P5 Phase B: server-side auto-merge-ai-prs enforcer caller (2026-07-05)
 
 - **`.github/workflows/auto-merge-ai-prs.yml`** (NEW, ~65 lines) — thin

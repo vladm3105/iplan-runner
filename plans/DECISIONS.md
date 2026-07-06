@@ -460,3 +460,28 @@ hermes has no `host_executor`/`runtime/client.py` yet, so PLAN-023 is not byte-p
 137 offline + 6 gated tests green **per engine**, 26 conformance (cross-engine differential + spec parity),
 `ruff check platforms` + `mypy --strict platforms/*/src` clean. Verified-planning: PLAN-022, 20 cited
 claims, 2 review passes (1 independent) + a Rule-2 diff self-review.
+
+### D-0025 - Config-selected receiver executor (PLAN-023) - 2026-07-05
+
+Uses the PLAN-022 `make_executor` seam: the CLI now builds `ReceiverDeps` **with** a factory chosen by a
+new `receiver.executor` config, instead of the hard-wired default. Each engine already ships its own
+real-agent executor + governor + a CI stub client — so the wiring is **engine-specific** (not a parity
+gap; the engines legitimately differ per D-0013's pluggable-executor ethos):
+
+- **claude (B-style):** `receiver.executor: host` → `engine.host_executor(StubRuntimeClient(), ws)` — the
+  `HostRuntimeExecutor` governor (budget + out-of-scope-path rejection) over the offline stub.
+- **hermes (A-style):** `receiver.executor: api` → `engine.api_executor(StubModelClient(), ws)` — the
+  `ApiExecutor` (a model proposes actions, then apply + budget-check) over the offline stub.
+- `mock` (default) → `engine.default_executor()`, byte-for-byte today. An unknown mode fails the boot
+  loud (`_emit` error + exit 1).
+
+**Deliberately stub-only** so it stays fully CI-able: `host`/`api` exercises the real governance path
+(budget + scope), and the **real** client adapters — claude's Claude Code hook `RuntimeClient` (unbuilt,
+integration-only) and hermes's `get_model_client(...)` (import-guarded behind `[anthropic]` + credentials)
+— become a config-guarded one-line swap, **deferred to PLAN-024**. Engine-specific wiring is legal because
+"spec parity" is version-marker + strict-no-cross-import only (`tests/conformance/test_engines.py`), not a
+source diff (as `executor/hostruntime.py` vs `executor/api.py` already are). Budget left at `Budget()`
+(unlimited; per-executor budget config deferred). **Verified:** 142 offline + 6 gated tests green **per
+engine** (+5 each: config load, `_executor_factory` selection/fail-loud, an `execute` through the real
+governor with the stub settling `done`), 26 conformance, `ruff` + `mypy --strict` clean. Verified-planning:
+PLAN-023, 15 cited claims, 2 review passes (1 independent, zero load-bearing) + a Rule-2 diff self-review.

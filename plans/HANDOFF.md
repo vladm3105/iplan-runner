@@ -49,10 +49,19 @@ gated tests (both engines), 26 conformance, ruff + `mypy --strict` clean.
 repository** `{url,base_ref}` into a per-run workspace (`vcs/git.clone` +
 `receiver/service.provision_workspace`, `_slug` path-safe) and the executor is an
 injectable `ReceiverDeps.make_executor` factory (default still `MockExecutor`). Both
-engines. **Deferred → PLAN-023:** the real-agent executor (`HostRuntimeExecutor` + a
-real `RuntimeClient` adapter — integration-only/un-CI-able; **hermes has no
-`host_executor`/`runtime/client.py` yet, so PLAN-023 is NOT byte-parallel**). Still
-deferred: auto re-drain on outage, in-flight crash-recovery, mTLS/OIDC inbound auth.
+engines.
+
+**PLAN-023 (D-0025) SHIPPED (2026-07-05):** the receiver now **config-selects** its
+executor (`receiver.executor`: `mock` default / `host` claude / `api` hermes) via the
+seam. **Correction:** each engine already ships its OWN real-agent executor (claude
+`HostRuntimeExecutor` over `RuntimeClient`; hermes `ApiExecutor` over `ModelClient`) —
+it was never a parity gap; the wiring is *engine-specific* (D-0013), not byte-parallel,
+and that's fine (spec parity = version + no-cross-import, not a source diff). Wired
+with the **stub** clients (fully CI-able). **Deferred → PLAN-024:** the **real** client
+adapters — claude's Claude Code hook `RuntimeClient` (unbuilt, integration-only) +
+hermes's `get_model_client(...)` (`[anthropic]` extra + credentials) — a config-guarded
+one-line swap. Still deferred: auto re-drain on outage, in-flight crash-recovery,
+mTLS/OIDC inbound auth.
 
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 
@@ -122,10 +131,10 @@ The online + on-demand-sync operating modes are real:
   CI `plan-gate.yml` — editing a 001..012 plan, or deleting/renaming a cited file,
   fails CI; mind the citations. (3) CodeQL ("Analyze Python") is slow — not a
   failure.
-- Next **decision** = **D-0025**; next **plan** = **PLAN-023** (real-agent executor;
-  PLAN-019/020/021/022 DONE, D-0021/0022/0024 used). `plans/DECISIONS.md`
-  is `### D-00NN` prose (D-0001..D-0013 ascending, then a newest-first block —
-  insert new decisions at the **top of the newest block**).
+- Next **decision** = **D-0026**; next **plan** = **PLAN-024** (real client adapters:
+  Claude Code hook `RuntimeClient` + hermes `get_model_client` wiring — integration-only;
+  PLAN-019/020/021/022/023 DONE, D-0021/0022/0024/0025 used). `plans/DECISIONS.md`
+  is `### D-00NN` prose (append new decisions at the **end** of the file).
 
 ## Sibling: iplanic (the standard + ingestion service)
 

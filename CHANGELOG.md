@@ -6,6 +6,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — PLAN-023: config-selected receiver executor (D-0025, 2026-07-05)
+
+- **`Config.receiver_executor`** (`= "mock"`, from the `receiver.executor` YAML
+  key) + **`cli/_server`** now builds `ReceiverDeps` **with** a `make_executor`
+  factory chosen by it (the PLAN-022 seam), instead of the hard-wired default.
+- **Engine-specific** (each engine ships its own real-agent executor, D-0013):
+  claude `host` → `engine.host_executor(StubRuntimeClient(), ws)` (the
+  `HostRuntimeExecutor` budget+scope governor); hermes `api` →
+  `engine.api_executor(StubModelClient(), ws)` (the `ApiExecutor`); `mock`
+  (default) → today's `MockExecutor`. Unknown mode → fail-loud boot.
+- **Stub-only → fully CI-able.** `host`/`api` exercises the real governance path;
+  the **real** client adapters (Claude Code hook / `get_model_client`) are a
+  config-guarded PLAN-024 swap (integration-only). Budget left at `Budget()`.
+- +5 tests per engine (config load, factory selection/fail-loud, `execute`
+  through the real governor with the stub → `done`). Engine-specific wiring is
+  legal under the version+isolation "spec parity" (not a source diff).
+
 ### Added — PLAN-022: repo → workspace clone + executor seam (D-0024, 2026-07-05)
 
 - **`vcs/git.py: clone(url, ref, dest)`** (both engines) — a full (non-shallow)

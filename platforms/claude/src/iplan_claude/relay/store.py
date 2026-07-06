@@ -17,11 +17,17 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from ..ledger.events import _IDENTITY_FIELDS
+
+# Serializes the per-connection WAL-mode switch + schema init (see `_connect`). SQLite does NOT invoke
+# the busy handler for a `PRAGMA journal_mode` change, so concurrent first-time WAL switches (the receiver
+# runs parallel worker threads over one `relay.db`) race to "database is locked" despite `busy_timeout`.
+_SETUP_LOCK = threading.Lock()
 
 _DELIVERED = "delivered"
 _DEAD_LETTERED = "dead_lettered"
@@ -43,20 +49,25 @@ def _connect(store_dir: str | Path) -> sqlite3.Connection:
     """Open `<store>/relay.db` (WAL + busy_timeout) and ensure the schema exists."""
     Path(store_dir).mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(_db_path(store_dir), timeout=5.0)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS delivery ("
-        "ledger_id TEXT NOT NULL, idempotency_key TEXT NOT NULL, status TEXT NOT NULL, "
-        "reason TEXT, event_json TEXT, updated_at TEXT NOT NULL, "
-        "PRIMARY KEY (ledger_id, idempotency_key))"
-    )
-    conn.execute("CREATE TABLE IF NOT EXISTS identity (ledger_id TEXT PRIMARY KEY, identity_json TEXT NOT NULL)")
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS accepted_task ("
-        "run_id TEXT NOT NULL, task_id TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL, "
-        "PRIMARY KEY (run_id, task_id))"
-    )
+    # Serialize the WAL-mode switch + schema init: the journal-mode change ignores `busy_timeout`, so
+    # concurrent first-time switches would race to "database is locked". Once WAL is set (a persistent DB
+    # property) the switch is a cheap no-op; the actual read/write statements after this run concurrently
+    # (WAL + `busy_timeout` handle writer serialization for those).
+    with _SETUP_LOCK:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS delivery ("
+            "ledger_id TEXT NOT NULL, idempotency_key TEXT NOT NULL, status TEXT NOT NULL, "
+            "reason TEXT, event_json TEXT, updated_at TEXT NOT NULL, "
+            "PRIMARY KEY (ledger_id, idempotency_key))"
+        )
+        conn.execute("CREATE TABLE IF NOT EXISTS identity (ledger_id TEXT PRIMARY KEY, identity_json TEXT NOT NULL)")
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS accepted_task ("
+            "run_id TEXT NOT NULL, task_id TEXT NOT NULL, status TEXT NOT NULL, updated_at TEXT NOT NULL, "
+            "PRIMARY KEY (run_id, task_id))"
+        )
     return conn
 
 

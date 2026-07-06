@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed — project name: Morwic (alias; 2026-07-06)
+
+- Documentation now presents **Morwic** as the project name (README + ROADMAP
+  titles/intro). **`iplan-runner` is unchanged** as the repository, Python
+  package, and CLI name — Morwic is a documentation alias, not a rename. No
+  code, path, or command changed. Name from PIE *\*morwís* ("ant").
+
 ### Fixed — relay-store concurrent-writer "database is locked" flake (2026-07-06)
 
 - **`relay/store._connect`** (both engines) now serializes the per-connection

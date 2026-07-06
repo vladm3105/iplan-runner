@@ -1,12 +1,17 @@
-# iplan-runner — OSS IPLAN executor
+# Morwic — OSS IPLAN executor
 
 [![CI](https://github.com/vladm3105/iplan-runner/actions/workflows/ci.yml/badge.svg)](https://github.com/vladm3105/iplan-runner/actions/workflows/ci.yml)
 [![Security](https://github.com/vladm3105/iplan-runner/actions/workflows/security.yml/badge.svg)](https://github.com/vladm3105/iplan-runner/actions/workflows/security.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`iplan-runner` is the **execution / operations plane** companion to
-[SDD](https://github.com/vladm3105/aidoc-flow-framework) (the control plane). It
-turns an **approved IPLAN** into auditable execution.
+> **Morwic** is the name of this project; **`iplan-runner`** remains its
+> repository, package, and CLI name — both refer to the same OSS IPLAN
+> executor. The name is from Proto-Indo-European *\*morwís* ("ant"): a single
+> tireless worker in a coordinated colony — which is what an executor is.
+
+**Morwic** (repository `iplan-runner`) is the **execution / operations plane**
+companion to [SDD](https://github.com/vladm3105/aidoc-flow-framework) (the
+control plane). It turns an **approved IPLAN** into auditable execution.
 
 ## The model
 
@@ -30,7 +35,7 @@ takes **no dependency on**, and never modifies, the SDD repo.
 
 ## Operating modes
 
-iplan-runner is **local-first**: it executes an approved IPLAN with a local,
+Morwic is **local-first**: it executes an approved IPLAN with a local,
 append-only signed ledger, an independent gate, and a handover receipt. iplanic
 is **optional** — there is a single **sync toggle** (`iplanic.sync`, **off by
 default**) that selects the mode:

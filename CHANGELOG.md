@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed — relay-store concurrent-writer "database is locked" flake (2026-07-06)
+
+- **`relay/store._connect`** (both engines) now serializes the per-connection
+  `PRAGMA journal_mode=WAL` switch + schema init behind a module lock. SQLite does
+  **not** invoke the busy handler for a journal-mode change, so concurrent
+  first-time WAL switches (the receiver runs parallel worker threads over one
+  `relay.db`) raced to `sqlite3.OperationalError: database is locked` despite the
+  5 s `busy_timeout`. Reproduced at ~7-in-150; **0/300** after the fix. Once WAL is
+  set (a persistent DB property) the switch is a cheap no-op, and the actual
+  read/write statements still run concurrently. Fixes the intermittent
+  `test_concurrent_writers_do_not_error` CI failures.
+
 ### Added — PLAN-023: config-selected receiver executor (D-0025, 2026-07-05)
 
 - **`Config.receiver_executor`** (`= "mock"`, from the `receiver.executor` YAML

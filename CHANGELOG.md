@@ -6,6 +6,39 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — IPLAN-0030 P5 Phase B: server-side auto-merge-ai-prs enforcer caller (2026-07-05)
+
+- **`.github/workflows/auto-merge-ai-prs.yml`** (NEW, ~65 lines) — thin
+  caller for the aidoc-flow-ci reusable enforcer, pinned at `@ci/v1.5.1`.
+  Triggers on `workflow_run` chain-off from `ai-review` + `composition`
+  completion (per IPLAN-0030 §2.2 architecture — NOT `check_suite` per
+  Pass-2 C1 anti-recursion finding) + `workflow_dispatch` for operator
+  manual recovery. `if: workflow_dispatch || workflow_run.conclusion ==
+  'success'` guard skips non-success fires.
+- **Runner topology:** `ubuntu-latest` (reusable default) — omits
+  `runner_labels` since iplan-runner uses `ubuntu-latest` across all
+  existing workflows (ci.yml, plan-gate.yml, security.yml, etc.). Contrast
+  with operations Phase A pilot which passes `["self-hosted","aidoc","ci-ephemeral"]`.
+- **Origin:** IPLAN-0030 P5 Phase B rollout per plan §3. iplan-runner is
+  1 of 6 allowlisted Phase B consumers (`vladm3105/iplan-runner` in
+  `operations/.github/ai-review/config.json` `auto_merge.repos`). Phase A
+  pilot (operations) merged as `84abfc2` (@ci/v1.5.1) + validated with
+  10 fires + 0 false-merges.
+- **Firing model:** the `workflow_run` chain-off path is dormant until
+  ai-review begins firing (post-App-install per CLAUDE.md § Unified CI —
+  the F5 blast-radius prerequisite). The `workflow_dispatch` path
+  remains operator-invokable at any time, gated by the reusable's
+  trust-gate (fail-closed) + `auto_merge.repos` allowlist (iplan-runner
+  IS in the allowlist). App-installation completes the App-attributed-
+  merge guarantee (pre-install merges would be `github-actions[bot]`-
+  authored under GITHUB_TOKEN fallback with a `::warning::`).
+- **`composition` in `workflows: [...]`:** forward-compat for the pending
+  IPLAN-0017 Phase C migration when iplan-runner adopts `composition.yml`
+  alongside its migrated ai-review pin. `workflow_run` silently no-ops on
+  unmatched workflow names, so listing it early is harmless.
+- **🟡 governance PR** (`.github/workflows/`). AI does NOT auto-merge
+  per OPS-0062 §exceptions.
+
 ### Added — Inbound A2A task receiver (PLAN-021, D-0022) (2026-06-27)
 
 - **`POST /v1/tasks` receiver** (both engines, stdlib `http.server`, opt-in

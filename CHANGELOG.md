@@ -6,6 +6,51 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — Wave 3 product-tier adoption of aidoc-flow-ci canon (PLAN-002 §5.5) (2026-07-08)
+
+Self-adopts the workspace-wide standards canon from `aidoc-flow-ci@ci/v1.6.0`
+per PLAN-002 §5.5 Wave 3 (product-code tier). Adds mechanical OPS-0069
+audit-trail enforcement + workspace-baseline governance surfaces. 8 file
+surfaces + this CHANGELOG (atomic canon-adoption bundle per PLAN-002 §5.5
+explicit exemption to OPS-0061 Rule 1's ≤3-surface cap; same precedent as
+PR-U4 on aidoc-flow-ci and PR #13 on iplan-standard):
+
+- **`scripts/pre_push_check.sh`** (NEW) — canon self-review script (byte-
+  identical to canon at `ci/v1.6.0`).
+- **`.pre-commit-config.yaml`** (edit) — canon block MERGED into existing
+  config via ruamel.yaml round-trip (preserves consumer comments + hooks);
+  `# CANON: aidoc-flow-ci pre_push_check` marker at line 1 so future
+  install.sh re-runs no-op.
+- **`.github/pull_request_template.md`** (NEW) — canon PR template.
+- **`.gitignore`** (edit) — merged canon baseline lines (13 lines appended).
+- **`.gitattributes`** (NEW) — canon baseline.
+- **`.github/workflows/audit-trail.yml`** (NEW) — consumer caller wiring
+  `audit-trail-check.yml` reusable at `@ci/v1.6.0`. Check-name = `call / verify`.
+- **`.github/workflows/standards-drift.yml`** (NEW) — weekly cron running
+  `bash sync/check-standards-drift.sh --tier product` (script fetched from
+  canon at runtime). Warning-only per canon §3.1b.
+
+**Intentional canon-divergence (preserved existing consumer customization):**
+
+- **`.github/CODEOWNERS`** — PRESERVED existing repo-specific per-path routing
+  (`/framework/`, `/platforms/`, `/tests/`, etc.). More useful than the flat
+  canon shape (single-owner `*` → `@vladm3105` only). Will show DRIFT vs
+  `apply-standards.sh --check` — documented as intentional consumer
+  customization within the spirit of `REPO_STANDARDS.md` §7.
+- **`.github/dependabot.yml`** — PRESERVED existing per-platform pip paths
+  (`/platforms/hermes`, `/platforms/claude`, `/tests/conformance`) which are
+  more granular than the canon flat `directory: /`. Will show DRIFT — same
+  rationale as CODEOWNERS.
+
+**Server-side follow-up (F5 blast-radius; not in this PR):** founder runs
+`bash install/apply-standards.sh --apply --repo vladm3105/iplan-runner
+--tier product --ci-tag ci/v1.6.0 --yes` to add `call / verify` to
+branch-protection contexts per `REPO_STANDARDS.md` §14.3 + apply canon
+labels + repo-settings + actions-permissions + branch-protection-product.
+
+**Origin:** `aidoc-flow-ci/plans/PLAN-002_workspace-standards-rollout.md`
+§5.5 Wave 3 (product-code tier).
+
 ### Fixed — relay-store concurrent-writer "database is locked" flake (2026-07-06)
 
 - **`relay/store._connect`** (both engines) now serializes the per-connection

@@ -6,6 +6,52 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed — Wave 3a adoption of aidoc-flow-ci PLAN-003 governance-file canon (2026-07-08)
+
+iplan-runner adopts the PLAN-003 flexible-canonical (Option B) project-
+governance file canon. Design in `aidoc-flow-ci#72` (plan draft);
+shipment: `aidoc-flow-ci#73` (PR-V1 canon templates + Wave 0), `#74`
+(PR-V2 governance-table parser), `aidoc-flow-operations#217` (PR-V3
+CROSS_REPO_PLAYBOOKS §T-D + OPS-0070), `aidoc-flow-ci#75` (PR-V4 status
+flip to SHIPPED + rollout playbook), `aidoc-flow-ci#76` (canon-template
+polish), `aidoc-flow-ci#77` (parser §N + #anchor suffix handling),
+`aidoc-flow-ci#78` (ai-review rubric repo-aware doc-coverage +
+hash-count discipline), `aidoc-flow-ci#79` (canonical-source authority
+disambiguation) — all merged 2026-07-08.
+
+Governance drift check (`bash ../aidoc-flow-ci/install/apply-standards.sh
+--check`) — `CLAUDE.md#per-repo-governance` now reports OK (6/6 required
+rows verified + 0 additional + 0 errors).
+
+- **`CLAUDE.md`** — `## Per-repo governance` table updated per PLAN-003
+  §5.4c iplan-runner row + §4.5 parser contract:
+  - Fixed `Plans` cell: was `plans/PLAN-NNN_*.md` (a naming glob that
+    doesn't resolve on disk) → `plans/` (the directory).
+  - Added required `Changelog | CHANGELOG.md` row (was absent per §4.5
+    required-row check).
+  - Cleaned annotations from `TODO / backlog` cell (was `` `TODO.md` (root) ``)
+    and `Decisions log` cell (was `` `plans/DECISIONS.md` (D-0001..) ``)
+    — inline parenthesized annotations still parse via §4.5 extract_path,
+    but plain paths reduce clutter for a small governance table.
+
+**Plan-baseline note (PLAN-003 §5.4c drift):** the plan anticipated
+"add TODO root row + link-summary retrofit" as this repo's Wave 3
+scope. In practice this repo's TODO row already existed pre-adoption,
+so this PR cleans its annotation rather than adding it. Net CLAUDE.md
+Δ is +1 line instead of the plan-estimated +15. Feedback to plan
+author noted; no further action needed here.
+- **`CHANGELOG.md`** — this entry.
+
+**2 surfaces** (CLAUDE.md + this CHANGELOG entry). OPS-0061 Rule 1 compliant.
+
+Deferred to follow-up PR:
+
+- Workspace-standards blocks link-summary retrofit per PLAN-003 §5.4c
+  iplan-runner row `## Workspace standards` column MODIFIED. Orthogonal
+  to parser-gate concern this PR closes.
+
+Multi-agent self-review per OPS-0065 (code-reviewer single-agent depth per minimal-scope calibration): APPROVED after 1 fold cycle addressing 1 MAJOR (TBD → filled) + 1 MINOR (plan-vs-actual drift note added — PLAN-003 §5.4c anticipated +15 lines but this repo's TODO row already existed, so net Δ is +1 line)
+
 ### Added — Wave 3 product-tier adoption of aidoc-flow-ci canon (PLAN-002 §5.5) (2026-07-08)
 
 Self-adopts the workspace-wide standards canon from `aidoc-flow-ci@ci/v1.6.0`

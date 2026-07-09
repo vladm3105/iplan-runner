@@ -74,9 +74,10 @@ surfaces for **this** repo:
 | Surface | Path (in this repo) |
 |---|---|
 | Live HANDOFF | `plans/HANDOFF.md` |
-| TODO / backlog | `TODO.md` (root) |
-| Decisions log | `plans/DECISIONS.md` (D-0001..) |
-| Plans | `plans/PLAN-NNN_*.md` |
+| TODO / backlog | `TODO.md` |
+| Decisions log | `plans/DECISIONS.md` |
+| Plans | `plans/` |
+| Changelog | `CHANGELOG.md` |
 | Roadmap | `ROADMAP.md` |
 
 **Never put any of these in `tmp/`** — `tmp/` is for transient working

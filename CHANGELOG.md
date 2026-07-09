@@ -6,6 +6,41 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security — PLAN-025 P1: clone-URL RCE (B1) + reject-envelope wire fix (B3) (2026-07-09)
+
+Pre-prod hardening, P1 blockers from `plans/PLAN-025_preprod-hardening.md`. Applied
+to **both engines** in lockstep (`platforms/claude`, `platforms/hermes`); the shared
+modules stay byte-identical.
+
+- **B1 — RCE via clone URL (fixed).** A dispatched task's
+  `context_package.repository.url` reached `git clone` with only a non-empty-string
+  check; `ext::sh -c <cmd>` triggered git's `ext::` remote-helper → arbitrary shell
+  on the runner host (`file://`, leading-dash args, and scp-like forms were also
+  accepted). Now `validation/payload_rules.py` enforces a transport allow-list at the
+  door — only `https`/`ssh` with a non-empty authority; `ext::`/`file://`/`http://`/
+  `git://`/scp-like/leading-dash/authority-less URLs are rejected
+  (`REMOTE.PAYLOAD_REPOSITORY_URL_SCHEME`), and a leading-dash `base_ref`/
+  `default_branch` (an option-injection a trailing `--` does not stop) is rejected
+  (`REMOTE.PAYLOAD_REPOSITORY_REF`). `vcs/git.py` adds argv hardening (`git clone …
+  -- <url> <dest>`, `git checkout <ref> --`) **and** a self-protecting sink guard in
+  `clone()` that refuses the `<transport>::` remote-helper form and leading-dash URLs
+  unconditionally — so no future caller (or the test-only scheme exemption) can route
+  a remote-helper URL into git. Test-only env exemption `IOPS_INSECURE_CLONE_SCHEMES`
+  re-permits `file://` for the gated local-clone fixtures; it is default-closed and
+  can never re-enable `ext::` (the sink guard blocks it regardless).
+- **B3 — reject-envelope field mismatch (fixed).** `relay/reject.py` `classify()`
+  read the reject code from `reject_code`/`code`, but iplanic emits it under `reason`
+  (verified against `iplanic_service/app.py`), returning `403` for `invalid_signature`
+  and `400` for `timestamp_skew`. The old code dead-lettered any `403` before reading
+  the code, so a forged signature was silently dead-lettered and a transient clock
+  skew stalled the whole drain. `classify()` now reads `reason` (falls back to
+  `reject_code`/`code`), routes the integrity + skew codes ahead of the generic `403`
+  dead-letter branch, and retries all transport `5xx` before any body-code branch.
+- **Conformance:** two new REMOTE-001 rule-catalog entries + vectors
+  (`reject_repository_url`, `reject_repository_ref`); new unit suites
+  `test_receiver_security.py` / `test_reject.py` (both engines) and a direct
+  `clone()` sink-guard test. Full DB-free + gated wire suites green.
+
 ### Changed — Wave 3a adoption of aidoc-flow-ci PLAN-003 governance-file canon (2026-07-08)
 
 iplan-runner adopts the PLAN-003 flexible-canonical (Option B) project-

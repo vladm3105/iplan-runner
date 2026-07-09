@@ -34,6 +34,15 @@ pytestmark = pytest.mark.skipif(
     reason="gated wire suite; set IPLAN_FAKE_IPLANIC=1 to run (not in CI, PLAN-008 pattern)",
 )
 
+
+@pytest.fixture(autouse=True)
+def _allow_file_clone(monkeypatch: pytest.MonkeyPatch) -> None:
+    # B1 (PLAN-025): the door rejects `file://` clone URLs by default. This gated
+    # suite clones real LOCAL fixture repos, so it opts into the `file` scheme via
+    # the documented test-only exemption. NEVER set this in production.
+    monkeypatch.setenv("IOPS_INSECURE_CLONE_SCHEMES", "file")
+
+
 TOKEN = "receiver-tok"
 # A deterministic default-executor run over the single-todo payload below projects
 # exactly 3 execution-events (task.started + task.completed + test.failed). The

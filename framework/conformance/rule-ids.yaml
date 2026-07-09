@@ -184,3 +184,11 @@ rules:
     category: "REMOTE-001"
     severity: error
     description: "context_package.repository is an object but missing a required field (url, default_branch, or base_ref); the dispatched task.schema.json shape (PLAN-021)."
+  - id: "REMOTE.PAYLOAD_REPOSITORY_URL_SCHEME"
+    category: "REMOTE-001"
+    severity: error
+    description: "repository.url scheme not allow-listed (https/ssh only); ext::/file:// = RCE/FS-read (PLAN-025 B1)."
+  - id: "REMOTE.PAYLOAD_REPOSITORY_REF"
+    category: "REMOTE-001"
+    severity: error
+    description: "repository base_ref/default_branch starts with '-' (argv option-injection) (PLAN-025 B1)."

@@ -29,6 +29,13 @@ class HostRuntimeExecutor:
         self._usage: dict[str, Any] = {"tokens": 0, "cost_usd": 0.0, "wall_s": 0.0}
 
     def execute(self, task: dict[str, Any], ctx: ExecutionContext) -> ExecutorResult:
+        # M-budget-parity (PLAN-025 P3): refuse before spending when usage is already
+        # over budget, so a blown budget stops the next task instead of running one
+        # more (matches hermes ApiExecutor's pre-check).
+        pre = check(self._budget, self._usage)
+        if not pre["allowed"]:
+            return ExecutorResult(outcome="failure", reason=f"budget: {pre['reason']}")
+
         result = self._client.run_task(task, self._workspace)
 
         self._usage["tokens"] += int(result.usage.get("tokens", 0))

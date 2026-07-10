@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed — PLAN-025 P3 (batch 1): receiver body guard (M-body) + budget pre-check parity (M-budget-parity) (2026-07-09)
+
+- **M-body.** The receiver parsed `Content-Length` with a bare `int(...)`; a
+  non-numeric header raised an uncaught `ValueError` that killed the handler thread,
+  and there was no body-size cap. `receiver/http.py` (both engines, byte-identical)
+  now validates via `_validate_content_length` → `400 schema_invalid` on a
+  malformed/negative header, `413 payload_too_large` above `_MAX_BODY_BYTES` (1 MiB).
+  Covered by unit tests + a non-gated raw-socket integration test asserting the live
+  server returns 400 and keeps serving.
+- **M-budget-parity.** claude `HostRuntimeExecutor.execute` gained a PRE-spend budget
+  `check` (mirroring hermes `ApiExecutor`), so once usage is over budget the next task
+  is refused without invoking the host runtime — previously it ran one extra task.
+
 ### Security — PLAN-025 P1: clone-URL RCE (B1) + reject-envelope wire fix (B3) (2026-07-09)
 
 Pre-prod hardening, P1 blockers from `plans/PLAN-025_preprod-hardening.md`. Applied

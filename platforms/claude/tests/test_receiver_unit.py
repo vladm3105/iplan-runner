@@ -13,7 +13,35 @@ from pathlib import Path
 
 from iplan_claude.intake.payload import adapt_dispatched_task, ingest_task_payload_dict
 from iplan_claude.receiver.auth import verify_bearer
+from iplan_claude.receiver.http import _MAX_BODY_BYTES, _validate_content_length
 from iplan_claude.relay import store
+
+
+def test_content_length_valid_and_absent() -> None:
+    assert _validate_content_length("10") == (10, None)
+    assert _validate_content_length(None) == (0, None)  # absent header → empty body
+    assert _validate_content_length("") == (0, None)
+
+
+def test_content_length_malformed_is_400() -> None:
+    # M-body (PLAN-025 P3): a non-numeric Content-Length must not raise (uncaught
+    # ValueError killed the handler thread) — it maps to a clean 400.
+    length, err = _validate_content_length("not-a-number")
+    assert length is None and err is not None and err[0] == 400
+
+
+def test_content_length_negative_is_400() -> None:
+    length, err = _validate_content_length("-5")
+    assert length is None and err is not None and err[0] == 400
+
+
+def test_content_length_at_limit_is_allowed() -> None:
+    assert _validate_content_length(str(_MAX_BODY_BYTES)) == (_MAX_BODY_BYTES, None)
+
+
+def test_content_length_over_limit_is_413() -> None:
+    length, err = _validate_content_length(str(_MAX_BODY_BYTES + 1))
+    assert length is None and err is not None and err[0] == 413
 
 
 def test_accept_then_claim_lifecycle(tmp_path: Path) -> None:

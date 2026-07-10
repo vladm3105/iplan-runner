@@ -16,13 +16,33 @@ regression oracle.
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import threading
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from ..ledger.events import _IDENTITY_FIELDS
+
+#: Default retention window for the store-wide prune (M-relay, PLAN-025 P3); override
+#: with env `IOPS_RELAY_RETENTION_S`. MUST exceed iplanic's re-dispatch/retry horizon:
+#: a re-dispatch of a task whose settled `accepted_task` row was pruned would re-run
+#: (the row is the idempotency guard).
+_DEFAULT_RETENTION_S = 7 * 24 * 3600
+
+
+def _retention_window(max_age_s: int | None) -> int:
+    if max_age_s is not None:
+        return max_age_s
+    raw = os.environ.get("IOPS_RELAY_RETENTION_S")
+    if raw:
+        try:
+            return int(raw)
+        except ValueError:
+            pass  # a malformed override falls back to the safe default
+    return _DEFAULT_RETENTION_S
+
 
 # Serializes the per-connection WAL-mode switch + schema init (see `_connect`). SQLite does NOT invoke
 # the busy handler for a `PRAGMA journal_mode` change, so concurrent first-time WAL switches (the receiver
@@ -231,6 +251,34 @@ def settle_task(store_dir: str | Path, run_id: str, task_id: str, *, ok: bool) -
             )
     finally:
         conn.close()
+
+
+def prune_settled(store_dir: str | Path, *, max_age_s: int | None = None) -> dict[str, int]:
+    """Bounded retention sweep (M-relay, PLAN-025 P3). Deletes settled operational
+    rows older than the retention window (``max_age_s``, else env
+    ``IOPS_RELAY_RETENTION_S``, else ``_DEFAULT_RETENTION_S``): ``delivered``
+    ``delivery`` rows (a later re-drain re-delivers and iplanic dedups → a harmless
+    202) and terminal (``done``/``failed``) ``accepted_task`` rows. **Keeps**
+    dead-lettered ``delivery`` rows (operator visibility) and every still-active row
+    (``accepted``/``running``); the ``identity`` table and the on-disk ledger files
+    are NOT pruned. A re-dispatch of a task whose settled row was pruned would re-run,
+    so the window MUST exceed iplanic's re-dispatch horizon. Returns the per-table
+    deleted-row counts. ISO-8601 UTC timestamps sort lexicographically, so the string
+    ``<`` compare is chronological."""
+    cutoff = (datetime.now(UTC) - timedelta(seconds=_retention_window(max_age_s))).isoformat()
+    conn = _connect(store_dir)
+    try:
+        with conn:
+            delivery = conn.execute(
+                "DELETE FROM delivery WHERE status = ? AND updated_at < ?", (_DELIVERED, cutoff)
+            ).rowcount
+            accepted = conn.execute(
+                "DELETE FROM accepted_task WHERE status IN (?, ?) AND updated_at < ?",
+                (_DONE, _FAILED, cutoff),
+            ).rowcount
+    finally:
+        conn.close()
+    return {"delivery": delivery, "accepted_task": accepted}
 
 
 def task_status(store_dir: str | Path, run_id: str, task_id: str) -> str | None:

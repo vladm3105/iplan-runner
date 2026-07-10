@@ -167,6 +167,7 @@ def _sync(args: argparse.Namespace) -> int:
         key_id=args.key_id,
         max_age_s=cfg.iplanic_max_age_s,
     )
+    pruned = relay_store.prune_settled(args.store)  # M-relay: bounded retention sweep on each sync
     _emit(
         {
             "sync": "ok" if report.ok else "halted",
@@ -174,6 +175,7 @@ def _sync(args: argparse.Namespace) -> int:
             "dead_lettered": len(report.dead_lettered),
             "pending": len(report.pending),
             "halted": report.halted,
+            "pruned": pruned,
         }
     )
     return 0 if report.ok else 1

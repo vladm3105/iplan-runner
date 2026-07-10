@@ -97,3 +97,44 @@ def test_identity_roundtrip_and_return(tmp_path: Path) -> None:
 
 def test_load_identity_absent(tmp_path: Path) -> None:
     assert store.load_identity(str(tmp_path), "L") is None
+
+
+def test_prune_settled_removes_old_settled_keeps_dead_letter_and_active(tmp_path: Path) -> None:
+    # M-relay (PLAN-025 P3): a store-wide sweep deletes settled operational rows —
+    # DELIVERED delivery rows + terminal accepted_task rows — but keeps dead-lettered
+    # rows (operator visibility) and any still-active row. max_age_s=-1 puts the cutoff
+    # in the future so every row passes the age filter and only the status filter decides.
+    d = str(tmp_path)
+    store.mark_settled(d, "L1", "k-delivered")
+    store.dead_letter(d, "L1", {"event": {"idempotency_key": "k-dead"}, "reason": "bad"})
+    store.accept_task(d, "R-done", "T")
+    store.claim_task(d, "R-done", "T")
+    store.settle_task(d, "R-done", "T", ok=True)
+    store.accept_task(d, "R-run", "T")
+    store.claim_task(d, "R-run", "T")  # left running (in-flight)
+    store.accept_task(d, "R-acc", "T")  # left bare-accepted
+
+    counts = store.prune_settled(d, max_age_s=-1)
+
+    assert counts == {"delivery": 1, "accepted_task": 1}
+    # load_settled reads every delivery row (delivered OR dead-lettered); the delivered
+    # mark is pruned, the dead-letter row remains (still a settled-cursor entry).
+    assert store.load_settled(d, "L1") == {"k-dead"}
+    assert len(store.load_dead_letter(d, "L1")) == 1  # dead-letter kept
+    assert store.task_status(d, "R-done", "T") is None  # terminal pruned
+    assert store.task_status(d, "R-run", "T") == "running"  # active kept
+    assert store.task_status(d, "R-acc", "T") == "accepted"  # accepted kept
+
+
+def test_prune_settled_keeps_recent_rows(tmp_path: Path) -> None:
+    d = str(tmp_path)
+    store.mark_settled(d, "L1", "k")
+    store.accept_task(d, "R", "T")
+    store.claim_task(d, "R", "T")
+    store.settle_task(d, "R", "T", ok=True)
+
+    counts = store.prune_settled(d, max_age_s=10_000)  # nothing is 10000s old
+
+    assert counts == {"delivery": 0, "accepted_task": 0}
+    assert store.load_settled(d, "L1") == {"k"}
+    assert store.task_status(d, "R", "T") == "done"

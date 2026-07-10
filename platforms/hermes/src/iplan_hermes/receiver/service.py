@@ -92,7 +92,13 @@ def execute(payload: dict[str, Any], deps: ReceiverDeps) -> None:
         deps.log(f"claim-lost run={run_id} task={task_id}")  # a concurrent acceptor won the run
         return
     deps.log(f"run-start run={run_id} task={task_id}")
+    cloned_workspace: str | None = None
     try:
+        repo = (payload.get("context_package") or {}).get("repository")
+        if isinstance(repo, dict):
+            # The per-task clone dest (mirrors provision_workspace), captured BEFORE the
+            # clone so a failed clone's partial dir is GC'd too (M-ws).
+            cloned_workspace = str(Path(deps.workspace) / _slug(run_id) / _slug(task_id))
         workspace = provision_workspace(payload, deps.workspace, run_id=run_id, task_id=task_id)
         adapted = adapt_dispatched_task(payload, workspace=workspace)
         manifest = ingest_task_payload_dict(adapted)
@@ -120,3 +126,15 @@ def execute(payload: dict[str, Any], deps: ReceiverDeps) -> None:
     except Exception as exc:  # noqa: BLE001 - record + log; a worker thread must never crash the server
         store.settle_task(deps.store_dir, run_id, task_id, ok=False)
         deps.log(f"error run={run_id} task={task_id}: {exc!r}")
+    finally:
+        # M-ws: GC the per-task clone (never the shared root). NOTE (PLAN-024): once a
+        # real executor writes artifacts into the clone, any artifact upload MUST run
+        # before this point — the GC destroys the workspace.
+        if cloned_workspace is not None:
+            shutil.rmtree(cloned_workspace, ignore_errors=True)
+        # M-relay: best-effort bounded retention sweep — a prune hiccup (e.g. lock
+        # contention) must never disturb the settled task.
+        try:
+            store.prune_settled(deps.store_dir)
+        except Exception as exc:  # noqa: BLE001 - retention is best-effort
+            deps.log(f"prune-skip run={run_id}: {exc!r}")

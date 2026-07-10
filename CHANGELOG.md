@@ -6,6 +6,28 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed — PLAN-025 P3 (batch 2): workspace + relay-DB retention (M-ws, M-relay) (2026-07-09)
+
+Bounded retention so a long-running receiver does not fill disk / grow the relay DB
+unbounded. Applied to both engines (`store.py` byte-identical; `service.py` differs
+only by the engine-name token).
+
+- **M-ws.** `provision_workspace` cloned a fresh repo per task into
+  `<root>/<run_id>/<task_id>` and only removed it on a same-key re-run. `execute` now
+  GCs the per-task clone in a `finally` after the run settles (computed up-front so a
+  *failed* clone's partial dir is removed too) — and **never** the shared workspace
+  root (the string/file-intake shape, which runs over the root, is untouched).
+- **M-relay.** The relay SQLite `delivery` / `accepted_task` rows were only ever
+  inserted/updated, never pruned. New `store.prune_settled(store_dir, *, max_age_s)`
+  deletes settled rows older than the retention window (default 7 days): `delivered`
+  `delivery` rows (a re-drain re-delivers → iplanic dedups to a harmless 202) and
+  terminal (`done`/`failed`) `accepted_task` rows. Dead-lettered rows and every active
+  row are **kept**; the `identity` table and on-disk ledger files are out of scope.
+  Called from `execute` (receiver auto-drain, best-effort) and the CLI `sync`. The
+  window (env `IOPS_RELAY_RETENTION_S`, default 7 days) must exceed iplanic's
+  re-dispatch horizon — a re-dispatch of a pruned settled task would re-run (the row is
+  the idempotency guard).
+
 ### Fixed — PLAN-025 P3 (batch 1): receiver body guard (M-body) + budget pre-check parity (M-budget-parity) (2026-07-09)
 
 - **M-body.** The receiver parsed `Content-Length` with a bare `int(...)`; a

@@ -102,6 +102,8 @@ def test_execute_clones_and_hands_the_workspace_to_the_executor(tmp_path: Path) 
 
     def spy(engine: HermesEngine, workspace: str) -> Any:
         seen["workspace"] = workspace
+        # Read the cloned file DURING the run — execute() GCs the clone afterwards (M-ws).
+        seen["content"] = (Path(workspace) / "a.txt").read_text()
         return engine.default_executor()  # the deterministic Mock still produces the events
 
     store.accept_task(store_dir, "R1", "T1")  # the door normally does this before scheduling execute
@@ -117,8 +119,41 @@ def test_execute_clones_and_hands_the_workspace_to_the_executor(tmp_path: Path) 
     execute(_payload(url), deps)
 
     assert seen["workspace"] == str(root / "R1" / "T1")  # the executor got the CLONED path, not the root
-    assert (Path(seen["workspace"]) / "a.txt").read_text() == "hi\n"
+    assert seen["content"] == "hi\n"  # the clone was materialized (checked before GC)
     assert store.task_status(store_dir, "R1", "T1") == "done"  # ran + drained + settled ok
+    assert not (root / "R1" / "T1").exists()  # M-ws: the clone was GC'd after the run
+
+
+def test_execute_gcs_the_cloned_workspace_but_keeps_the_root(tmp_path: Path) -> None:
+    # M-ws (PLAN-025 P3): after a dispatched (cloned) run settles, its per-task clone
+    # dir is removed so disk does not fill; the shared workspace root is never removed.
+    url = _source_repo(tmp_path / "src")
+    root = tmp_path / "ws"
+    store_dir = str(tmp_path / "store")
+    store.accept_task(store_dir, "R1", "T1")
+    deps = ReceiverDeps(
+        engine=HermesEngine(), store_dir=store_dir, workspace=str(root), client=_FakeClient(), key=b"k", key_id="k1"
+    )
+    execute(_payload(url), deps)
+    assert store.task_status(store_dir, "R1", "T1") == "done"
+    assert not (root / "R1" / "T1").exists()  # the per-task clone was GC'd
+    assert root.exists()  # ... but never the shared root
+
+
+def test_execute_passthrough_does_not_gc_the_shared_root(tmp_path: Path) -> None:
+    # The string-repository (file-intake) shape does not clone — execute runs over the
+    # shared root, which must survive (M-ws GC only removes a per-task clone).
+    root = tmp_path / "ws"
+    root.mkdir()
+    store_dir = str(tmp_path / "store")
+    store.accept_task(store_dir, "R1", "T1")
+    payload = _payload("ignored")
+    payload["context_package"]["repository"] = "."  # string shape → no clone
+    deps = ReceiverDeps(
+        engine=HermesEngine(), store_dir=store_dir, workspace=str(root), client=_FakeClient(), key=b"k", key_id="k1"
+    )
+    execute(payload, deps)
+    assert root.exists()
 
 
 def test_execute_bad_repo_settles_failed_without_crashing(tmp_path: Path) -> None:

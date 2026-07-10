@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed — PLAN-025 P3 (batch 3): executor wall-clock timeout (M-wall) (2026-07-09)
+
+`max_wall_s` could never fire — `usage["wall_s"]` was compared but never written and
+no executor call took a timeout, so a hung model/host-runtime call held the receiver's
+`slots` semaphore permit forever (permanent `503 receiver_busy`). New
+`budget.run_with_deadline(fn, max_wall_s)` (both engines, byte-identical `budget.py`)
+runs the blocking call on a **daemon** worker thread and raises `DeadlineExceeded` if it
+outruns the budget; the hung worker is abandoned (never blocks interpreter exit). Both
+executors (hermes `ApiExecutor.complete`, claude `HostRuntimeExecutor.run_task`) now wrap
+their client call with it, record `usage["wall_s"]`, and return `BUDGET.TIME_EXCEEDED` on
+timeout — so the run unwinds and the slot is reclaimed. `max_wall_s is None` runs inline
+(no thread), preserving today's behavior. Abandoning the thread does not kill the
+underlying work (an orphaned subprocess/HTTP call keeps running) — only the slot is freed.
+
 ### Fixed — PLAN-025 P3 (batch 2): workspace + relay-DB retention (M-ws, M-relay) (2026-07-09)
 
 Bounded retention so a long-running receiver does not fill disk / grow the relay DB

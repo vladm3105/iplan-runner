@@ -7,10 +7,11 @@ allowed_roots is rejected (the engine governs the runtime).
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
-from ..budget import Budget, check
+from ..budget import Budget, DeadlineExceeded, check, run_with_deadline
 from ..effectors.sandbox import classify_path
 from ..runtime.client import RuntimeClient
 from .base import ExecutionContext, ExecutorResult
@@ -36,7 +37,15 @@ class HostRuntimeExecutor:
         if not pre["allowed"]:
             return ExecutorResult(outcome="failure", reason=f"budget: {pre['reason']}")
 
-        result = self._client.run_task(task, self._workspace)
+        # M-wall (PLAN-025 P3): bound the host-runtime call by the wall budget so a hung
+        # runtime frees the run (and the receiver slot up the stack) instead of blocking.
+        started = time.monotonic()
+        try:
+            result = run_with_deadline(lambda: self._client.run_task(task, self._workspace), self._budget.max_wall_s)
+        except DeadlineExceeded:
+            self._usage["wall_s"] += time.monotonic() - started
+            return ExecutorResult(outcome="failure", reason="budget: BUDGET.TIME_EXCEEDED")
+        self._usage["wall_s"] += time.monotonic() - started
 
         self._usage["tokens"] += int(result.usage.get("tokens", 0))
         self._usage["cost_usd"] += float(result.usage.get("cost_usd", 0.0))

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
-from ..budget import Budget, check
+from ..budget import Budget, DeadlineExceeded, check, run_with_deadline
 from ..effectors.compensate import undo_writes
 from ..model.client import ModelClient
 from ._apply import apply_task_spec
@@ -48,7 +49,15 @@ class ApiExecutor:
         if not pre["allowed"]:
             return ExecutorResult(outcome="failure", reason=f"budget: {pre['reason']}")
 
-        response = self._client.complete(build_prompt(task))
+        # M-wall (PLAN-025 P3): bound the model call by the wall budget so a hung call
+        # frees the run (and the receiver slot up the stack) instead of blocking forever.
+        started = time.monotonic()
+        try:
+            response = run_with_deadline(lambda: self._client.complete(build_prompt(task)), self._budget.max_wall_s)
+        except DeadlineExceeded:
+            self._usage["wall_s"] += time.monotonic() - started
+            return ExecutorResult(outcome="failure", reason="budget: BUDGET.TIME_EXCEEDED")
+        self._usage["wall_s"] += time.monotonic() - started
         self._usage["tokens"] += int(response.usage.get("tokens", 0))
         self._usage["cost_usd"] += float(response.usage.get("cost_usd", 0.0))
 

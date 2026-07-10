@@ -1,4 +1,4 @@
-"""Landing / VCS: commit_all, land, gate-requires-commit (Claude)."""
+"""Landing / VCS: commit_all, land, gate-requires-commit (Hermes)."""
 
 from __future__ import annotations
 
@@ -138,3 +138,13 @@ def test_clone_bad_url_raises(tmp_path: Path) -> None:
 
     with pytest.raises(subprocess.CalledProcessError):  # a bad coordinate surfaces (receiver catches it)
         clone((tmp_path / "does-not-exist").as_uri(), "main", tmp_path / "dst")
+
+
+def test_clone_sink_guard_refuses_remote_helper_and_dash(tmp_path: Path) -> None:
+    import pytest
+
+    # B1 sink guard: clone() itself refuses the `ext::` remote-helper (RCE) and a
+    # leading-dash url, independent of the door's allow-list — never reaching git.
+    for bad in ("ext::sh -c touch /tmp/pwned", "-oProxyCommand=evil"):
+        with pytest.raises(ValueError):
+            clone(bad, "main", tmp_path / "dst")

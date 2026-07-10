@@ -1,37 +1,33 @@
 # Caller for vladm3105/aidoc-flow-ci/.github/workflows/auto-merge-ai-prs.yml.
-# Pinned at @ci/v1.5.1 per IPLAN-0030 P5 rollout (Phase B — iplan-runner, one
-# of 6 allowlisted consumers per plan §3). Follows the operations Phase A
-# pilot pattern (see aidoc-flow-operations/.github/workflows/
-# auto-merge-ai-prs.yml) with iplan-runner-specific runner topology.
+# PUBLIC consumer variant — uses ubuntu-latest runners.
+# Auto-merge enforcer added in ci/v1.5.0 (IPLAN-0030 P3); the caller pin is the uses: line below.
 #
-# The reusable is the server-side enforcer for AI-opened PRs (OPS-0062
-# deferred companion). It detects stuck-green PRs (label=ai:review-passed +
-# mergeStateStatus=CLEAN + autoMergeRequest is null + updatedAt > 2 min) +
-# re-arms `gh pr merge --auto --merge` under the reviewer App's token.
-# Narrow scope cases 1+2 per plan §1 (case 3 silent-bypass recovery
-# explicitly out-of-scope for v1 per Pass-2 C2).
+# The reusable is the server-side enforcer for AI-opened PRs
+# (OPS-0062 deferred companion). It detects stuck-green PRs
+# (label=ai:review-passed + mergeStateStatus=CLEAN + autoMergeRequest
+# is null + updatedAt > 2 min) + re-arms `gh pr merge --auto --merge`
+# under the reviewer App's token. Narrow scope cases 1+2 per plan §1.
 #
 # Trigger architecture per IPLAN-0030 §2.2 + Pass-2 C1 finding:
-#   - workflow_run on ai-review + composition completion — chains off the
-#     workflows that produce/update the ai:review-passed label + CLEAN
-#     state. NOT check_suite (GHA anti-recursion blocks that trigger for
-#     GHA-created check suites; verified empirically pre-IPLAN-0030).
+#   - workflow_run on ai-review + composition completion — chains off
+#     the workflows that produce/update the ai:review-passed label +
+#     CLEAN state. NOT check_suite (GHA anti-recursion blocks that
+#     trigger for GHA-created check suites; verified empirically
+#     pre-IPLAN-0030).
 #   - workflow_dispatch for operator manual recovery on stuck-green PRs.
+#
+# App-token requirements:
+#   APP_REVIEWER_1_ID + APP_REVIEWER_1_KEY  (reviewer App credentials —
+#     same secrets as ai-review.yml). If the App isn't installed on
+#     this repo yet, the reusable falls back to GITHUB_TOKEN with a
+#     downgrade warning (workflow_run triggers won't fire from the
+#     merge commit — per GHA anti-recursion — but merges still succeed).
 name: auto-merge-ai-prs
 
 on:
-  # workflow_run fires after ai-review OR composition completes (any
-  # conclusion — success / failure / skipped / cancelled via default
-  # `types: [completed]`). The reusable's state filter step 3 gates
-  # further action on ai:review-passed label + mergeStateStatus=CLEAN,
-  # so a non-success workflow_run fire is a cheap early-exit inside the
-  # reusable, not a bug.
   workflow_run:
     workflows: ["ai-review", "composition"]
     types: [completed]
-
-  # Operator manual dispatch. pr_number is required — the reusable's
-  # numeric-validation step rejects non-integer input with a clear error.
   workflow_dispatch:
     inputs:
       pr_number:
@@ -49,20 +45,22 @@ permissions:
 
 jobs:
   call:
-    # Skip non-success workflow_run fires — the reusable's state-filter step 3
-    # would exit clean anyway (mergeStateStatus != CLEAN on a failed ai-review
-    # or composition), but this saves the runner slot entirely.
+    # Skip non-success workflow_run fires — the reusable's state-filter
+    # step 3 would exit clean anyway (mergeStateStatus != CLEAN on a
+    # failed ai-review or composition), but this saves the runner slot
+    # entirely (per OPS-0065 security-auditor recommendation).
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    uses: vladm3105/aidoc-flow-ci/.github/workflows/auto-merge-ai-prs.yml@ci/v1.5.1
+    uses: vladm3105/aidoc-flow-ci/.github/workflows/auto-merge-ai-prs.yml@ci/v1.8.1
     with:
-      # `||` fallback per Workflow-tool expression semantics: returns the
-      # first truthy operand. workflow_run path resolves the LHS; dispatch
-      # path resolves the middle. Fork PRs on workflow_run have empty
-      # `pull_requests[]` so LHS is empty and the reusable's step 1 exits
-      # clean (per the reusable's fork-PR handling).
+      # `||` fallback per Workflow-tool expression semantics: returns
+      # the first truthy operand. workflow_run path resolves the LHS;
+      # dispatch path resolves the middle. Fork PRs on workflow_run
+      # have empty `pull_requests[]` so LHS is empty and the reusable's
+      # step 1 exits clean (per the reusable's fork-PR handling).
       pr_number: ${{ github.event.workflow_run.pull_requests[0].number || inputs.pr_number || '' }}
-      # iplan-runner is a public consumer — uses the reusable's default
-      # ubuntu-latest runner topology (see IPLAN-0030 §3 P5 note: "public
-      # consumers omit + use ubuntu-latest default"). Contrast with
-      # operations Phase A which passes ["self-hosted","aidoc","ci-ephemeral"].
+      runner_labels: '["ubuntu-latest"]'
+      # External adopters: MUST match ai-review.yml's trust config repo/ref.
+      # Defaults to vladm3105/aidoc-flow-operations@main.
+      # trust_config_repo: your-org/your-ops-repo
+      # trust_config_ref: main
     secrets: inherit  # pragma: allowlist secret

@@ -6,6 +6,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added — canon secret-scan (gitleaks) workflow (2026-07-11)
+
+Adopted the aidoc-flow-ci secret-scan gate (@ci/v1.9.2, gitleaks binary).
+
+
 ### Changed — re-pin aidoc-flow-ci callers to @ci/v1.9.1 (2026-07-11)
 
 Bumped audit-trail + auto-merge callers to `@ci/v1.9.1` via `install.sh --repin` (also fixes stale `v1.6.0`/`v1.5.1` pins). Version-only; ai-review (→ operations@main) untouched.

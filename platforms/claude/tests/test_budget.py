@@ -38,3 +38,39 @@ def test_load_config_file_and_env_secrets(tmp_path: Path) -> None:
 
 def test_secrets_from_env() -> None:
     assert secrets_from_env(env={"IOPS_SECRET_X": "s1", "OTHER": "n"}) == ["s1"]
+
+
+# --- M-wall (PLAN-025 P3): wall-clock deadline around a blocking executor call ---
+import threading  # noqa: E402
+
+from iplan_claude.budget import DeadlineExceeded, run_with_deadline  # noqa: E402
+
+
+def test_run_with_deadline_returns_within_time() -> None:
+    assert run_with_deadline(lambda: "ok", 5.0) == "ok"
+
+
+def test_run_with_deadline_none_runs_inline() -> None:
+    assert run_with_deadline(lambda: "ok", None) == "ok"
+
+
+def test_run_with_deadline_times_out_on_a_hung_call() -> None:
+    release = threading.Event()
+
+    def hang() -> str:
+        release.wait(timeout=2.0)  # safety cap so the leaked worker cannot outlive the test
+        return "late"
+
+    try:
+        with pytest.raises(DeadlineExceeded):
+            run_with_deadline(hang, 0.05)
+    finally:
+        release.set()
+
+
+def test_run_with_deadline_propagates_worker_error() -> None:
+    def boom() -> str:
+        raise ValueError("boom")
+
+    with pytest.raises(ValueError, match="boom"):
+        run_with_deadline(boom, 5.0)

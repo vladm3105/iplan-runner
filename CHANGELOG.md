@@ -9,6 +9,145 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - **Content-check CI workflows** — `links` (blocking, offline), `markdown-lint` (report-only, `fail-on-findings: false`), and `docs-sync` (dry-run) callers of the aidoc-flow-ci reusables @ci/v1.9.5, + `.markdownlint.json`/`.github/docs-sync.json` configs. Completes the content-check surface (labeler/secret-scan already present).
+### Added — canon secret-scan (gitleaks) workflow (2026-07-11)
+
+Adopted the aidoc-flow-ci secret-scan gate (@ci/v1.9.2, gitleaks binary).
+
+
+### Changed — re-pin aidoc-flow-ci callers to @ci/v1.9.1 (2026-07-11)
+
+Bumped audit-trail + auto-merge callers to `@ci/v1.9.1` via `install.sh --repin` (also fixes stale `v1.6.0`/`v1.5.1` pins). Version-only; ai-review (→ operations@main) untouched.
+
+
+### Fixed — PLAN-025 P3 (batch 3): executor wall-clock timeout (M-wall) (2026-07-09)
+
+`max_wall_s` could never fire — `usage["wall_s"]` was compared but never written and
+no executor call took a timeout, so a hung model/host-runtime call held the receiver's
+`slots` semaphore permit forever (permanent `503 receiver_busy`). New
+`budget.run_with_deadline(fn, max_wall_s)` (both engines, byte-identical `budget.py`)
+runs the blocking call on a **daemon** worker thread and raises `DeadlineExceeded` if it
+outruns the budget; the hung worker is abandoned (never blocks interpreter exit). Both
+executors (hermes `ApiExecutor.complete`, claude `HostRuntimeExecutor.run_task`) now wrap
+their client call with it, record `usage["wall_s"]`, and return `BUDGET.TIME_EXCEEDED` on
+timeout — so the run unwinds and the slot is reclaimed. `max_wall_s is None` runs inline
+(no thread), preserving today's behavior. Abandoning the thread does not kill the
+underlying work (an orphaned subprocess/HTTP call keeps running) — only the slot is freed.
+
+### Fixed — PLAN-025 P3 (batch 2): workspace + relay-DB retention (M-ws, M-relay) (2026-07-09)
+
+Bounded retention so a long-running receiver does not fill disk / grow the relay DB
+unbounded. Applied to both engines (`store.py` byte-identical; `service.py` differs
+only by the engine-name token).
+
+- **M-ws.** `provision_workspace` cloned a fresh repo per task into
+  `<root>/<run_id>/<task_id>` and only removed it on a same-key re-run. `execute` now
+  GCs the per-task clone in a `finally` after the run settles (computed up-front so a
+  *failed* clone's partial dir is removed too) — and **never** the shared workspace
+  root (the string/file-intake shape, which runs over the root, is untouched).
+- **M-relay.** The relay SQLite `delivery` / `accepted_task` rows were only ever
+  inserted/updated, never pruned. New `store.prune_settled(store_dir, *, max_age_s)`
+  deletes settled rows older than the retention window (default 7 days): `delivered`
+  `delivery` rows (a re-drain re-delivers → iplanic dedups to a harmless 202) and
+  terminal (`done`/`failed`) `accepted_task` rows. Dead-lettered rows and every active
+  row are **kept**; the `identity` table and on-disk ledger files are out of scope.
+  Called from `execute` (receiver auto-drain, best-effort) and the CLI `sync`. The
+  window (env `IOPS_RELAY_RETENTION_S`, default 7 days) must exceed iplanic's
+  re-dispatch horizon — a re-dispatch of a pruned settled task would re-run (the row is
+  the idempotency guard).
+
+### Fixed — PLAN-025 P3 (batch 1): receiver body guard (M-body) + budget pre-check parity (M-budget-parity) (2026-07-09)
+
+- **M-body.** The receiver parsed `Content-Length` with a bare `int(...)`; a
+  non-numeric header raised an uncaught `ValueError` that killed the handler thread,
+  and there was no body-size cap. `receiver/http.py` (both engines, byte-identical)
+  now validates via `_validate_content_length` → `400 schema_invalid` on a
+  malformed/negative header, `413 payload_too_large` above `_MAX_BODY_BYTES` (1 MiB).
+  Covered by unit tests + a non-gated raw-socket integration test asserting the live
+  server returns 400 and keeps serving.
+- **M-budget-parity.** claude `HostRuntimeExecutor.execute` gained a PRE-spend budget
+  `check` (mirroring hermes `ApiExecutor`), so once usage is over budget the next task
+  is refused without invoking the host runtime — previously it ran one extra task.
+
+### Security — PLAN-025 P1: clone-URL RCE (B1) + reject-envelope wire fix (B3) (2026-07-09)
+
+Pre-prod hardening, P1 blockers from `plans/PLAN-025_preprod-hardening.md`. Applied
+to **both engines** in lockstep (`platforms/claude`, `platforms/hermes`); the shared
+modules stay byte-identical.
+
+- **B1 — RCE via clone URL (fixed).** A dispatched task's
+  `context_package.repository.url` reached `git clone` with only a non-empty-string
+  check; `ext::sh -c <cmd>` triggered git's `ext::` remote-helper → arbitrary shell
+  on the runner host (`file://`, leading-dash args, and scp-like forms were also
+  accepted). Now `validation/payload_rules.py` enforces a transport allow-list at the
+  door — only `https`/`ssh` with a non-empty authority; `ext::`/`file://`/`http://`/
+  `git://`/scp-like/leading-dash/authority-less URLs are rejected
+  (`REMOTE.PAYLOAD_REPOSITORY_URL_SCHEME`), and a leading-dash `base_ref`/
+  `default_branch` (an option-injection a trailing `--` does not stop) is rejected
+  (`REMOTE.PAYLOAD_REPOSITORY_REF`). `vcs/git.py` adds argv hardening (`git clone …
+  -- <url> <dest>`, `git checkout <ref> --`) **and** a self-protecting sink guard in
+  `clone()` that refuses the `<transport>::` remote-helper form and leading-dash URLs
+  unconditionally — so no future caller (or the test-only scheme exemption) can route
+  a remote-helper URL into git. Test-only env exemption `IOPS_INSECURE_CLONE_SCHEMES`
+  re-permits `file://` for the gated local-clone fixtures; it is default-closed and
+  can never re-enable `ext::` (the sink guard blocks it regardless).
+- **B3 — reject-envelope field mismatch (fixed).** `relay/reject.py` `classify()`
+  read the reject code from `reject_code`/`code`, but iplanic emits it under `reason`
+  (verified against `iplanic_service/app.py`), returning `403` for `invalid_signature`
+  and `400` for `timestamp_skew`. The old code dead-lettered any `403` before reading
+  the code, so a forged signature was silently dead-lettered and a transient clock
+  skew stalled the whole drain. `classify()` now reads `reason` (falls back to
+  `reject_code`/`code`), routes the integrity + skew codes ahead of the generic `403`
+  dead-letter branch, and retries all transport `5xx` before any body-code branch.
+- **Conformance:** two new REMOTE-001 rule-catalog entries + vectors
+  (`reject_repository_url`, `reject_repository_ref`); new unit suites
+  `test_receiver_security.py` / `test_reject.py` (both engines) and a direct
+  `clone()` sink-guard test. Full DB-free + gated wire suites green.
+
+### Changed — Wave 3a adoption of aidoc-flow-ci PLAN-003 governance-file canon (2026-07-08)
+
+iplan-runner adopts the PLAN-003 flexible-canonical (Option B) project-
+governance file canon. Design in `aidoc-flow-ci#72` (plan draft);
+shipment: `aidoc-flow-ci#73` (PR-V1 canon templates + Wave 0), `#74`
+(PR-V2 governance-table parser), `aidoc-flow-operations#217` (PR-V3
+CROSS_REPO_PLAYBOOKS §T-D + OPS-0070), `aidoc-flow-ci#75` (PR-V4 status
+flip to SHIPPED + rollout playbook), `aidoc-flow-ci#76` (canon-template
+polish), `aidoc-flow-ci#77` (parser §N + #anchor suffix handling),
+`aidoc-flow-ci#78` (ai-review rubric repo-aware doc-coverage +
+hash-count discipline), `aidoc-flow-ci#79` (canonical-source authority
+disambiguation) — all merged 2026-07-08.
+
+Governance drift check (`bash ../aidoc-flow-ci/install/apply-standards.sh
+--check`) — `CLAUDE.md#per-repo-governance` now reports OK (6/6 required
+rows verified + 0 additional + 0 errors).
+
+- **`CLAUDE.md`** — `## Per-repo governance` table updated per PLAN-003
+  §5.4c iplan-runner row + §4.5 parser contract:
+  - Fixed `Plans` cell: was `plans/PLAN-NNN_*.md` (a naming glob that
+    doesn't resolve on disk) → `plans/` (the directory).
+  - Added required `Changelog | CHANGELOG.md` row (was absent per §4.5
+    required-row check).
+  - Cleaned annotations from `TODO / backlog` cell (was `` `TODO.md` (root) ``)
+    and `Decisions log` cell (was `` `plans/DECISIONS.md` (D-0001..) ``)
+    — inline parenthesized annotations still parse via §4.5 extract_path,
+    but plain paths reduce clutter for a small governance table.
+
+**Plan-baseline note (PLAN-003 §5.4c drift):** the plan anticipated
+"add TODO root row + link-summary retrofit" as this repo's Wave 3
+scope. In practice this repo's TODO row already existed pre-adoption,
+so this PR cleans its annotation rather than adding it. Net CLAUDE.md
+Δ is +1 line instead of the plan-estimated +15. Feedback to plan
+author noted; no further action needed here.
+- **`CHANGELOG.md`** — this entry.
+
+**2 surfaces** (CLAUDE.md + this CHANGELOG entry). OPS-0061 Rule 1 compliant.
+
+Deferred to follow-up PR:
+
+- Workspace-standards blocks link-summary retrofit per PLAN-003 §5.4c
+  iplan-runner row `## Workspace standards` column MODIFIED. Orthogonal
+  to parser-gate concern this PR closes.
+
+Multi-agent self-review per OPS-0065 (code-reviewer single-agent depth per minimal-scope calibration): APPROVED after 1 fold cycle addressing 1 MAJOR (TBD → filled) + 1 MINOR (plan-vs-actual drift note added — PLAN-003 §5.4c anticipated +15 lines but this repo's TODO row already existed, so net Δ is +1 line)
 
 ### Added — Wave 3 product-tier adoption of aidoc-flow-ci canon (PLAN-002 §5.5) (2026-07-08)
 

@@ -50,16 +50,26 @@ def classify(
         return Outcome(ADVANCE, "accepted")
     if status == 401:
         return Outcome(REFRESH, "unauthorized")
-    if status == 403:
-        return Outcome(DEAD_LETTER, "registration/scope rejected")
+    # Transport 5xx always retries (checked before the body-code branches so a stray
+    # machine code in a 5xx body can never be mis-routed to HALT).
     if status >= 500:
         return Outcome(RETRY, f"server error {status}")
-    code = response.body.get("reject_code") or response.body.get("code")
+    # B3 (PLAN-025): iplanic keys the reject code under `reason` (verified bare tokens
+    # in iplanic `app.py` `_STATUS_BY_REASON`; fall back to the legacy
+    # `reject_code`/`code`), and returns 403 for `invalid_signature` / 400 for
+    # `timestamp_skew`. The integrity + timestamp-skew codes MUST be routed by code
+    # BEFORE the generic `status == 403` dead-letter branch, else a forged signature
+    # is silently dead-lettered and a transient clock skew stalls the whole drain.
+    code = response.body.get("reason") or response.body.get("reject_code") or response.body.get("code")
+    if code in ("invalid_signature", "schema_invalid"):
+        return Outcome(HALT, f"integrity: {code}")
     if code == "timestamp_skew":
         age = _event_age_s(event, now)
         if age is not None and age > max_age_s:
             return Outcome(DEAD_LETTER, f"timestamp_skew, far-stale ({int(age)}s)")
         return Outcome(RETRY, "timestamp_skew, within window")
-    if code in ("invalid_signature", "schema_invalid"):
-        return Outcome(HALT, f"integrity: {code}")
+    if status == 403:
+        # A 403 with no integrity code is a registration/scope reject (iplanic:
+        # unregistered_executor / executor_not_active / project_not_allowed / org_mismatch).
+        return Outcome(DEAD_LETTER, "registration/scope rejected")
     return Outcome(HALT, f"unhandled reject (status {status}, code {code})")

@@ -7,10 +7,11 @@ allowed_roots is rejected (the engine governs the runtime).
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Any
 
-from ..budget import Budget, check
+from ..budget import Budget, DeadlineExceeded, check, run_with_deadline
 from ..effectors.sandbox import classify_path
 from ..runtime.client import RuntimeClient
 from .base import ExecutionContext, ExecutorResult
@@ -29,7 +30,22 @@ class HostRuntimeExecutor:
         self._usage: dict[str, Any] = {"tokens": 0, "cost_usd": 0.0, "wall_s": 0.0}
 
     def execute(self, task: dict[str, Any], ctx: ExecutionContext) -> ExecutorResult:
-        result = self._client.run_task(task, self._workspace)
+        # M-budget-parity (PLAN-025 P3): refuse before spending when usage is already
+        # over budget, so a blown budget stops the next task instead of running one
+        # more (matches hermes ApiExecutor's pre-check).
+        pre = check(self._budget, self._usage)
+        if not pre["allowed"]:
+            return ExecutorResult(outcome="failure", reason=f"budget: {pre['reason']}")
+
+        # M-wall (PLAN-025 P3): bound the host-runtime call by the wall budget so a hung
+        # runtime frees the run (and the receiver slot up the stack) instead of blocking.
+        started = time.monotonic()
+        try:
+            result = run_with_deadline(lambda: self._client.run_task(task, self._workspace), self._budget.max_wall_s)
+        except DeadlineExceeded:
+            self._usage["wall_s"] += time.monotonic() - started
+            return ExecutorResult(outcome="failure", reason="budget: BUDGET.TIME_EXCEEDED")
+        self._usage["wall_s"] += time.monotonic() - started
 
         self._usage["tokens"] += int(result.usage.get("tokens", 0))
         self._usage["cost_usd"] += float(result.usage.get("cost_usd", 0.0))

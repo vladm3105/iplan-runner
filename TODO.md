@@ -4,6 +4,43 @@ Remaining work toward `v1.0.0` and beyond. Narrative + rationale live in
 `ROADMAP.md`; decisions in `plans/DECISIONS.md`. Done phases: 1–9
 (`v0.1.0` → `v0.9.0`).
 
+## Pre-prod hardening — `plans/PLAN-025_preprod-hardening.md` (pre-GA)
+
+Ready-for-build (verified-planning gate green: 17 citations, 4 passes). From the
+2026-07-09 pre-prod review of the iplanic ↔ iplan-runner ↔ iplan-standard core.
+Every code fix applies to **both** engines (`iplan_claude` + `iplan_hermes`).
+**Independent / start now** — do not wait on the standard tag:
+
+- [ ] **B1 — clone-URL RCE (BLOCKER)** — scheme allow-list in `validation/payload_rules.py`
+  (reject `ext::`/`file://`/leading-`-`); harden `vcs/git.py` argv (`--` after url; trailing
+  `git checkout <ref> --` / rev-parse — NOT leading `--`). Add rejection tests + a test-only
+  `file://` exemption for existing receiver fixtures.
+- [ ] **B3 — reject-envelope wire bug (BLOCKER)** — `relay/reject.py` read `reason`; reorder
+  integrity codes (`invalid_signature`/`schema_invalid`) **ahead** of the 403 branch. Cross-repo
+  classification test vs iplanic's real `{"reason":…}` bodies.
+- [ ] **M-wall** — measure + write `usage["wall_s"]`, add executor wall-timeout (hung task frees the slot).
+- [ ] **M-ws / M-relay** — workspace GC after run settles; relay-DB retention/prune.
+- [ ] **M-crash** — auto re-drain tasks stuck in `running` on startup.
+- [ ] **M-body** — `try/except` the `Content-Length` parse (→400) + max body size (→413).
+- [ ] **M-budget-parity** — add the pre-spend budget check to `HostRuntimeExecutor` (claude).
+- [ ] **M-rotation** — emitter key-rotation path (single static HMAC key today); rotation runbook.
+
+**P2 — deployment contract (joint with iplanic PLAN-100 B2/B4):**
+
+- [ ] **B2** — document `dispatch_token_id` MUST in `REMOTE_EXECUTOR_CONTRACT.md`.
+- [ ] **B4** — contribute the runner half of the deployment-contract doc (static-token mode; key binding).
+
+**P4/P6 — blocks on iplan-standard PLAN-0001 tagging `iplan/v0.5.0`:**
+
+- [ ] **S4** — re-pin `iplan/v0.1.0` → `v0.5.0`; **decide L1 per PLAN-0001 M6** (single owner — do not
+  decide independently); merge PLAN-024 gate or record opt-out citing M6.
+- [ ] **S5** — wire `sync/check-drift.sh` into `pre_push_check.sh` / CI (it is orphaned today).
+- [ ] **M-taskschema** — vendor `task.schema.json` + a runner-side conformance test (unenforced today).
+- [ ] **INT-1** — cross-repo integration harness (joint w/ iplanic) — real dispatch→execute→ingest→project loop.
+
+**P5 — docs/hygiene:** renumber the duplicate `PLAN-023` file + reconcile the `PLAN-024` collision;
+refresh stale `plans/HANDOFF.md`; document the `PYTHONPATH`/`pip install -e` test-run requirement.
+
 ## Numbered plans (the path to GA)
 
 - [x] **PLAN-010 — Monitoring runtime** (`v0.10.0`): probe HTTP server, live OTel

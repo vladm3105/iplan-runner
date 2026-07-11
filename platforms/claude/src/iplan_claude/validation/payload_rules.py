@@ -6,6 +6,7 @@ fields produce findings rather than silent defaults (REMOTE_EXECUTOR_CONTRACT.md
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -20,6 +21,39 @@ _EXECUTOR_ID = re.compile(r"^exec:[a-z2-7]{16,}$")
 # task.schema.json) — the receiver's `adapt_dispatched_task` rewrites it to the
 # workspace path before intake, so a malformed object must be caught at the door.
 _REPOSITORY_FIELDS = ("url", "default_branch", "base_ref")
+
+# B1 (PLAN-025) — the dispatched `repository.url` reaches `git clone`; git's
+# `ext::`/`file://` remote helpers are arbitrary shell / host-FS reads, so the
+# clone target must carry an explicit, allow-listed transport scheme AND a non-empty
+# authority. Only https/ssh are permitted at the door. `IOPS_INSECURE_CLONE_SCHEMES`
+# (comma-list) re-permits extra schemes for the gated local-clone test fixtures
+# ONLY — it must never be set in production. (`ext::` stays blocked even when the
+# exemption is set: the `clone()` sink guard refuses the remote-helper form outright.)
+_SAFE_CLONE_SCHEMES = frozenset({"https", "ssh"})
+_URL_SCHEME = re.compile(r"^([A-Za-z][A-Za-z0-9+.\-]*)://(.*)$", re.DOTALL)
+
+
+def _allowed_clone_schemes() -> frozenset[str]:
+    extra = os.environ.get("IOPS_INSECURE_CLONE_SCHEMES", "")
+    exempt = {s.strip().lower() for s in extra.split(",") if s.strip()}
+    return _SAFE_CLONE_SCHEMES | exempt
+
+
+def _clone_url_ok(url: str) -> bool:
+    """True only for an explicit `<scheme>://` on the allow-list — rejects `ext::`
+    (no `//`), `file://`/`http://`/`git://`, scp-like `host:path`, leading-dash, and
+    any non-URL string. Network schemes (https/ssh) also require a non-empty authority
+    so an authority-less `https://` is caught at the door instead of crashing deep in
+    the worker; a test-only exempted `file:///path` is legitimately authority-less."""
+    match = _URL_SCHEME.match(url)
+    if not match:
+        return False
+    scheme, rest = match.group(1).lower(), match.group(2)
+    if scheme not in _allowed_clone_schemes():
+        return False
+    # network schemes (https/ssh) require a non-empty authority; an exempted, test-only
+    # `file:///path` is legitimately authority-less.
+    return scheme not in _SAFE_CLONE_SCHEMES or (bool(rest) and not rest.startswith("/"))
 
 
 def validate_payload(payload: dict[str, Any]) -> list[Finding]:
@@ -46,14 +80,31 @@ def validate_payload(payload: dict[str, Any]) -> list[Finding]:
         # A string repository is the file-intake shape and stays valid (backward
         # compatible); only an object missing required fields is rejected.
         repository = context.get("repository")
-        if isinstance(repository, dict) and not all(
-            isinstance(repository.get(f), str) and repository.get(f) for f in _REPOSITORY_FIELDS
-        ):
-            findings.append(
-                finding(
-                    "REMOTE.PAYLOAD_REPOSITORY_SHAPE",
-                    "context_package.repository object missing url/default_branch/base_ref",
+        if isinstance(repository, dict):
+            if not all(isinstance(repository.get(f), str) and repository.get(f) for f in _REPOSITORY_FIELDS):
+                findings.append(
+                    finding(
+                        "REMOTE.PAYLOAD_REPOSITORY_SHAPE",
+                        "context_package.repository object missing url/default_branch/base_ref",
+                    )
                 )
-            )
+            else:
+                # B1: the fields are non-empty strings — enforce clone safety before they reach git.
+                if not _clone_url_ok(repository["url"]):
+                    findings.append(
+                        finding(
+                            "REMOTE.PAYLOAD_REPOSITORY_URL_SCHEME",
+                            "context_package.repository.url scheme not in the clone allow-list (https/ssh)",
+                        )
+                    )
+                # A leading-dash ref is an argv option-injection that a trailing `--` on
+                # `git checkout` does NOT stop (git still parses it as a switch), so reject here.
+                if any(repository[f].startswith("-") for f in ("base_ref", "default_branch")):
+                    findings.append(
+                        finding(
+                            "REMOTE.PAYLOAD_REPOSITORY_REF",
+                            "context_package.repository base_ref/default_branch must not start with '-'",
+                        )
+                    )
 
     return findings

@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import itertools
 import json
+import threading
 from collections.abc import Callable
 from pathlib import Path
 
 from iplan_hermes import HermesEngine
 from iplan_hermes.budget import Budget
-from iplan_hermes.executor.base import IdSource
-from iplan_hermes.model.client import StubModelClient
+from iplan_hermes.executor.api import ApiExecutor
+from iplan_hermes.executor.base import ExecutionContext, IdSource
+from iplan_hermes.model.client import ModelResponse, StubModelClient
 
 MANIFEST = {
     "metadata": {"schema_version": "1.0", "document_type": "iplan-intake", "framework": "iops"},
@@ -74,3 +76,36 @@ def test_api_executor_budget_exceeded_blocks(tmp_path: Path) -> None:
     result = _run(engine, StubModelClient(response, {"tokens": 100}), tmp_path, Budget(max_tokens=10))
     assert result.ledger["task_ledger"][0]["status"] == "blocked"
     assert "budget" in (result.ledger["task_ledger"][0]["blocked_reason"] or "")
+
+
+def _ctx() -> ExecutionContext:
+    return ExecutionContext(
+        task={}, isolation_scope={"allowed_roots": ["src/"]}, clock=lambda: "t", ids=lambda p: p + "1"
+    )
+
+
+def test_api_executor_wall_timeout_frees_a_hung_model_call() -> None:
+    # M-wall (PLAN-025 P3): a model call that outruns max_wall_s is abandoned and the
+    # executor returns BUDGET.TIME_EXCEEDED (freeing the run + receiver slot).
+    release = threading.Event()
+
+    class _HangingClient:
+        def complete(self, prompt: str) -> ModelResponse:
+            release.wait(timeout=2.0)  # safety cap so the leaked worker cannot outlive the test
+            return ModelResponse(text="{}", usage={})
+
+    executor = ApiExecutor(_HangingClient(), workspace=".", budget=Budget(max_wall_s=0.1))
+    try:
+        result = executor.execute({"task_id": "T1", "title": "t", "acceptance": {"criteria": ["x"]}}, _ctx())
+        assert result.outcome == "failure"
+        assert "TIME_EXCEEDED" in (result.reason or "")
+    finally:
+        release.set()
+
+
+def test_api_executor_within_wall_budget_succeeds() -> None:
+    executor = ApiExecutor(
+        StubModelClient(text='{"actions": [], "checks": []}'), workspace=".", budget=Budget(max_wall_s=10.0)
+    )
+    result = executor.execute({"task_id": "T1", "title": "t", "acceptance": {"criteria": ["x"]}}, _ctx())
+    assert result.outcome == "success"

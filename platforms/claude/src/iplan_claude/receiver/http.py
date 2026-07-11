@@ -32,6 +32,26 @@ from .service import ReceiverDeps, execute
 
 _TASKS_PATH = "/v1/tasks"
 
+#: Max accepted request body (1 MiB). A dispatched task payload is small JSON; a
+#: larger declared length is refused before the (blocking) read.
+_MAX_BODY_BYTES = 1_048_576
+
+
+def _validate_content_length(header: str | None) -> tuple[int | None, tuple[int, str] | None]:
+    """M-body (PLAN-025 P3): parse + bound the ``Content-Length`` header. Returns
+    ``(length, None)`` on success, or ``(None, (status, reason))`` for a malformed
+    header (``400`` — a bare ``int()`` raised an uncaught ``ValueError`` that killed
+    the handler thread) or an over-limit length (``413``)."""
+    try:
+        length = int(header) if header else 0
+    except ValueError:
+        return None, (400, "invalid Content-Length")
+    if length < 0:
+        return None, (400, "invalid Content-Length")
+    if length > _MAX_BODY_BYTES:
+        return None, (413, "request body too large")
+    return length, None
+
 
 class ReceiverServer(ThreadingHTTPServer):
     """A `ThreadingHTTPServer` carrying the receiver's wiring + a bounded run pool."""
@@ -66,7 +86,11 @@ class _Handler(BaseHTTPRequestHandler):
             deps.log("401 unauthenticated")
             return self._reply(401, {"reason": "unauthenticated"})
 
-        length = int(self.headers.get("Content-Length") or 0)
+        length, cl_error = _validate_content_length(self.headers.get("Content-Length"))
+        if cl_error is not None:
+            status, detail = cl_error
+            reason = "schema_invalid" if status == 400 else "payload_too_large"
+            return self._reply(status, {"reason": reason, "detail": detail})
         raw = self.rfile.read(length) if length else b""
         try:
             payload: Any = json.loads(raw) if raw else None

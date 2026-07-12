@@ -161,73 +161,73 @@ executor keys.
 
 ### Task 1: Framework config + governance contracts
 
-- [ ] **Step 1:** `CONFIG_CONTRACT.md` — common keys (`timeouts`, `budget`,
++ [ ] **Step 1:** `CONFIG_CONTRACT.md` — common keys (`timeouts`, `budget`,
   `telemetry.otlp_endpoint`, `secrets` from env) + per-engine executor keys
   (`hermes`: `provider`/`model`/`api_base`; `claude`: `runtime`/`hooks`); file +
   env merge; no secrets in files.
-- [ ] **Step 2:** `RESOURCE_GOVERNANCE.md` — `Budget {max_tokens, max_cost_usd,
++ [ ] **Step 2:** `RESOURCE_GOVERNANCE.md` — `Budget {max_tokens, max_cost_usd,
   max_wall_s}`; `check(budget, usage) -> {allowed, reason}`; `BUDGET.*` codes;
   over-budget → task blocked (non-retriable).
-- [ ] **Step 3:** registry — add both docs + `budget_root:
++ [ ] **Step 3:** registry — add both docs + `budget_root:
   framework/conformance/budget`.
-- [ ] **Step 4: commit** — `feat: add config + resource-governance contracts`.
++ [ ] **Step 4: commit** — `feat: add config + resource-governance contracts`.
 
 ### Task 2: Budget vectors
 
-- [ ] **Step 1:** `budget/under` (within all limits → allow);
++ [ ] **Step 1:** `budget/under` (within all limits → allow);
   `budget/tokens` / `budget/cost` / `budget/time` (each limit exceeded → deny
   with its reason); `budget/unlimited` (all `None` → allow).
-- [ ] **Step 2: commit** — `test: add budget decision vectors`.
++ [ ] **Step 2: commit** — `test: add budget decision vectors`.
 
 ### Task 3: Budget + config (engine-agnostic, both engines)
 
-- [ ] **Step 1: failing tests** — `check` over the vectors; `load_config` merges
++ [ ] **Step 1: failing tests** — `check` over the vectors; `load_config` merges
   file + env; secrets sourced from env, never the file.
-- [ ] **Step 2:** `budget.py` (`Budget`, `check`) — identical in both engines.
-- [ ] **Step 3:** extend `config.py` with `load_config` + executor config fields.
-- [ ] **Step 4: green** (both engines) — `pytest`, `ruff`, `mypy --strict`.
++ [ ] **Step 2:** `budget.py` (`Budget`, `check`) — identical in both engines.
++ [ ] **Step 3:** extend `config.py` with `load_config` + executor config fields.
++ [ ] **Step 4: green** (both engines) — `pytest`, `ruff`, `mypy --strict`.
   Commit `feat: add budget + config loader to hermes and claude`.
 
 ### Task 4: Hermes `ApiExecutor` (autonomous; offline via stub)
 
-- [ ] **Step 1: failing tests** — `ApiExecutor` over a `StubModelClient`: canned
++ [ ] **Step 1: failing tests** — `ApiExecutor` over a `StubModelClient`: canned
   response → parsed actions → sandboxed write + passing check → `success` with
   evidence; an over-scope action → sandbox-denied `failure`; over-budget →
   blocked. Fail.
-- [ ] **Step 2:** `model/client.py` — `ModelClient` Protocol, `StubModelClient`;
++ [ ] **Step 2:** `model/client.py` — `ModelClient` Protocol, `StubModelClient`;
   real `AnthropicClient`/`LiteLLMClient` behind `[anthropic]`/`[litellm]` extras
   (import-guarded, like OTel).
-- [ ] **Step 3:** `executor/api.py` — `ApiExecutor(client, workspace, budget)`:
++ [ ] **Step 3:** `executor/api.py` — `ApiExecutor(client, workspace, budget)`:
   `build_prompt(task)`, `client.complete`, `parse_actions(response)`, apply via
   effectors + `run_checks`, budget check, → `ExecutorResult`.
-- [ ] **Step 4:** `engine.py` — `api_executor(...)` factory.
-- [ ] **Step 5: green** — `pytest platforms/hermes`, `ruff`, `mypy --strict`.
++ [ ] **Step 4:** `engine.py` — `api_executor(...)` factory.
++ [ ] **Step 5: green** — `pytest platforms/hermes`, `ruff`, `mypy --strict`.
   Commit `feat: add hermes ApiExecutor (autonomous, stub-tested)`.
 
 ### Task 5: Claude `HostRuntimeExecutor` (governor; offline via stub)
 
-- [ ] **Step 1: failing tests** — `HostRuntimeExecutor` over a
++ [ ] **Step 1: failing tests** — `HostRuntimeExecutor` over a
   `StubRuntimeClient`: canned changed-files + output → `ExecutorResult`
   (touched_paths + evidence); failing runtime → `failure`. Fail.
-- [ ] **Step 2:** `runtime/client.py` — `RuntimeClient` Protocol +
++ [ ] **Step 2:** `runtime/client.py` — `RuntimeClient` Protocol +
   `StubRuntimeClient`; document the real Claude Code hook adapter (env-specific).
-- [ ] **Step 3:** `executor/hostruntime.py` — `HostRuntimeExecutor(client,
++ [ ] **Step 3:** `executor/hostruntime.py` — `HostRuntimeExecutor(client,
   workspace, budget)`: `client.run_task` → observe → `ExecutorResult`.
-- [ ] **Step 4:** `engine.py` — `host_executor(...)` factory.
-- [ ] **Step 5: green** — `pytest platforms/claude`, `ruff`, `mypy --strict`.
++ [ ] **Step 4:** `engine.py` — `host_executor(...)` factory.
++ [ ] **Step 5: green** — `pytest platforms/claude`, `ruff`, `mypy --strict`.
   Commit `feat: add claude HostRuntimeExecutor (governor, stub-tested)`.
 
 ### Task 6: Conformance
 
-- [ ] **Step 1:** `test_budget.py` — cross-engine `check` parity over budget
++ [ ] **Step 1:** `test_budget.py` — cross-engine `check` parity over budget
   vectors; extend `test_registry` path check to `budget_root`.
-- [ ] **Step 2: run full suite** + commit `test: add budget conformance`.
++ [ ] **Step 2: run full suite** + commit `test: add budget conformance`.
 
 ### Task 7: Version bump, changelog, handoff
 
-- [ ] **Step 1:** atomic bump to `0.8.0`.
-- [ ] **Step 2:** `CHANGELOG.md` `[0.8.0]`; update `HANDOFF.md`; plan `DONE`.
-- [ ] **Step 3: full verification** + commit `chore: release spec v0.8.0
++ [ ] **Step 1:** atomic bump to `0.8.0`.
++ [ ] **Step 2:** `CHANGELOG.md` `[0.8.0]`; update `HANDOFF.md`; plan `DONE`.
++ [ ] **Step 3: full verification** + commit `chore: release spec v0.8.0
   (config, secrets & live executors)`.
 
 ## Verification
@@ -269,32 +269,32 @@ Expected:
 
 ### Pass 1 - 2026-05-24
 
-- Finding: the `ApiExecutor` shouldn't reinvent apply/checks. Change: it parses
++ Finding: the `ApiExecutor` shouldn't reinvent apply/checks. Change: it parses
   model output into the **same action/check schema** as `ScriptedExecutor` and
   reuses the PLAN-004 effectors + evidence runner — the model is just the action
   generator PLAN-004 deferred.
-- Finding: real model/host clients would break offline build + `mypy --strict`.
++ Finding: real model/host clients would break offline build + `mypy --strict`.
   Change: import-guarded (importlib, like the OTel provider), behind extras;
   absence degrades to the stub (R7).
-- Finding: budgets span multiple tasks. Clarified: the executor instance (one per
++ Finding: budgets span multiple tasks. Clarified: the executor instance (one per
   run) tracks cumulative usage and checks before each model call (R4/R5).
-- Finding: forcing the divergent live executors into parity would be wrong.
++ Finding: forcing the divergent live executors into parity would be wrong.
   Confirmed (R2): they implement the same `Executor` Protocol but are A/B by
   design (D-0013) — not copied, not differential'd; only budget/config-common is
   parity-pinned.
 
 ### Pass 2 - 2026-05-24
 
-- Finding: the wall-time budget dimension needs a usage source. Confirmed: the
++ Finding: the wall-time budget dimension needs a usage source. Confirmed: the
   decision `check(budget, usage)` is pure (vector'd with given numbers); the live
   executor measures elapsed time at runtime (not vector'd) — same pure/real split
   as the rest.
-- Finding: `ApiExecutor` does real file writes → not conformance-vector'd.
++ Finding: `ApiExecutor` does real file writes → not conformance-vector'd.
   Confirmed: it's per-engine offline-tested against a `StubModelClient` over a tmp
   workspace (PLAN-004 regime); only the budget decision is parity'd.
-- Finding: budgets must not change the shared loop. Confirmed: enforced inside the
++ Finding: budgets must not change the shared loop. Confirmed: enforced inside the
   executors; default `Budget` unlimited; the loop and `MockExecutor` scenarios are
   byte-identical (R5).
-- Verification ↔ surface cross-check: budget (engine-agnostic) vector'd +
++ Verification ↔ surface cross-check: budget (engine-agnostic) vector'd +
   differential; live executors per-engine stub-tested offline; real clients
   integration-only (credential-gated, skipped). No further findings.

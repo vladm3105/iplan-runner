@@ -82,8 +82,8 @@ disabled; it can be enabled at any time. **Delivered by D-4b**
   verify events produced offline. (D-4b Task 3.)
 - [x] **D-4c — SQLite operational store** (`plans/PLAN-020`, D-0021): the relay
   cursor / dead-letter / identity now live in a per-store SQLite DB
-  (stdlib `sqlite3`, no new dep), outbox-shaped on `idempotency_key` so dead-letter
-  + cursor-advance is one atomic transaction (iplanic-symmetric). The signed ledger
+  (stdlib `sqlite3`, no new dep), outbox-shaped on `idempotency_key` so dead-letter +
+  cursor-advance is one atomic transaction (iplanic-symmetric). The signed ledger
   stays a portable file. (DONE — built behind the unchanged store interface.)
 
 ## Inbound dispatch — A2A task receiver (PLAN-021 → PLAN-023 → PLAN-024)
@@ -118,8 +118,8 @@ a task to a running engine over A2A (`POST /v1/tasks`) instead of a file.
   parity gap (spec parity = version + no-cross-import, not a source diff). Stub-only →
   fully CI-able; the **real** client adapters are the last piece (below).
 - [ ] **PLAN-024 — real client adapters (integration-only).** The last live-execution
-  gap: claude's real Claude Code hook `RuntimeClient` (only `StubRuntimeClient` exists)
-  + hermes's real model client (`get_model_client(...)`, `[anthropic]` extra +
+  gap: claude's real Claude Code hook `RuntimeClient` (only `StubRuntimeClient` exists) +
+  hermes's real model client (`get_model_client(...)`, `[anthropic]` extra +
   credentials) — a **config-guarded swap of the stub** in the PLAN-023 factory, no
   other receiver change. Un-CI-able (needs a real runtime/API + credentials).
   - **DECISION B — the runtime (still open; pick when needed):** (a) **Claude Code

@@ -286,8 +286,8 @@ not alter any `plans/DECISIONS.md` entry.
   - `.claude/skills/verified-planning/PLAN.md` and `DESIGN.md` — they enumerate
     all six private repos. **Keep** the actual tool: `SKILL.md`, `check_plan.py`,
     `PLAN-TEMPLATE.snippet.md`, `install.sh`, `plan-gate.yml`,
-    `precommit-hook.snippet.yaml`, and `tests/` (verify `tests/test_check_plan.py`
-    + `tests/test_install.sh` carry no sibling-repo names; genericize if they do).
+    `precommit-hook.snippet.yaml`, and `tests/` (verify `tests/test_check_plan.py` +
+    `tests/test_install.sh` carry no sibling-repo names; genericize if they do).
   - `plans/PLAN-016_codename-reassign-and-iplan-package-rename.md` — wholly
     AIOps-Flow/brand/cross-repo business strategy; cannot be de-internalized.
 
@@ -615,8 +615,8 @@ private-sibling refs" claim was false and has been corrected; recorded as **G8**
 **This re-opened the curation decision.** Maintainer chose **curate before
 public** (2026-06-14): G8 (Task 5 Steps 3–5) was added to remove the
 verified-planning dev artifacts (`PLAN.md`/`DESIGN.md`) + `plans/PLAN-016` and
-redact AIOps-Flow/BRAND/cross-repo passages from `DECISIONS.md` + the three docs
-+ `PLAN-001`, with a G8 token gate in Verification (R9, ledger rows 18–19).
+redact AIOps-Flow/BRAND/cross-repo passages from `DECISIONS.md` + the three docs +
+`PLAN-001`, with a G8 token gate in Verification (R9, ledger rows 18–19).
 
 ### Pass 6 - 2026-06-14 - independent (general-purpose Agent, fresh context) - G8 confirmation
 

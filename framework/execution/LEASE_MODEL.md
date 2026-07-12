@@ -29,7 +29,7 @@ released_at: "2026-05-24T10:30:00Z"  # null = still held
 
 ## Concurrency guard
 
-```
+```text
 can_acquire(existing_leases, task_id, now) -> bool
 ```
 

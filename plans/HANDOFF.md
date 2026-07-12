@@ -66,6 +66,7 @@ mTLS/OIDC inbound auth.
 ## Recently merged: D-4b iplanic transport (PLAN-019, PR #40)
 
 The online + on-demand-sync operating modes are real:
+
 - **Idempotency-key fix** (Task 1): `execution-event` `event_id`/`idempotency_key`/
   `trace_id` now anchor on the D-0008 `event_hash` (+ `event_type` discriminator for
   the `task.completed`+`test.*` fan-out), not the positional counter — re-projection

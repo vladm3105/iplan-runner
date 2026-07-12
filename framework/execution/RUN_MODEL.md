@@ -7,7 +7,7 @@ the same inputs (enforced by scenario differential, D-0012).
 
 ## Run lifecycle
 
-```
+```text
 created ──▶ running ──▶ reconciled ──▶ (handover)
 ```
 
@@ -29,7 +29,7 @@ A run is driven by `run(manifest, executor, *, clock, ids) -> RunResult` where
 The gate (`GATE-LEDGER-001..005`) validates ledger **well-formedness**, not
 completion. The terminal handover status is:
 
-```
+```text
 completed   iff  reconciliation.allowed AND gate passed
 aborted     otherwise
 ```

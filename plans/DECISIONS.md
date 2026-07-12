@@ -5,6 +5,8 @@ older ones (mark superseded entries, never delete).
 
 ---
 
+## Decision log
+
 ### D-0001 - Repo is a hybrid spec + runtime - 2026-05-23
 
 `iplan-runner` is a **hybrid**: an engine-agnostic *contract* in

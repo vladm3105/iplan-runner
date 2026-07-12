@@ -10,7 +10,7 @@ turns an **approved IPLAN** into auditable execution.
 
 ## The model
 
-```
+```text
 SDD control plane            │  IOps execution plane (this repo)
 BRD → PRD → … → IPLAN         │  IPLAN ─▶ Ledger ─▶ Gate ─▶ Monitor
 "done when committed+green"   │  plan    evidence   proof    observe

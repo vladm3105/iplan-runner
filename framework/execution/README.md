@@ -16,7 +16,7 @@ Protocol docs: `AGENT_UPDATE_PROTOCOL.md`, `HOOK_INTEGRATION_POINTS.md`,
 
 ## Task status model
 
-```
+```text
 pending ──▶ in_progress ──▶ completed
                 │
                 └────────▶ blocked  (requires decision_owner)
@@ -38,7 +38,7 @@ authority on completion.
 
 `execution_log` is append-only. For each event:
 
-```
+```text
 event_hash = sha256(f"{sequence}|{previous_event_hash}|{event_type}|{subject_id}|{at}")
 ```
 

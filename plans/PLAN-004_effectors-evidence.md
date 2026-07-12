@@ -89,6 +89,7 @@ actually do it, safely:
 ## Approach
 
 **Two regimes, deliberately separated.**
+
 - **Pure + parity-pinned:** `classify_path` is a lexical decision (no I/O) — the
   safety-critical core. It gets golden vectors and a cross-engine differential,
   exactly like other validators (D-0012). `redact` is also pure and

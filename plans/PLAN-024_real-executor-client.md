@@ -13,7 +13,7 @@ clients + a wall budget so a first *real* run is possible.
 > — this plan. A separate branch `plan/PLAN-024_l1-intake-provenance-gate` mis-took the
 > number (the L1 intake gate); reconciling that duplicate is TODO-P5 hygiene and does not
 > block this plan. This file is the canonical PLAN-024 per the doc of record.
-
+>
 > **Engine parity:** the executor is the **engine-specific** seam (claude ships
 > `HostRuntimeExecutor` over a `RuntimeClient`; hermes ships `ApiExecutor` over a
 > `ModelClient`) — NOT byte-identical twins. Each fix lands in its own engine; the
@@ -96,7 +96,7 @@ with either and must land before a real run so a hung agent can't wedge the rece
 | 5 | `_AnthropicClient` is integration-only (needs the anthropic extra + api_key) | `class _AnthropicClient` | platforms/hermes/src/iplan_hermes/model/client.py:32 |
 | 6 | claude `host` mode hard-wires `StubRuntimeClient` | `engine.host_executor(StubRuntimeClient(), workspace)` | platforms/claude/src/iplan_claude/cli/commands.py:192 |
 | 7 | no real `RuntimeClient` adapter — only the Protocol + stub | `class StubRuntimeClient` | platforms/claude/src/iplan_claude/runtime/client.py:23 |
-| 8 | `api_executor` takes an optional `budget` defaulting to `None` | `budget: Budget | None = None` | platforms/hermes/src/iplan_hermes/engine.py:113 |
+| 8 | `api_executor` takes an optional `budget` defaulting to `None` | `budget: Budget \| None = None` | platforms/hermes/src/iplan_hermes/engine.py:113 |
 | 9 | `run_with_deadline` runs inline (no timeout) when `max_wall_s is None` | `if max_wall_s is None:` | platforms/hermes/src/iplan_hermes/budget.py:26 |
 | 10 | config has `receiver_executor` (mock default) and no wall-budget field | `receiver_executor: str = "mock"` | platforms/hermes/src/iplan_hermes/config.py:47 |
 | 11 | HANDOFF reserves PLAN-024 = real client adapters | `next **plan** = **PLAN-024** (real client adapters` | plans/HANDOFF.md:134 |
@@ -107,6 +107,7 @@ with either and must land before a real run so a hung agent can't wedge the rece
 ## Review log
 
 ### Pass 1 — 2026-07-10 — author (self)
+
 Drafted from a first-real-run readiness audit. Verified citations 1-11 by opening each
 file. R2 (build the claude host adapter) is the load-bearing effort — there is no real
 `RuntimeClient` today; R1 (hermes) is a routing change over an existing `_AnthropicClient`.
@@ -115,6 +116,7 @@ first-handshake test.
 **Result:** pending independent review (Pass 2 required before ready).
 
 ### Pass 2 — 2026-07-10 — independent
+
 Fresh-context adversarial review against the real source. **All 11 original citations
 resolve exactly; zero fail.** The per-engine cross-check confirmed: BOTH engines
 hard-wire a stub at the same `cli/commands.py:192` (hermes `StubModelClient`, claude

@@ -13,7 +13,7 @@ schema drift is absorbed by the mapping, not the engine core.
 
 ## Approval threshold
 
-```
+```text
 EXEC_READY_MIN = 90
 ```
 

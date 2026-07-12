@@ -182,8 +182,8 @@ traced the design end to end on **both** engines and confirmed:
 - **Config load** confirmed: adding `"executor"` to the str-field loop sets `receiver_executor` from
   `receiver.executor`; default `"mock"` = byte-for-byte today.
 
-**One MINOR fold, applied:** `cli/commands.py` (both engines) needs `from collections.abc import Callable`
-+ `from ..executor.base import Executor` for the `_executor_factory` return annotation. No load-bearing
+**One MINOR fold, applied:** `cli/commands.py` (both engines) needs `from collections.abc import Callable` +
+`from ..executor.base import Executor` for the `_executor_factory` return annotation. No load-bearing
 defects.
 
 **Result:** ready — zero load-bearing findings; the one minor import fold is applied.

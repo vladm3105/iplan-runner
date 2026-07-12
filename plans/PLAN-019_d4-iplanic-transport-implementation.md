@@ -18,6 +18,7 @@ in `plans/PLAN-017` + D-0020.
 
 **Architecture:** New per-engine `relay/` package consuming the existing durable
 ledger (`ledger/persistence.py`) + projection (`ledger/events.py:to_execution_events`)
+
 + signer (`security/iplanic_signing.py`). No `framework/` contract change (the
 wire event shape is unchanged); the idempotency-key fix is a **value-derivation**
 change that regenerates the projection golden. Standalone runs are unaffected —
@@ -136,59 +137,59 @@ integration suite run against both.
 
 ### Task 1: Idempotency-key fix + golden regen (both engines)
 
-- [ ] **Step 1:** In each engine's `ledger/events.py:_build_event`, thread the
++ [ ] **Step 1:** In each engine's `ledger/events.py:_build_event`, thread the
   source `log_event`'s `event_hash` in and derive: `idempotency_key =
   {run_id}:{event_hash}:{event_type}` (the `event_type` discriminator avoids the
   fan-out collision — one `event_hash` → `task.completed` + `test.*`),
   `event_id = EV-<short-hash-of-that-key>`, and `trace_id` likewise anchored on
   `event_hash` (not the positional `ids("TR")`). The wire fields are unchanged;
   only their values are now content-stable.
-- [ ] **Step 2:** Regenerate `framework/conformance/remote/accept/expect.yaml` —
++ [ ] **Step 2:** Regenerate `framework/conformance/remote/accept/expect.yaml` —
   the new `event_id`/`idempotency_key`/`trace_id` **and** the `signature.value`s
   (those fields are inside `signing_payload`). Run the remote conformance +
   cross-engine differential until green. (The `framework/remote/iplanic-vectors/`
   signing vectors sign a fixed given event and are NOT regenerated.)
-- [ ] **Step 3: Commit** `fix(ledger): anchor execution-event id/idempotency_key on hash-chain identity (D-4b)`
++ [ ] **Step 3: Commit** `fix(ledger): anchor execution-event id/idempotency_key on hash-chain identity (D-4b)`
 
 ### Task 2: Per-engine relay package (client / worker / store / reject)
 
-- [ ] **Step 1:** `relay/client.py` — stdlib HTTP POST to `<endpoint>/v1/events`,
++ [ ] **Step 1:** `relay/client.py` — stdlib HTTP POST to `<endpoint>/v1/events`,
   bearer token from an injected provider (static in tests), bounded
   retry/backoff on transport/5xx; returns a typed `Outcome`.
-- [ ] **Step 2:** `relay/store.py` — durable cursor keyed on the **projected-event
++ [ ] **Step 2:** `relay/store.py` — durable cursor keyed on the **projected-event
   identity** (the stable `idempotency_key`), NOT the raw log `sequence` —
   projection skips some log kinds and fans `task_completed` out to two events, so
   a log-sequence cursor is not 1:1 with emitted events. Plus a durable dead-letter
   sink next to the ledger store; write-order: dead-letter commit **before** cursor
   advance.
-- [ ] **Step 2a:** Persist the iplanic identity block at payload-mode run/intake
++ [ ] **Step 2a:** Persist the iplanic identity block at payload-mode run/intake
   time (sidecar next to the ledger); the worker + `sync` load `ledger + identity`
   to project. `sync` errors clearly if no identity is persisted or configured.
-- [ ] **Step 3:** `relay/reject.py` — the reject→outcome map incl. the local
++ [ ] **Step 3:** `relay/reject.py` — the reject→outcome map incl. the local
   `timestamp_skew` heuristic (`MAX_AGE` default 86400s).
-- [ ] **Step 4:** `relay/worker.py` — drain loop tying the above to
++ [ ] **Step 4:** `relay/worker.py` — drain loop tying the above to
   `persistence.load` + `to_execution_events`.
-- [ ] **Step 5: Commit** (per engine) `feat(relay): iplanic transport drain worker + durable cursor/dead-letter`
++ [ ] **Step 5: Commit** (per engine) `feat(relay): iplanic transport drain worker + durable cursor/dead-letter`
 
 ### Task 3: Config toggle + CLI `sync` command
 
-- [ ] **Step 1:** Add the `iplanic` sync block to `Config`/`load_config`
++ [ ] **Step 1:** Add the `iplanic` sync block to `Config`/`load_config`
   (`sync.enabled` default **false**; endpoint; token via env, never file).
-- [ ] **Step 2:** Add the `sync` subcommand (drain from the cursor; `--store`,
++ [ ] **Step 2:** Add the `sync` subcommand (drain from the cursor; `--store`,
   `--dry-run`); no-op with a clear message when `sync.enabled` is false.
-- [ ] **Step 3: Commit** `feat(cli): on-demand iplanic sync command + config toggle (off by default)`
++ [ ] **Step 3: Commit** `feat(cli): on-demand iplanic sync command + config toggle (off by default)`
 
 ### Task 4: Gated fake-server integration suite (both engines)
 
-- [ ] **Step 1:** `tests/test_iplanic_transport.py` (per engine) — in-process fake
++ [ ] **Step 1:** `tests/test_iplanic_transport.py` (per engine) — in-process fake
   `/v1/events` server (202 + reject envelopes from the vendored vectors), opt-in
   marker / skip-without-flag (PLAN-008 pattern, not in CI). Assert: 202 + idempotent
   replay, each reject→outcome, dead-letter-doesn't-stall, auth-refresh-once.
-- [ ] **Step 2: Commit** `test(relay): gated fake-iplanic integration suite (per engine)`
++ [ ] **Step 2: Commit** `test(relay): gated fake-iplanic integration suite (per engine)`
 
 ### Task 5: Docs
 
-- [ ] **Step 1:** `CHANGELOG.md` `[Unreleased]`; refresh `plans/HANDOFF.md`
++ [ ] **Step 1:** `CHANGELOG.md` `[Unreleased]`; refresh `plans/HANDOFF.md`
   (D-4b built), `TODO.md` (check off the operating-modes items), mark this plan
   `Status: DONE`.
 
@@ -253,7 +254,7 @@ refresh on both engines; a sync-disabled run makes no network call.
 
 ### Pass 1 - 2026-06-15 - author self-review
 
-- Drafted from the two Explore sweeps; confirmed citation anchors by grep
++ Drafted from the two Explore sweeps; confirmed citation anchors by grep
   (store.py:12, events.py:50/55/68, iplanic_signing.py:55/64, config.py:21,
   accept/expect.yaml:51). Sized to D-4b — no speculative scope beyond the
   PLAN-017/D-0020 design. Flagged the golden-regen as in-scope (the idempotency
@@ -264,20 +265,20 @@ refresh on both engines; a sync-disabled run makes no network call.
 All 13 original citations verified accurate. Two **[BLOCKING]** design gaps + two
 [SHOULD] found and folded:
 
-- **[BLOCKING] id/key collision.** One `task_completed` log event projects to two
++ **[BLOCKING] id/key collision.** One `task_completed` log event projects to two
   events (`task.completed` + `test.passed`/`test.failed`, same `event_hash`), so a
   bare-`event_hash` key collides → iplanic drops the second. **Fixed:** derivation
   now includes an `event_type` discriminator (Scope 1 / Task 1 Step 1; R6;
   ledger 14).
-- **[BLOCKING] no identity source.** `to_execution_events` pulls the 8 identity
++ **[BLOCKING] no identity source.** `to_execution_events` pulls the 8 identity
   fields from the payload, but the store holds only the ledger → the drain worker
   has nothing to project. **Fixed:** persist the payload identity at run time;
   `sync` loads ledger + identity (Scope 1a; Task 2a; Out 3a; R7; ledger 15).
-- **[SHOULD] `trace_id` left positional** → re-projection signature drift.
++ **[SHOULD] `trace_id` left positional** → re-projection signature drift.
   **Fixed:** anchor `trace_id` on `event_hash` too (Task 1 Step 1).
-- **[SHOULD] golden regen** must include `signature.value`s (id/key/trace are in
++ **[SHOULD] golden regen** must include `signature.value`s (id/key/trace are in
   the signed payload). **Fixed:** Task 1 Step 2 says so.
-- [NIT] cursor must key on projected-event identity, not raw log sequence (skips +
++ [NIT] cursor must key on projected-event identity, not raw log sequence (skips +
   fan-out). **Fixed:** Task 2 Step 2.
 
 ### Pass 3 - 2026-06-15 - independent (general-purpose Agent, fresh context) - confirmation

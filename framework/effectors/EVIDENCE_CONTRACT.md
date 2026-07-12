@@ -11,7 +11,7 @@ A check is `{name, command}` where `command` is an **argument list** (run with
 no shell, `shell=False`). The evidence runner executes each check in the
 workspace and captures `{name, exit_code, output}`.
 
-```
+```text
 run_checks(checks, workspace) -> {passed: bool, results: [{name, exit_code, output}]}
 ```
 
@@ -42,7 +42,7 @@ passed, else `failure` with a `reason`.
 
 ## Redaction
 
-```
+```text
 redact(value, secrets) -> value with each secret replaced by "***"
 ```
 

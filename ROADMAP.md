@@ -207,8 +207,8 @@ the development plans (`PLAN-001` complete; `PLAN-002` next).
 ### Operating modes & on-demand iplanic sync
 
 Two modes, selected by a **sync toggle** in the engine config (`iplanic.sync`,
-**disabled by default**). **Built by D-4b** (`plans/PLAN-019`): the relay transport
-+ the config-gated mode switch + the on-demand `sync` command. Operational-store
+**disabled by default**). **Built by D-4b** (`plans/PLAN-019`): the relay transport +
+the config-gated mode switch + the on-demand `sync` command. Operational-store
 durability hardening is **built in D-4c** (`plans/PLAN-020`, D-0021): the relay's
 cursor / dead-letter / identity live in a per-store SQLite DB (stdlib, no new dep),
 outbox-shaped on `idempotency_key` so dead-letter + cursor-advance is one atomic,

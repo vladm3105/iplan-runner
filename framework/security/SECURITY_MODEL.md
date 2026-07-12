@@ -10,7 +10,7 @@ The execution-log hash chain is tamper-*evident* (anyone can recompute
 `event_hash`) but not *authenticated*. Signing makes it tamper-*proof* without
 the key:
 
-```
+```text
 signature = "hmac-sha256:" + HMAC_SHA256(key, canonical(event))
 canonical(event) = json.dumps(event without "signature", sort_keys=True,
                               separators=(",", ":"))

@@ -7,7 +7,7 @@ so it is the parity surface (golden vectors + cross-engine differential, D-0012)
 
 ## Decision
 
-```
+```text
 classify_path(path: str, allowed_roots: list[str], forbidden_paths: list[str] = ()) -> {allowed: bool, reason: str}
 ```
 

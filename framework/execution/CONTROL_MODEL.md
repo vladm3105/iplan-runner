@@ -34,7 +34,7 @@ flag, so `pause`/`abort` from another process is seen at the next checkpoint.
 
 ## Blocker resolution
 
-```
+```text
 resolve_blocker(ledger, blocker_id, decision, actor)   # approve | reject | override
 ```
 
@@ -52,7 +52,7 @@ decision — not a silent bypass.
 
 ## Resume
 
-```
+```text
 resume(manifest, ledger, executor, *, clock, ids, sleep, control)
 ```
 

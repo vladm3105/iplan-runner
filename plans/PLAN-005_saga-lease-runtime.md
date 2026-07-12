@@ -97,7 +97,7 @@ still holds.
 
 **The attempt loop (in `saga.py`, called by the run loop).**
 
-```
+```text
 attempt = 0
 while True:
     attempt += 1

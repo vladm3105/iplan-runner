@@ -8,20 +8,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **markdown-lint graduated to blocking (PLAN-007 W3)** — adopted the relaxed canon `.markdownlint.json` (disables MD013/MD024/MD036), cleared the residual violations, flipped `fail-on-findings: false → true`. Cleanups were targeted + meaning-preserving (a blind `markdownlint-cli2 --fix` corrupts prose by misreading literal `+` in wrapped sentences as list markers): reflowed 16 prose-`+` lines, disabled MD033 on the two `PLAN-TEMPLATE` files (their `<placeholder>` fill-in syntax is intentional), backticked the PR-template placeholders, added `text` to 22 framework pseudo-code fences (MD040), added a `## Decision log` h2 in `plans/DECISIONS.md` so the `### D-NNNN` entries no longer skip a level under the h1 title (MD001 — the `### D-` symbols are kept intact because verified-planning Claim ledgers cite them by exact string), merged a blockquote split (MD028), escaped a literal `|` in a table code span (MD056), plus `--fix` for the structural blank-line/strong-style rules. (Also repaired two `__init__.py` file-path citations that `--fix` had mangled to `**init**.py` via MD050.) Arming as a required status check is the separate founder-executed W4 step (FT-11).
 - **Re-pin aidoc-flow-ci callers to @ci/v1.9.5** — version-only bump of stale `@ci/vX.Y.Z` pins to the current canon (per `sync/check-pin-currency.sh`). Topology preserved.
 
 ### Added
 
 - **Content-check CI workflows** — `links` (blocking, offline), `markdown-lint` (report-only, `fail-on-findings: false`), and `docs-sync` (dry-run) callers of the aidoc-flow-ci reusables @ci/v1.9.5, + `.markdownlint.json`/`.github/docs-sync.json` configs. Completes the content-check surface (labeler/secret-scan already present).
+
 ### Added — canon secret-scan (gitleaks) workflow (2026-07-11)
 
 Adopted the aidoc-flow-ci secret-scan gate (@ci/v1.9.2, gitleaks binary).
 
-
 ### Changed — re-pin aidoc-flow-ci callers to @ci/v1.9.1 (2026-07-11)
 
 Bumped audit-trail + auto-merge callers to `@ci/v1.9.1` via `install.sh --repin` (also fixes stale `v1.6.0`/`v1.5.1` pins). Version-only; ai-review (→ operations@main) untouched.
-
 
 ### Fixed — PLAN-025 P3 (batch 3): executor wall-clock timeout (M-wall) (2026-07-09)
 
@@ -141,6 +141,7 @@ scope. In practice this repo's TODO row already existed pre-adoption,
 so this PR cleans its annotation rather than adding it. Net CLAUDE.md
 Δ is +1 line instead of the plan-estimated +15. Feedback to plan
 author noted; no further action needed here.
+
 - **`CHANGELOG.md`** — this entry.
 
 **2 surfaces** (CLAUDE.md + this CHANGELOG entry). OPS-0061 Rule 1 compliant.

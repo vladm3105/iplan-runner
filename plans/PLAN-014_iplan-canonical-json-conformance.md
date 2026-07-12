@@ -170,11 +170,11 @@ two headline deliverables:
   each is independently load-bearing (isolating `received_at` alone still
   mismatches). The raw-vs-utf8 key divergence is concrete — IOPS `signing_key` is a
   utf-8 `str` (`config.py:32`).
-- **PLAN-014's spec reproduces all three vector families** byte-for-byte: `canon_*`
-  + `normalize_omit_vs_null` (canonical bytes + sha256), `sig_hmac` (`bcac…`,
+- **PLAN-014's spec reproduces all three vector families** byte-for-byte: `canon_*` +
+  `normalize_omit_vs_null` (canonical bytes + sha256), `sig_hmac` (`bcac…`,
   raw-byte key, lowercase hex), and `sig_ed25519` (from the 32-byte seed; `verify`
-  succeeds against the public hex). The spec matches `iplan_canonical/canonical.py`
-  + `signing.py` field-for-field incl. `EXCLUDED_EVENT_FIELDS = ("signature",
+  succeeds against the public hex). The spec matches `iplan_canonical/canonical.py` +
+  `signing.py` field-for-field incl. `EXCLUDED_EVENT_FIELDS = ("signature",
   "received_at")`; `rfc8785>=0.1.4` + `cryptography>=42` are the correct libs.
 - All citations (PLAN-013 rows 4/9; PLAN-014 rows 1–6) resolve; the cross-repo note
   matches the iplanic source; `D-0017` is the correct next id; the standalone
@@ -184,8 +184,8 @@ two headline deliverables:
 **No BLOCKER, no load-bearing issues.** One minor doc fix folded in:
 
 - PLAN-014 said `sign` returns the `{key_id, algorithm, value}` object, but the
-  Iplanic reference `sign` returns a bare hex `value` (no `key_id` input). → Approach
-  + Task 2 now state `sign` returns the hex `value`; the object is assembled by the
+  Iplanic reference `sign` returns a bare hex `value` (no `key_id` input). → Approach +
+  Task 2 now state `sign` returns the hex `value`; the object is assembled by the
   consumer (`to_execution_events`, which PLAN-013 already has), and the HMAC raw-key-
   bytes convention is named explicitly.
 

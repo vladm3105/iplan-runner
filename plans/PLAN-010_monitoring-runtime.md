@@ -11,6 +11,7 @@ clear split between **product monitoring** (the manifest) and **engine
 self-telemetry** (the run itself).
 
 **Architecture:** Additive (D-0014). New `framework/monitoring/MONITORING_RUNTIME.md`
+
 + an `alert/` conformance kind. Two regimes (as PLAN-008): the engine-agnostic
 **alert evaluation** + **issue record** are pure → golden-vector'd + differential;
 the **probe server** and **live OTel** are real I/O → per-engine / integration
@@ -87,6 +88,7 @@ then for each `alert_rule` with a `slo_ref` whose SLO is breached (`met is
 False`), emits `{alert_id, slo_ref, severity, escalation_owner}`. An `alert_rule`
 whose `slo_ref` doesn't resolve to an SLO yields nothing. This avoids evaluating
 arbitrary `when` strings (the `when` becomes human-readable documentation). Pure
+
 + deterministic → golden-vector'd + differential. `build_issue` is also pure and
 unit-tested per engine.
 
@@ -130,56 +132,56 @@ blocked, durations). Documented so they aren't conflated.
 
 ### Task 1: Framework monitoring-runtime contract
 
-- [ ] **Step 1:** `MONITORING_RUNTIME.md` — alert evaluation (`slo_ref` breach →
++ [ ] **Step 1:** `MONITORING_RUNTIME.md` — alert evaluation (`slo_ref` breach →
   alert), issue-record shape, probe server, self-telemetry vs product, live-OTel.
-- [ ] **Step 2:** add `slo_ref` to `alert_rules` in the manifest template (e.g.
++ [ ] **Step 2:** add `slo_ref` to `alert_rules` in the manifest template (e.g.
   `ALERT-001` → `slo_ref: SLO-001`).
-- [ ] **Step 3:** registry — add the doc + `alert_root: framework/conformance/alert`.
-- [ ] **Step 4: parse check + commit** — `feat: add monitoring-runtime contract`.
++ [ ] **Step 3:** registry — add the doc + `alert_root: framework/conformance/alert`.
++ [ ] **Step 4: parse check + commit** — `feat: add monitoring-runtime contract`.
 
 ### Task 2: Alert vectors
 
-- [ ] **Step 1:** `alert/breach` (a manifest + samples where SLO-001 is breached →
++ [ ] **Step 1:** `alert/breach` (a manifest + samples where SLO-001 is breached →
   one alert); `alert/healthy` (samples within objective → no alerts);
   `alert/no_ref` (alert_rule without a resolvable `slo_ref` → no alert).
-- [ ] **Step 2: commit** — `test: add alert-evaluation vectors`.
++ [ ] **Step 2: commit** — `test: add alert-evaluation vectors`.
 
 ### Task 3: Alert evaluation + issue (engine-agnostic, both engines)
 
-- [ ] **Step 1: failing tests** — `evaluate_alerts` over the vectors; `build_issue`
++ [ ] **Step 1: failing tests** — `evaluate_alerts` over the vectors; `build_issue`
   produces an `@iplan`/`@ledger`-bound record. Fail.
-- [ ] **Step 2:** `monitoring/alerts.py` (`evaluate_alerts`, `build_issue`) —
++ [ ] **Step 2:** `monitoring/alerts.py` (`evaluate_alerts`, `build_issue`) —
   identical in both engines.
-- [ ] **Step 3:** engine methods `evaluate_alerts` / `build_issue`.
-- [ ] **Step 4: green** (both) — commit `feat: add alert evaluation + issue record`.
++ [ ] **Step 3:** engine methods `evaluate_alerts` / `build_issue`.
++ [ ] **Step 4: green** (both) — commit `feat: add alert evaluation + issue record`.
 
 ### Task 4: Probe server + live OTel + self-telemetry (per engine)
 
-- [ ] **Step 1: failing tests** — `probe_server` serves `/healthz` etc. (200 +
++ [ ] **Step 1: failing tests** — `probe_server` serves `/healthz` etc. (200 +
   JSON) on an ephemeral port; `emit_run_telemetry` records run signals via a
   capturing provider; OTel metrics/logs test (skipped if `[otel]` absent). Fail.
-- [ ] **Step 2:** `monitoring/probes.py` — stdlib `http.server` over the manifest
++ [ ] **Step 2:** `monitoring/probes.py` — stdlib `http.server` over the manifest
   probes + injected `health`.
-- [ ] **Step 3:** extend `monitoring/otel.py` — real `record_metric`/`log` behind
++ [ ] **Step 3:** extend `monitoring/otel.py` — real `record_metric`/`log` behind
   the lazily-imported SDK; no-op default unchanged.
-- [ ] **Step 4:** `monitoring/telemetry.py` — `emit_run_telemetry(provider, ledger)`.
-- [ ] **Step 5:** engine `serve_probes` + self-telemetry wiring.
-- [ ] **Step 6: green** — `pytest`, `ruff`, `mypy --strict`. Commit
++ [ ] **Step 4:** `monitoring/telemetry.py` — `emit_run_telemetry(provider, ledger)`.
++ [ ] **Step 5:** engine `serve_probes` + self-telemetry wiring.
++ [ ] **Step 6: green** — `pytest`, `ruff`, `mypy --strict`. Commit
   `feat: add probe server + live otel + self-telemetry to <engine>` (×2,
   independent copies).
 
 ### Task 5: Conformance
 
-- [ ] **Step 1:** `test_alerts.py` — cross-engine `evaluate_alerts` parity over
++ [ ] **Step 1:** `test_alerts.py` — cross-engine `evaluate_alerts` parity over
   the alert vectors; extend `test_registry` to `alert_root`.
-- [ ] **Step 2: run full suite** + commit `test: add alert conformance`.
++ [ ] **Step 2: run full suite** + commit `test: add alert conformance`.
 
 ### Task 6: Version bump, changelog, handoff
 
-- [ ] **Step 1:** atomic bump to `0.10.0`.
-- [ ] **Step 2:** `CHANGELOG.md` `[0.10.0]`; update `HANDOFF.md` + `TODO.md`;
++ [ ] **Step 1:** atomic bump to `0.10.0`.
++ [ ] **Step 2:** `CHANGELOG.md` `[0.10.0]`; update `HANDOFF.md` + `TODO.md`;
   plan `DONE`.
-- [ ] **Step 3: full verification** + commit `chore: release spec v0.10.0
++ [ ] **Step 3: full verification** + commit `chore: release spec v0.10.0
   (monitoring runtime)`.
 
 ## Verification
@@ -219,29 +221,29 @@ Expected:
 
 ### Pass 1 - 2026-05-24
 
-- Finding: evaluating arbitrary `when` expressions is unsafe + non-portable.
++ Finding: evaluating arbitrary `when` expressions is unsafe + non-portable.
   Change: alerts fire on a referenced **SLO breach** via `alert_rules[].slo_ref`;
   `when` is documentation only (R1). Added `slo_ref` to the manifest template.
-- Finding: the alert/SLO data flow needed pinning. Clarified: `samples` are keyed
++ Finding: the alert/SLO data flow needed pinning. Clarified: `samples` are keyed
   by metric name; `evaluate_slos` resolves each SLO's `signal_ref`; breach =
   `met is False`; an unresolved `slo_ref` → no alert (the `no_ref` vector).
-- Finding: live OTel + probe server can't run in CI. Confirmed two-regime split:
++ Finding: live OTel + probe server can't run in CI. Confirmed two-regime split:
   alert eval (pure) vector'd + differential; OTel behind `[otel]` (skipped
   offline, no-op default), probe server per-engine on an ephemeral port (R2/R3).
-- Finding: posting issues implies network/credentials. Confirmed out of scope —
++ Finding: posting issues implies network/credentials. Confirmed out of scope —
   `build_issue` returns the record; delivery is the post-v1.0 loop (R4).
 
 ### Pass 2 - 2026-05-24
 
-- Finding: monitoring must not change run behavior. Confirmed observe-only: alert
++ Finding: monitoring must not change run behavior. Confirmed observe-only: alert
   eval / issue / probes / self-telemetry all read state; the run loop and prior
   scenarios are byte-identical (R6).
-- Finding: `alert_rules.slo_ref` is additive to the manifest template. Confirmed
++ Finding: `alert_rules.slo_ref` is additive to the manifest template. Confirmed
   it doesn't affect `test_contract` (parse + document_type) or `MON-001`
   validation (R7).
-- Finding: product vs engine telemetry could be conflated. Confirmed kept
++ Finding: product vs engine telemetry could be conflated. Confirmed kept
   distinct: product = the manifest SLOs; engine = `emit_run_telemetry` over the
   ledger; documented in MONITORING_RUNTIME.
-- Verification ↔ surface cross-check: alert evaluation (engine-agnostic) is
++ Verification ↔ surface cross-check: alert evaluation (engine-agnostic) is
   vector'd + differential; probe server / live OTel / self-telemetry are
   per-engine (+ OTel integration skipped offline). No further findings.

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable-file MD033 — template uses <placeholder> fill-in syntax -->
+
 # <TITLE> Implementation Plan
 
 > Development plans follow the SDD workflow inherited from

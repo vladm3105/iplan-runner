@@ -117,6 +117,7 @@ deliberate.
 
 **Behavioral parity via golden vectors (D-0012).** The thing that keeps two
 independent implementations honest is data, not shared code:
+
 - `framework/conformance/rule-ids.yaml` enumerates stable, fine-grained rule IDs
   (`LEDGER.EVIDENCE_REQUIRED`, `LEDGER.LEASE_OVERLAP`,
   `CHAIN.UPSTREAM_UNRECONCILED`, `AUDIT.IDENTITY_MISMATCH`, `HASHCHAIN.BROKEN`,
@@ -310,8 +311,8 @@ engines are implemented to the same target.
 
 ### Task 5: Golden conformance vectors
 
-**Files:** Create `framework/conformance/vectors/{ledger,chain,audit,monitoring}/*.yaml`
-+ sibling `*.expect.yaml`.
+**Files:** Create `framework/conformance/vectors/{ledger,chain,audit,monitoring}/*.yaml` +
+sibling `*.expect.yaml`.
 
 - [ ] **Step 1: Author valid baselines** — one passing document per kind
   (`status: pass`, `rule_ids: []`), derived from the templates with realistic
@@ -432,8 +433,8 @@ test_rule_catalog.py,test_vectors.py,test_engines.py,test_differential.py,requir
 
 ### Task 9: Changelog, handoff, decisions finalize
 
-- [ ] **Step 1:** `CHANGELOG.md` `[Unreleased] → Added`: contract + rule catalog
-  + vectors, hermes + claude engines, OTel monitoring, conformance.
+- [ ] **Step 1:** `CHANGELOG.md` `[Unreleased] → Added`: contract + rule catalog +
+  vectors, hermes + claude engines, OTel monitoring, conformance.
 - [ ] **Step 2:** Update `plans/HANDOFF.md` (branch, done tasks, next engines).
 - [ ] **Step 3:** Set PLAN-001 `Status: DONE - <ISO>`.
 - [ ] **Step 4: Full verification** (below). **Commit** — `git commit -m "docs: record iops execution framework slice 1"`.
@@ -510,8 +511,8 @@ Expected:
   rewrite:
   - The attached plan's validators append plain strings under coarse codes,
     which is too imprecise for parity. Change: validators now emit
-    `{rule_id, severity, message}`; added `framework/conformance/rule-ids.yaml`
-    + `RULE-IDS.md`; comparison is on rule-ID **set** + status, ignoring messages.
+    `{rule_id, severity, message}`; added `framework/conformance/rule-ids.yaml` +
+    `RULE-IDS.md`; comparison is on rule-ID **set** + status, ignoring messages.
   - Parity needs ground truth, not just engine-vs-engine. Change: golden
     `*.expect.yaml` per vector (engine-vs-spec) is primary; `test_differential`
     (engine-vs-engine) is secondary (R11).

@@ -110,8 +110,8 @@ framework `MINOR` bump.
    **regenerate** the five `expect.yaml` golden `signature.value`s from the rewritten
    payload (run the projection, capture the output — do not hand-edit hashes); rerun
    the remote conformance suite (manifest/events incl. signatures match the golden).
-4. Add the `REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT` rule (C) across both engines + catalog
-   + the new `reject_executor_id` vector.
+4. Add the `REMOTE.PAYLOAD_EXECUTOR_ID_FORMAT` rule (C) across both engines + catalog +
+   the new `reject_executor_id` vector.
 5. Update `REMOTE_EXECUTOR_CONTRACT.md` (D); bump the versions; record D-0018.
 6. Run `python -m unittest discover -s tests/conformance` + per-engine
    `pytest platforms/<engine>` + `mypy --strict` green; `pre-commit run --all-files`.
@@ -161,7 +161,7 @@ framework `MINOR` bump.
 | 18c | the golden `expect.yaml` carries precomputed `signature.value`s (the five to regenerate, first at this line) | `value` | framework/conformance/remote/accept/expect.yaml:61 |
 | 19b | both engines carry a parity-gated `FRAMEWORK_SPEC_VERSION` marker (= `framework_version`) — a version carrier the bump must move | `framework_version` | tests/conformance/test_engines.py:15 |
 | 19  | the framework registry `spec_version` is `1.1.0` and must equal `framework/VERSION` (the bump pair) | `spec_version` | framework/registry/EXECUTION_REGISTRY.yaml:9 |
-| 20  | each engine `__version__` is `0.12.0` (bump to `0.13.0`) | `__version__` | platforms/hermes/src/iplan_hermes/__init__.py:6 |
+| 20  | each engine `__version__` is `0.12.0` (bump to `0.13.0`) | `__version__` | `platforms/hermes/src/iplan_hermes/__init__.py:6` |
 | 21  | the latest decision is D-0017 (so this is D-0018), newest-first ordering | `D-0017` | plans/DECISIONS.md:256 |
 | 22  | the `remote_execution` block carries `executor_id` as the Iplanic identity for event emission (why the format must conform) | `executor_id` | framework/remote/REMOTE_EXECUTOR_CONTRACT.md:40 |
 

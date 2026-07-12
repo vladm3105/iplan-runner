@@ -7,7 +7,7 @@ it (D-0006).
 
 ## Model
 
-```
+```text
 Ledger (what was done) ──▶ Monitoring Manifest ──▶ OTel signals ──▶ SLO eval ──▶ alerts
         @iplan/@ledger identity carried through as span/metric attributes
 ```

@@ -13,7 +13,7 @@ SLOs are future work). An SLO is **breached** when `met is False`.
 
 ## Alert evaluation (SLO-breach-driven)
 
-```
+```text
 evaluate_alerts(manifest, samples) -> [{alert_id, slo_ref, severity, escalation_owner}]
 ```
 
@@ -24,7 +24,7 @@ is **not** evaluated (no arbitrary-expression eval). Deterministic + pure.
 
 ## Issue record
 
-```
+```text
 build_issue(alert, manifest) -> {title, body, source_iplan, source_ledger, severity, escalation_owner}
 ```
 

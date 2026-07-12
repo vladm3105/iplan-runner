@@ -171,8 +171,8 @@ integration-only seams); every conformance root resolves; both engines isolated.
   confirm green.
 - [ ] **Step 2:** grep shipped `src/` for `TODO`/`FIXME`/`NotImplementedError`
   (only the documented integration-only seam may remain — `model/client.py`'s
-  `get_model_client` for an unsupported provider) + confirm version-marker parity
-  + every conformance root resolves + isolation.
+  `get_model_client` for an unsupported provider) + confirm version-marker parity +
+  every conformance root resolves + isolation.
 - [ ] **Step 3: commit** (if any doc/nit fixes) — `chore: GA hardening pass`.
 
 ### Task 6: Release v1.0.0

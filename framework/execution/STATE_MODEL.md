@@ -17,7 +17,7 @@ states only.
 
 ## Transitions
 
-```
+```text
 pending ──▶ in_progress ──▶ completed
    ▲             │
    │             ▼

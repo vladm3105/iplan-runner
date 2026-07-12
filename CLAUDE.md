@@ -125,8 +125,8 @@ fire until the reviewer App is installed on this repo. Migrates to
 rollout (runbook prepared at `aidoc-flow-operations`
 `ops/inbox/2026-06-17_cto-platform_iplan-runner-ai-review-pilot.md`).
 🔴 Prerequisites: founder creates `aidoc-flow-ci` repo (IPLAN-0017
-Phase 0) + installs reviewer App on this repo per F5 blast-radius rule
-+ Steps 1-3 activation mirror (BOT_ID variable → test PR →
+Phase 0) + installs reviewer App on this repo per F5 blast-radius rule +
+Steps 1-3 activation mirror (BOT_ID variable → test PR →
 branch-protection cutover).
 
 ### Local overrides shared — the foundational rule

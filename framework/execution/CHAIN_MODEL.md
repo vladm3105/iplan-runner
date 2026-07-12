@@ -6,7 +6,7 @@ single-IPLAN run loop (`RUN_MODEL`).
 
 ## Chain order
 
-```
+```text
 chain_order(iplan_chain) -> [iplan_id]
 ```
 

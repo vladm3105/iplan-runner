@@ -1,3 +1,5 @@
+<!-- markdownlint-disable-file MD033 — template uses <placeholder> fill-in syntax -->
+
 ## Claim ledger
 
 > Every load-bearing claim (file path, signature, field/key, event/enum value,

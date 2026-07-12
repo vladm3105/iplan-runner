@@ -20,7 +20,7 @@ phases unchanged).
 
 ## Decision
 
-```
+```text
 check(budget, usage) -> {allowed: bool, reason: str}
 usage = {tokens, cost_usd, wall_s}
 ```

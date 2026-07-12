@@ -38,7 +38,7 @@ Each `saga_journal` entry:
 The orchestrator runs each task transaction through this machine. Time and
 `sleep` are **injected** (D-0014), so the flow is deterministic and testable.
 
-```
+```text
                  success
    ┌────────────────────────────────▶ committed
 pending ──execute──▶ failure ──retriable & attempt ≤ max_retries──▶ (backoff, retry)

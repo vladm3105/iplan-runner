@@ -103,6 +103,7 @@ key, it is **not** a keyless `validate()` rule — it is a keyed function with i
 own conformance, exactly like `classify_path`/`can_acquire`.
 
 **Authz is a pure decision → vector'd.** `authorize(actor, action)` maps a role
+
 + action to allow/deny via a fixed policy matrix (each engine's own copy, kept
 identical by vectors). It is a **primitive + decision point**, not forced into
 `run()` (which has no actor) — so prior runs are unaffected. `land()` may take an
@@ -142,63 +143,63 @@ this; no fragile content heuristic is added here.
 
 ### Task 1: Framework security model
 
-- [ ] **Step 1:** `SECURITY_MODEL.md` — HMAC scheme (`signature = "hmac-sha256:"
++ [ ] **Step 1:** `SECURITY_MODEL.md` — HMAC scheme (`signature = "hmac-sha256:"
   + HMAC_SHA256(key, canonical_json(event without signature))`, sorted keys),
   authz role/action matrix + reason codes, untrusted-output principle, realpath
   hardening, threat-model table.
-- [ ] **Step 2:** registry — add the doc + `signing_root:
++ [ ] **Step 2:** registry — add the doc + `signing_root:
   framework/conformance/signing`, `authz_root: framework/conformance/authz`.
-- [ ] **Step 3: commit** — `feat: add security model`.
++ [ ] **Step 3: commit** — `feat: add security model`.
 
 ### Task 2: Signing + authz vectors
 
-- [ ] **Step 1:** signing vectors (fixed test key `"test-key"`): `basic`
++ [ ] **Step 1:** signing vectors (fixed test key `"test-key"`): `basic`
   (a known event dict → its HMAC over the canonical JSON) and `tampered`
   (the same event with one field changed → a different signature). Expected
   signatures pre-computed with stdlib `hmac` over the canonical JSON.
-- [ ] **Step 2:** authz vectors: `agent_run` (allow), `agent_land` (forbidden),
++ [ ] **Step 2:** authz vectors: `agent_run` (allow), `agent_land` (forbidden),
   `operator_land` (allow), `unknown_role` (unknown).
-- [ ] **Step 3: commit** — `test: add signing + authz vectors`.
++ [ ] **Step 3: commit** — `test: add signing + authz vectors`.
 
 ### Task 3: Hermes implementation (TDD)
 
-- [ ] **Step 1: failing tests** — `sign_event` matches vectors; `sign_ledger`
++ [ ] **Step 1: failing tests** — `sign_event` matches vectors; `sign_ledger`
   + `verify_ledger` round-trip; a tampered event/signature → `verify_ledger`
   false; `authorize` over the matrix; `apply_write` rejects a symlink escaping the
   workspace. Fail.
-- [ ] **Step 2: `security/signing.py`** — `sign_event(event, key)` (HMAC over
++ [ ] **Step 2: `security/signing.py`** — `sign_event(event, key)` (HMAC over
   canonical JSON excluding `signature`), `sign_ledger(ledger, key)` (set each
   event `signature`), `verify_ledger(ledger, key)` (verify the chain + that every
   event's signature recomputes; a missing/wrong signature → false).
-- [ ] **Step 3: `security/authz.py`** — policy matrix + `authorize`.
-- [ ] **Step 4: `effectors/apply.py`** — add realpath containment after the
++ [ ] **Step 3: `security/authz.py`** — policy matrix + `authorize`.
++ [ ] **Step 4: `effectors/apply.py`** — add realpath containment after the
   lexical check.
-- [ ] **Step 5: `config.py`** — `signing_key: str | None = None`;
++ [ ] **Step 5: `config.py`** — `signing_key: str | None = None`;
   `secrets_from_env(prefix)` helper.
-- [ ] **Step 6: `engine.py`** — `sign_ledger`/`verify_ledger`/`authorize`;
++ [ ] **Step 6: `engine.py`** — `sign_ledger`/`verify_ledger`/`authorize`;
   `land(..., actor=None)` authorizes (if actor) and signs iff `signing_key`.
-- [ ] **Step 7: `cli/commands.py`** — `verify <ledger> --key`.
-- [ ] **Step 8: green** — `pytest`, `ruff`, `mypy --strict`. Commit
++ [ ] **Step 7: `cli/commands.py`** — `verify <ledger> --key`.
++ [ ] **Step 8: green** — `pytest`, `ruff`, `mypy --strict`. Commit
   `feat: add security (signing/authz/realpath) to hermes`.
 
 ### Task 4: Claude implementation (independent)
 
-- [ ] **Step 1–7:** mirror Task 3 as an independent copy. No import of `iops_hermes`.
-- [ ] **Step 8: green** + commit `feat: add security (signing/authz/realpath) to claude`.
++ [ ] **Step 1–7:** mirror Task 3 as an independent copy. No import of `iops_hermes`.
++ [ ] **Step 8: green** + commit `feat: add security (signing/authz/realpath) to claude`.
 
 ### Task 5: Conformance
 
-- [ ] **Step 1:** `test_signing.py` — cross-engine `sign_event` parity over
++ [ ] **Step 1:** `test_signing.py` — cross-engine `sign_event` parity over
   signing vectors.
-- [ ] **Step 2:** `test_authz.py` — cross-engine `authorize` parity over authz
++ [ ] **Step 2:** `test_authz.py` — cross-engine `authorize` parity over authz
   vectors; extend `test_registry` path checks to `signing_root`/`authz_root`.
-- [ ] **Step 3: run full suite** + commit `test: add signing/authz conformance`.
++ [ ] **Step 3: run full suite** + commit `test: add signing/authz conformance`.
 
 ### Task 6: Version bump, changelog, handoff
 
-- [ ] **Step 1:** atomic bump to `0.7.0`.
-- [ ] **Step 2:** `CHANGELOG.md` `[0.7.0]`; update `HANDOFF.md`; plan `DONE`.
-- [ ] **Step 3: full verification** + commit `chore: release spec v0.7.0
++ [ ] **Step 1:** atomic bump to `0.7.0`.
++ [ ] **Step 2:** `CHANGELOG.md` `[0.7.0]`; update `HANDOFF.md`; plan `DONE`.
++ [ ] **Step 3: full verification** + commit `chore: release spec v0.7.0
   (security & ledger integrity)`.
 
 ## Verification
@@ -254,17 +255,17 @@ the vendor-neutral ethos of D-0011/D-0013/D-0006):
 
 ### Recommended providers (agent-first ordering)
 
-- **Workload/agent identity → SPIFFE/SPIRE** (primary): SVID issuance, mTLS,
++ **Workload/agent identity → SPIFFE/SPIRE** (primary): SVID issuance, mTLS,
   JWT-SVID — the standard for M2M/A2A identity without static secrets.
-- **M2M tokens + delegation → Keycloak or Ory Hydra** (open-source): OAuth2
++ **M2M tokens + delegation → Keycloak or Ory Hydra** (open-source): OAuth2
   **client-credentials** + **token exchange (RFC 8693)** + roles. Keycloak also
   bundles fine-grained Authorization Services (L2–L4). Managed: Auth0/Okta
   (client-creds + token vault / FGA), AWS Cognito, Azure Entra ID (workload IDs).
-- **L3 ReBAC at scale → OpenFGA or SpiceDB** (Google Zanzibar): models
++ **L3 ReBAC at scale → OpenFGA or SpiceDB** (Google Zanzibar): models
   agent ↔ resource ↔ principal **delegation relationships** directly.
-- **L4 policy-as-code → OPA (Rego) or AWS Cedar**: capability/delegation-depth
++ **L4 policy-as-code → OPA (Rego) or AWS Cedar**: capability/delegation-depth
   limits, budget caps, approval thresholds.
-- **Human operator** (approval/override, PLAN-009) → any **OIDC** IdP — the
++ **Human operator** (approval/override, PLAN-009) → any **OIDC** IdP — the
   *only* place a human login flow belongs.
 
 ### Framework seam
@@ -296,33 +297,33 @@ chain) is stamped into the ledger lease/transaction and signed (HMAC).
 
 ### Pass 1 - 2026-05-24
 
-- Finding (substantive): signing over `event_hash` would only authenticate the
++ Finding (substantive): signing over `event_hash` would only authenticate the
   hashed fields (`sequence|prev|event_type|subject_id|at`) — a tamper of
   `touched_paths`/`client_id`/`project_id` (not in the hash) would go undetected.
   Change: sign over the **canonical JSON of the full event** (sorted keys,
   excluding `signature`), so the HMAC authenticates every field. Updated
   objective, scheme, functions (`sign_event(event, key)`), and vectors.
-- Finding: `verify_ledger` must reject a *missing* signature, not only a wrong
++ Finding: `verify_ledger` must reject a *missing* signature, not only a wrong
   one. Stated: every event must carry a valid signature, else false.
-- Finding: HMAC verification needs the key, so it cannot be a keyless
++ Finding: HMAC verification needs the key, so it cannot be a keyless
   `validate()` rule. Confirmed: signing/verify are keyed functions with their own
   conformance (fixed test key), not document-validator rules (R2).
-- Finding: forcing authz/signing into the hot path would break prior phases.
++ Finding: forcing authz/signing into the hot path would break prior phases.
   Confirmed: `append_event` unchanged; `sign_ledger` is a post-step (default no
   key); authz is a primitive + optional `land(actor=...)` (default-allow) (R1, R3).
 
 ### Pass 2 - 2026-05-24
 
-- Finding: cross-engine signature parity requires identical canonicalization.
++ Finding: cross-engine signature parity requires identical canonicalization.
   Stated: `json.dumps(sort_keys=True, separators=(",", ":"))` in both engines, so
   HMACs match (differential) — the canonical form is part of the contract.
-- Finding: realpath hardening must not create files outside the workspace while
++ Finding: realpath hardening must not create files outside the workspace while
   checking. Resolved: resolve the deepest existing ancestor + the workspace and
   assert containment **before** `mkdir`/write; per-engine tested with a real
   symlink (R4).
-- Finding: a committed/hardcoded key would be a leak. Confirmed: key injected via
++ Finding: a committed/hardcoded key would be a leak. Confirmed: key injected via
   `Config.signing_key`/env; vectors use an obvious `"test-key"`; no real key in
   the repo (R5).
-- Verification ↔ surface cross-check: keyed-pure signing + pure authz are
++ Verification ↔ surface cross-check: keyed-pure signing + pure authz are
   vector'd + differential; realpath is per-engine (symlink escape); the run loop
   and all prior scenarios are untouched. No further findings.

@@ -22,7 +22,7 @@
 
 ## Architecture
 
-```
+```text
 iplan-standard @ iplan/v0.1.0  (source of truth: schemas/, iplan_canonical/, canonicalization vectors)
         │  (vendor-pin, drift-checked against the tag — NOT a stale hand-copy)
         ▼
@@ -158,8 +158,8 @@ is preserved: each engine carries its own vendored copy; nothing is shared betwe
 ## Proposed decision — D-0023
 
 **(consume the IPLAN standard)** Make iplan-runner a pinned consumer of `iplan-standard@iplan/v0.1.0`:
-**re-derive** the `framework/remote/` YAML subset to the current shape (fixing the `repository`-object drift)
-+ re-pin provenance; **vendor the standard's `iplan_canonical` as a package** and turn `iplanic_signing.py`
+**re-derive** the `framework/remote/` YAML subset to the current shape (fixing the `repository`-object drift) +
+re-pin provenance; **vendor the standard's `iplan_canonical` as a package** and turn `iplanic_signing.py`
 into a thin re-export shim (public name + API preserved → byte-identical hashes/signatures, zero importer/
 test blast radius); re-pin the (already-in-sync) vectors' provenance; add `sync/check-drift.sh` that
 **byte-diffs the byte-copyable surface** (the vendored package + vectors, tracked-content-only) and fails on
@@ -186,7 +186,7 @@ claude path is cited.
 | 7 | `ledger/events.py` imports the signing (one of the ~5 import sites to swap) | `from ..security.iplanic_signing import` | platforms/claude/src/iplan_claude/ledger/events.py:15 |
 | 8 | the vendored canonicalization vectors live here (provenance re-pinned; files already in sync) | `Vendored Iplanic conformance vectors` | framework/remote/iplanic-vectors/SOURCE.md:1 |
 | 8b | the conformance test imports `security.iplanic_signing` **by module path** — the shim preserves it (no edit) | `import_module(f"{entry['package']}.security.iplanic_signing")` | tests/conformance/test_iplanic_signing.py:30 |
-| 8c | `security/__init__.py` re-exports `iplanic_signing` in `__all__` — the shim preserves the public name | `"iplanic_signing"` | platforms/claude/src/iplan_claude/security/__init__.py:8 |
+| 8c | `security/__init__.py` re-exports `iplanic_signing` in `__all__` — the shim preserves the public name | `"iplanic_signing"` | `platforms/claude/src/iplan_claude/security/__init__.py:8` |
 | 8d | CI runs `mypy --strict` over `src/` (recurses the vendored dir) → the scoped override + shim `__all__` are required | `mypy --strict platforms/hermes/src platforms/claude/src` | .github/workflows/ci.yml:76 |
 | 9 | the consumed `repository` is re-derived to the object shape from the tag (`url`/`default_branch`/`base_ref`) | `url:` | framework/remote/IPLAN-TASK-PAYLOAD-TEMPLATE.yaml:33 |
 | 10 | the vendored `iplan_canonical` (verbatim from the tag) the shim re-exports | `SIGNATURE_ALGORITHMS` | platforms/claude/src/iplan_claude/security/iplan_canonical/signing.py:22 |

@@ -116,14 +116,17 @@ iplanic PLAN-100's deployment-contract + warn-on-unset work.
 ## Review log
 
 ### Pass 1 — 2026-07-09 — author (self)
+
 Drafted from the pre-prod review; verified citations 1-12 by opening each file
 (store.py prune-absence confirmed by grep count 0). B1 and B3 are the two I would
 land first. All code fixes apply to both engines.
 **Result:** pending independent review (Pass 2 required before ready).
 
 ### Pass 2 — 2026-07-09 — independent
+
 Fresh-context adversarial review against both engine trees. All 12 original
 citations verified accurate. **Load-bearing findings, all folded above:**
+
 - **B1 checkout fix was wrong** — `git checkout -- <ref>` treats `<ref>` as a
   pathspec, breaking every checkout. Corrected to trailing `--` / rev-parse; `--`
   moved *after* the URL in clone. (git-semantics)
@@ -138,6 +141,7 @@ citations verified accurate. **Load-bearing findings, all folded above:**
   pre-check asymmetry), 15 (403 branch order).
 
 ### Pass 3 — 2026-07-09 — independent (confirmation)
+
 Fresh-context re-review of the reworked B1/B3 fix text, the corrected parity note,
 and the three new ledger rows (13-15) against source. Confirmed the checkout guard
 is git-correct (trailing `--` / rev-parse), the B3 reorder reaches the integrity
@@ -145,6 +149,7 @@ codes ahead of the 403 branch, and rows 13-15 resolve. No new load-bearing
 findings.
 
 ### Pass 4 — 2026-07-09 — program coverage cross-check
+
 Final program-level review across all three plans found three pre-prod findings
 that had fallen through to no plan; all added here: **M-rotation** (runner
 single-static-key signing, `events.py:79`), **M-taskschema** (no runner-side

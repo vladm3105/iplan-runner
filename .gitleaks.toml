@@ -1,3 +1,15 @@
-# Gitleaks allowlist for .secrets.baseline (detect-secrets artifact)
+# Gitleaks config for iplan-runner.
+# Real detection (useDefault) + allowlist for this repo's two false-positive
+# sources: the detect-secrets baseline and the IPLANIC conformance test vectors
+# (placeholder keys, not live secrets). Consumed by BOTH the canon secret-scan
+# reusable (via `config-path: .gitleaks.toml` in secret-scan.yml) and the
+# standalone security.yml gitleaks (auto-loaded via `--source .`).
+[extend]
+  useDefault = true
+
 [allowlist]
-  paths = [".secrets.baseline"]
+  description = "detect-secrets baseline + IPLANIC conformance test vectors (placeholders, not live secrets)"
+  paths = [
+    '''\.secrets\.baseline$''',
+    '''(^|/)iplanic-vectors/''',
+  ]

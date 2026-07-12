@@ -6,6 +6,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- **Re-pin aidoc-flow-ci callers to @ci/v1.9.5** — version-only bump of stale `@ci/vX.Y.Z` pins to the current canon (per `sync/check-pin-currency.sh`). Topology preserved.
+
 ### Added
 
 - **Content-check CI workflows** — `links` (blocking, offline), `markdown-lint` (report-only, `fail-on-findings: false`), and `docs-sync` (dry-run) callers of the aidoc-flow-ci reusables @ci/v1.9.5, + `.markdownlint.json`/`.github/docs-sync.json` configs. Completes the content-check surface (labeler/secret-scan already present).

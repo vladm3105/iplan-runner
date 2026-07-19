@@ -11,18 +11,18 @@ Ready-for-build (verified-planning gate green: 17 citations, 4 passes). From the
 Every code fix applies to **both** engines (`iplan_claude` + `iplan_hermes`).
 **Independent / start now** — do not wait on the standard tag:
 
-- [ ] **B1 — clone-URL RCE (BLOCKER)** — scheme allow-list in `validation/payload_rules.py`
+- [x] **B1 — clone-URL RCE (BLOCKER)** — scheme allow-list in `validation/payload_rules.py`
   (reject `ext::`/`file://`/leading-`-`); harden `vcs/git.py` argv (`--` after url; trailing
   `git checkout <ref> --` / rev-parse — NOT leading `--`). Add rejection tests + a test-only
-  `file://` exemption for existing receiver fixtures.
-- [ ] **B3 — reject-envelope wire bug (BLOCKER)** — `relay/reject.py` read `reason`; reorder
+  `file://` exemption for existing receiver fixtures. (Shipped PR #71.)
+- [x] **B3 — reject-envelope wire bug (BLOCKER)** — `relay/reject.py` read `reason`; reorder
   integrity codes (`invalid_signature`/`schema_invalid`) **ahead** of the 403 branch. Cross-repo
-  classification test vs iplanic's real `{"reason":…}` bodies.
-- [ ] **M-wall** — measure + write `usage["wall_s"]`, add executor wall-timeout (hung task frees the slot).
-- [ ] **M-ws / M-relay** — workspace GC after run settles; relay-DB retention/prune.
+  classification test vs iplanic's real `{"reason":…}` bodies. (Shipped PR #71.)
+- [x] **M-wall** — measure + write `usage["wall_s"]`, add executor wall-timeout (hung task frees the slot). (Shipped PR #74.)
+- [x] **M-ws / M-relay** — workspace GC after run settles; relay-DB retention/prune. (Shipped PR #73.)
 - [ ] **M-crash** — auto re-drain tasks stuck in `running` on startup.
-- [ ] **M-body** — `try/except` the `Content-Length` parse (→400) + max body size (→413).
-- [ ] **M-budget-parity** — add the pre-spend budget check to `HostRuntimeExecutor` (claude).
+- [x] **M-body** — `try/except` the `Content-Length` parse (→400) + max body size (→413). (Shipped PR #72.)
+- [x] **M-budget-parity** — add the pre-spend budget check to `HostRuntimeExecutor` (claude). (Shipped PR #72.)
 - [ ] **M-rotation** — emitter key-rotation path (single static HMAC key today); rotation runbook.
 
 **P2 — deployment contract (joint with iplanic PLAN-100 B2/B4):**
@@ -39,7 +39,33 @@ Every code fix applies to **both** engines (`iplan_claude` + `iplan_hermes`).
 - [ ] **INT-1** — cross-repo integration harness (joint w/ iplanic) — real dispatch→execute→ingest→project loop.
 
 **P5 — docs/hygiene:** renumber the duplicate `PLAN-023` file + reconcile the `PLAN-024` collision;
-refresh stale `plans/HANDOFF.md`; document the `PYTHONPATH`/`pip install -e` test-run requirement.
+refresh stale `plans/HANDOFF.md` (executed by PLAN-026 PR-2); document the `PYTHONPATH`/`pip install -e`
+test-run requirement.
+
+## Docs consistency & reference — `plans/PLAN-026_docs-consistency-and-reference.md`
+
+From the 2026-07-19 three-lens docs review (accuracy / consistency / coverage):
+~25 verified discrepancies + 5 HIGH reference gaps. Gate green (58 citations,
+4 passes, 3 independent). PR slicing + the PLAN-026 self-ledger re-ground rules
+live in the plan — follow them exactly (pre-commit `--all-files` gates every
+plan on every PR).
+
+- [ ] **PR-1 (W1a)** — PLAN-024/025 status headers + PLAN-024 HANDOFF-citation repoint (PLAN-018 untouched).
+- [ ] **PR-2 (W1b)** — rewrite `plans/HANDOFF.md` (OPS-0062 pointer; retain `aidoc-flow-iplanic`); delete root `HANDOFF.md`; re-ground rows 13–15/18.
+- [ ] **PR-3 (W2)** — ROADMAP refresh (header → v0.14.0; phases 2–10 → done; drop "no CI" / G13 / dead branch); re-ground rows 6–10.
+- [ ] **PR-4 (W3)** — README (`receiver.executor` per-engine matrix; `iplanic.sync.enabled`; `docs/` row) + CLAUDE.md Unified-CI state; re-ground rows 11–12/30/34.
+- [ ] **PR-5a (W4)** — SECURITY_REVIEW re-version (3× `v1.0.0` → 0.14.0) + GETTING_STARTED snippet self-contained / public signing-config path; re-ground rows 19/32–33.
+- [ ] **PR-5b (W4)** — IPLAN-ECOSYSTEM: PLAN-013 is DONE; "not wired" corrected; mirror-divergence note (keep `aidoc-flow-iplanic`); re-ground rows 24–25/27.
+- [ ] **PR-6 (W5)** — engine `VERSION`/`__version__` 0.13.0 → 0.14.0; fix CHANGELOG:12 script path; re-ground row 21.
+- [ ] **PR-7 (W6a)** — `docs/CLI.md` (17 verbs + exit codes) + truthful `CONFIG_CONTRACT.md` rewrite (real keys, Reserved section, env-var table).
+- [ ] **PR-8 (W6b)** — `docs/OPERATIONS.md` (receiver + sync how-to, example config) + REMOTE_EXECUTOR_CONTRACT `413`/`404` rows.
+- [ ] **PR-9 (W6c)** — `docs/README.md` index + `framework/README.md` table (7 missing dirs) + README index link + CHANGELOG.
+- [ ] **PR-10** — PLAN-026 Status → DONE + TODO close-out.
+
+**Docs backlog (deferred from PLAN-026 — surplus scope, not planned):**
+generated Python API reference; troubleshooting/FAQ; OTel runtime-provider
+doc; release-process doc; platform-README dedup; D-0020 ecosystem-text
+propagation (approval-gated upstream).
 
 ## Numbered plans (the path to GA)
 

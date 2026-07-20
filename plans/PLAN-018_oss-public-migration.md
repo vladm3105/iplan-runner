@@ -517,7 +517,7 @@ run this session. Findings:
 | 15 | A second workflow also uses a least-privilege token (witness for the cross-workflow safety claim; exhaustive check is the grep gate in Verification) | `permissions:` | .github/workflows/codeql.yml:11 |
 | 16 | Baselined "secrets" are fake test fixtures, not real credentials | `SHOULD_BE_IGNORED` | platforms/hermes/tests/test_budget.py:30 |
 | 17 | CI installs gitleaks via unauthenticated curl (G6 Step 2 pins checksum) | `curl -fsSL` | .github/workflows/security.yml:58 |
-| 18 | G8 executed: verified-planning dev `PLAN.md`/`DESIGN.md` (which enumerated the private monorepo) removed; the skill tool is retained | `verified-planning` | .claude/skills/verified-planning/SKILL.md:2 |
+| 18 | G8 executed: verified-planning dev `PLAN.md`/`DESIGN.md` (which enumerated the private monorepo) removed; the skill tool is retained *(citation retargeted 2026-07-20 — `SKILL.md` also removed, skill global-canonical; retained tool = `check_plan.py`, gate wired via pre-commit)* | `verified-planning gate` | .pre-commit-config.yaml:59 |
 | 19 | G8 executed: the brand/strategy plan (`PLAN-016`) removed; the codename decision survives, redacted, in D-0019 | `D-0019` | plans/DECISIONS.md:217 |
 
 ## Review log

@@ -109,7 +109,7 @@ Expected:
 ## Review log
 
 > At least **two** passes before implementation; **at least one MUST be an
-> independent fresh-context review** (dispatch the `Agent` tool — author
+> independent fresh-context review** (dispatch the `verified-planning-reviewer` agent — `Agent` tool + explicit `model` only as fallback; author
 > self-review does not count). Each pass: re-read the whole plan, list findings,
 > fold fixes back in. The final pass must state **zero findings**. **If a pass
 > produces findings beyond the original problem's issue count, treat the surplus

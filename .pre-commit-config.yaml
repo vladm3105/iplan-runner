@@ -57,7 +57,7 @@ repos:
     stages: [manual]
   - id: check-plan
     name: verified-planning gate (claim ledger + review log)
-    entry: python .claude/skills/verified-planning/check_plan.py
+    entry: python3 .agents/skills/verified-planning/check_plan.py
     language: system
     files: (^|/)PLAN-[^/]*\.md$
         # grandfather PLAN-001..012 (completed before the gate); PLAN-013+ are gated

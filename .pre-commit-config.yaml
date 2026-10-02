@@ -28,6 +28,9 @@ repos:
   - id: ruff
     args: [--fix, --exit-non-zero-on-fix]
   - id: ruff-format
+    # vendored canon gate stays byte-identical for install.sh refresh;
+    # never reformat vendor code, exclude it instead
+    exclude: ^\.agents/skills/verified-planning/
 
 - repo: https://github.com/PyCQA/bandit
   rev: 1.8.3

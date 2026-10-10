@@ -79,7 +79,7 @@ monitor** — works end-to-end on both engines (see
   (`receiver.executor`: `mock` / `host` / `api`), relaying signed events back.
   The real agent runtime is a config-guarded, integration-only client swap.
 
-Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
+Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) and [`docs/ARCHITECTURAL_ALIGNMENT.md`](docs/ARCHITECTURAL_ALIGNMENT.md).
 
 ## Status & stability
 
@@ -116,7 +116,7 @@ evolve at any time.
 | `platforms/hermes/`, `platforms/claude/` | Reference engines |
 | `tests/conformance/` | Vector replay + isolation + parity |
 | `examples/` | Runnable end-to-end worked example |
-| `docs/` | Getting-started guide + security review |
+| `docs/` | Getting-started guide, architectural alignment + security review |
 | `plans/` | Development plans + decisions |
 
 See `CLAUDE.md` for the development workflow, [`CONTRIBUTING.md`](CONTRIBUTING.md)
